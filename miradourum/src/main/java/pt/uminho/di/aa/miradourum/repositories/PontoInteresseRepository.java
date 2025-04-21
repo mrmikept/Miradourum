@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import pt.uminho.di.aa.miradourum.models.PontoInteresse;
+import pt.uminho.di.aa.miradourum.models.Review;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,5 +29,8 @@ public interface PontoInteresseRepository extends JpaRepository<PontoInteresse, 
             @Param("difficulty") int difficulty,
             @Param("visitantes") int visitantes
     );
+
+    @Query("SELECT r FROM Review r WHERE r.pontoInteresse = :pontoInteresse")
+    List<Review> findReviews(@Param("pontoInteresse") PontoInteresse pontoInteresse);
 
 }

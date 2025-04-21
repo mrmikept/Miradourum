@@ -1,6 +1,7 @@
 package pt.uminho.di.aa.miradourum.services;
 
 import pt.uminho.di.aa.miradourum.models.PontoInteresse;
+import pt.uminho.di.aa.miradourum.models.Review;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -14,4 +15,6 @@ public interface PontoInteresseService {
     void savePontoInteresse(PontoInteresse pontoInteresse);
 
     List<PontoInteresse> getByState();
+
+    List<Review> getReviews(PontoInteresse pontoInteresse);
 }

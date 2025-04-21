@@ -4,6 +4,7 @@ package pt.uminho.di.aa.miradourum.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pt.uminho.di.aa.miradourum.models.PontoInteresse;
+import pt.uminho.di.aa.miradourum.models.Review;
 import pt.uminho.di.aa.miradourum.repositories.PontoInteresseRepository;
 
 import java.time.LocalDateTime;
@@ -38,5 +39,10 @@ public class PontoInteresseServiceImpl implements PontoInteresseService {
     @Override
     public List<PontoInteresse> getByState() {
         return pontoInteresseRepository.findByState();
+    }
+
+    @Override
+    public List<Review> getReviews(PontoInteresse pontoInteresse) {
+        return pontoInteresseRepository.findReviews(pontoInteresse);
     }
 }
