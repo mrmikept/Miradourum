@@ -1,5 +1,6 @@
 package pt.uminho.di.aa.miradourum.models;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.util.Date;
@@ -24,21 +25,24 @@ public class User {
     @Column(name = "PremiumEndDate")
     private Date premiumEndDate;
 
-
-
-    @OneToMany(mappedBy = "user")
-    private List<Review> reviews;
+    @JsonManagedReference
     @ManyToMany
+    @JoinTable(
+            name = "PontoInteresse_User", // Use the actual table name as it exists in your DB
+            joinColumns = @JoinColumn(name = "UserID"), // Column in join table referring to User
+            inverseJoinColumns = @JoinColumn(name = "PontoInteresseID") // Column referring to PontoInteresse
+    )
     private List<PontoInteresse> pontoInteresse;
 
     public User() {}
 
-    public User(String username, String email, String password, Integer role, Date premiumEndDate) {
+    public User(String username, String email, String password, Integer role, String ProfileImage,Date premiumEndDate) {
         this.username = username;
         this.email = email;
         this.password = password;
         this.role = role;
         this.premiumEndDate = premiumEndDate;
+        this.profileImage = ProfileImage;
     }
 
     public int getId() {
@@ -89,13 +93,6 @@ public class User {
         this.premiumEndDate = premiumEndDate;
     }
 
-    public List<Review> getReviews() {
-        return reviews;
-    }
-
-    public void setReviews(List<Review> reviews) {
-        this.reviews = reviews;
-    }
 
     public List<PontoInteresse> getPontoInteresse() {
         return pontoInteresse;

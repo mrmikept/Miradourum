@@ -23,24 +23,25 @@ public class Review {
     @Temporal(TemporalType.DATE)
     private Date creationDate;
 
-    @ManyToOne
-    @JoinColumn(name = "UserID", referencedColumnName = "ID")
-    private User user;
+    @Column(name = "UserID")
+    private Integer userid;
 
-    @ManyToOne
-    @JoinColumn(name = "PontoInteresseID", referencedColumnName = "ID")
-    private PontoInteresse pontoInteresse;
 
     @OneToMany(mappedBy = "review")
     private List<Image> images;
 
-    public Review(Integer rating, String comment, Date creationDate, User user, PontoInteresse pontoInteresse, List<Image> images) {
+    @ManyToOne
+    @JoinColumn(name = "PontoInteresseID") // this is the DB column that stores the FK
+    private PontoInteresse pontoInteresse;
+
+
+    public Review(Integer rating, String comment, Date creationDate, Integer userid, PontoInteresse pontoInteresse, List<Image> images) {
         this.rating = rating;
         this.comment = comment;
         this.creationDate = creationDate;
-        this.user = user;
-        this.pontoInteresse = pontoInteresse;
+        this.userid = userid;
         this.images = images;
+        this.userid = userid;
     }
 
     public Review() {
@@ -78,21 +79,14 @@ public class Review {
         this.creationDate = creationDate;
     }
 
-    public User getUser() {
-        return user;
+    public Integer getUserid() {
+        return userid;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setUserid(Integer userid) {
+        this.userid = userid;
     }
 
-    public PontoInteresse getPontoInteresse() {
-        return pontoInteresse;
-    }
-
-    public void setPontoInteresse(PontoInteresse pontoInteresse) {
-        this.pontoInteresse = pontoInteresse;
-    }
 
     public List<Image> getImages() {
         return images;

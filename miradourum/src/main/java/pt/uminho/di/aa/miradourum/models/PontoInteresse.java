@@ -1,5 +1,6 @@
 package pt.uminho.di.aa.miradourum.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -30,9 +31,14 @@ public class PontoInteresse
     private Double score;
     @Column(name = "CreationDate")
     private LocalDateTime creationDate;
-
     @ManyToMany(mappedBy = "pontoInteresse")
+    @JsonBackReference
     private List<User> userList;
+
+
+
+    @OneToMany(mappedBy = "pontoInteresse")
+    private List<Review> reviews;
 
     public PontoInteresse(Double score, Boolean state, Boolean accessibility, Integer difficulty, String description, String name, String coordinates) {
         this.score = score;
@@ -47,6 +53,13 @@ public class PontoInteresse
     public PontoInteresse() {
     }
 
+    public List<Review> getReviews() {
+        return reviews;
+    }
+
+    public void setReviews(List<Review> reviews) {
+        this.reviews = reviews;
+    }
     public Boolean getPremium() {
         return premium;
     }
