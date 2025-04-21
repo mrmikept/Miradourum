@@ -17,6 +17,8 @@ public class User {
     private String password;
     private Boolean premium;
     private Date premiumEndDate;
+    private String profileImage;
+
 
     @OneToMany(mappedBy = "user")
     private List<Review> reviews;
@@ -95,5 +97,13 @@ public class User {
 
     public void setPontoInteresses(List<PontoInteresse> pontoInteresses) {
         this.pontoInteresses = pontoInteresses;
+    }
+
+    public String getProfileImage() {
+        return profileImage;
+    }
+
+    public void setProfileImage(String profileImage) {
+        this.profileImage = profileImage;
     }
 }
