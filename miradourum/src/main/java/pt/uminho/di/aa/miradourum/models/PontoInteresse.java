@@ -2,6 +2,7 @@ package pt.uminho.di.aa.miradourum.models;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -17,6 +18,8 @@ public class PontoInteresse
     private Boolean accessibility;
     private Boolean state;
     private Double score;
+    private Boolean premium;
+    private LocalDateTime creationDate;
     
     @ManyToMany(mappedBy = "PontoInteresse_User")
     private List<User> userList;
@@ -34,7 +37,21 @@ public class PontoInteresse
     public PontoInteresse() {
     }
 
+    public Boolean getPremium() {
+        return premium;
+    }
 
+    public void setPremium(Boolean premium) {
+        this.premium = premium;
+    }
+
+    public LocalDateTime getCreationDate() {
+        return creationDate;
+    }
+
+    public void setCreationDate(LocalDateTime creationDate) {
+        this.creationDate = creationDate;
+    }
 
     public Double getScore() {
         return score;
