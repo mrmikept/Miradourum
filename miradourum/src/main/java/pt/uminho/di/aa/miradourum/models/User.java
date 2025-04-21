@@ -1,9 +1,8 @@
 package pt.uminho.di.aa.miradourum.models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+import pt.uminho.di.aa.miradourum.models.Review;
+import pt.uminho.di.aa.miradourum.models.PontoInteresse;
 
 @Entity
 public class User {
@@ -15,6 +14,11 @@ public class User {
     private String password;
     private Boolean premium;
     private String premiumEndDate;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Review> reviews;
+    @ManyToMany
+    private List<PontoInteresse> pontoInteresses;
 
     public User() {}
 
@@ -72,5 +76,13 @@ public class User {
 
     public void setPremiumEndDate(String premiumEndDate) {
         this.premiumEndDate = premiumEndDate;
+    }
+
+    public List<Review> getReviews() {
+        return reviews;
+    }
+
+    public void setReviews(List<Review> reviews) {
+        this.reviews = reviews;
     }
 }
