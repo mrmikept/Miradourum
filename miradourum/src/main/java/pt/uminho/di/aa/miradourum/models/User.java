@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import pt.uminho.di.aa.miradourum.models.Review;
 import pt.uminho.di.aa.miradourum.models.PontoInteresse;
 
+import java.util.List;
+
 @Entity
 public class User {
     @Id
