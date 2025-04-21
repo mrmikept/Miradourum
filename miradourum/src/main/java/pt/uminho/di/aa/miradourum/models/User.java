@@ -4,7 +4,9 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Entity
 public class User {
@@ -108,5 +110,15 @@ public class User {
 
     public void setProfileImage(String profileImage) {
         this.profileImage = profileImage;
+    }
+
+    public Map<String, Object> claimsForJwt(){
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("id", this.getId());
+        claims.put("username", this.getUsername());
+        claims.put("email", this.getEmail());
+        claims.put("role", this.getRole());
+        claims.put("PremiumEndDate", this.getPremiumEndDate() != null ? this.getPremiumEndDate() : "");
+        return claims;
     }
 }

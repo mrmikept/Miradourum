@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/user")
 public class UserController {
 
     private final UserService userService;
@@ -21,10 +21,10 @@ public class UserController {
         this.userService = userService;
         this.pontoInteresseService = pontoInteresseService;
     }
-    // Get all users
-    @GetMapping
-    public ResponseEntity<List<PontoInteresse>> getAllUsers() {
-        return ResponseEntity.ok(pontoInteresseService.getNewest("merda",123,12.3, LocalDateTime.now(),12,false,1));
+
+    @PostMapping
+    public ResponseEntity<User> createUser (@RequestBody User user) {
+        userService.saveUser(user);
     }
 
 }
