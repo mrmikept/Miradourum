@@ -9,7 +9,7 @@ import java.util.List;
 public class Review {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID")
     private int id;
 
@@ -24,7 +24,7 @@ public class Review {
     private Date creationDate;
 
     @Column(name = "UserID")
-    private Integer userid;
+    private Long userid;
 
 
     @OneToMany(mappedBy = "review")
@@ -35,13 +35,12 @@ public class Review {
     private PontoInteresse pontoInteresse;
 
 
-    public Review(Integer rating, String comment, Date creationDate, Integer userid, PontoInteresse pontoInteresse, List<Image> images) {
+    public Review(Integer rating, String comment, Date creationDate, Long userid, PontoInteresse pontoInteresse, List<Image> images) {
         this.rating = rating;
         this.comment = comment;
         this.creationDate = creationDate;
         this.userid = userid;
         this.images = images;
-        this.userid = userid;
     }
 
     public Review() {
@@ -79,11 +78,19 @@ public class Review {
         this.creationDate = creationDate;
     }
 
-    public Integer getUserid() {
+    public PontoInteresse getPontoInteresse() {
+        return pontoInteresse;
+    }
+
+    public void setPontoInteresse(PontoInteresse pontoInteresse) {
+        this.pontoInteresse = pontoInteresse;
+    }
+
+    public Long getUserid() {
         return userid;
     }
 
-    public void setUserid(Integer userid) {
+    public void setUserid(Long userid) {
         this.userid = userid;
     }
 

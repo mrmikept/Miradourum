@@ -1,14 +1,23 @@
 package pt.uminho.di.aa.miradourum;
 
 import org.junit.jupiter.api.Assertions;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import pt.uminho.di.aa.miradourum.models.Image;
+import pt.uminho.di.aa.miradourum.models.PontoInteresse;
+import pt.uminho.di.aa.miradourum.models.Review;
 import pt.uminho.di.aa.miradourum.models.User;
+import pt.uminho.di.aa.miradourum.repositories.ImageRepository;
+import pt.uminho.di.aa.miradourum.repositories.PontoInteresseRepository;
+import pt.uminho.di.aa.miradourum.repositories.ReviewRepository;
 import pt.uminho.di.aa.miradourum.repositories.UserRepository;
 import pt.uminho.di.aa.miradourum.services.UserService;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @SpringBootTest
@@ -20,8 +29,19 @@ public class UserServiceUnitTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private ReviewRepository reviewRepository;
+
+    private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+    @Autowired
+    private PontoInteresseRepository pontoInteresseRepository;
+    @Autowired
+    private ImageRepository imageRepository;
+
     @BeforeEach
     public void setup() {
+        imageRepository.deleteAll();
+        reviewRepository.deleteAll();
         // Clear any existing data
         userRepository.deleteAll();
 
@@ -45,4 +65,127 @@ public class UserServiceUnitTest {
         List<User> users = userService.getUsers();
         Assertions.assertEquals(2, users.size());
     }
+
+    @Test
+    public void testGetUserbyId() {
+        User user = userService.getUserById(74); // É preciso alterar pq o ID é gerado auto
+        Assertions.assertEquals("user1", user.getUsername());
+    }
+
+    @Test
+    public void testGetUserbyEmail() {
+        User user = userService.getUserByEmail("user2@example.com");
+        Assertions.assertEquals("user2", user.getUsername());
+    }
+
+    @Test
+    public void testSaveUpdateUser() {
+
+        User user = new User();
+        user.setUsername("user3");
+        user.setPassword("password");
+
+        User user1 = userService.getUserByEmail("user2@example.com");
+        user1.setUsername("user4");
+
+        userService.saveUser(user);
+        userRepository.save(user1);
+
+        List<User> users = userService.getUsers();
+
+        Assertions.assertEquals(3, users.size());
+        Assertions.assertEquals("user4", userService.getUserByEmail("user2@example.com").getUsername());
+    }
+
+    @Test
+    public void testEmailExists() {
+        Assertions.assertTrue(userService.emailExists("user2@example.com"));
+    }
+
+    @Test
+    public void testPasswordCheck() {
+        User user1 = new User();
+        user1.setUsername("user1");
+        user1.setEmail("user5@example.com");
+        user1.setPassword("password");
+        userService.saveUser(user1);
+
+        String storedHash = userService.getUserByEmail("user5@example.com").getPassword();
+        Assertions.assertTrue(bCryptPasswordEncoder.matches("password", storedHash));
+
+    }
+
+    @Test
+    public void testGetPontosInteresse(){
+        User user1 = userService.getUserByEmail("user2@example.com");
+        Long id = user1.getId();
+        userService.getPontosInteresse(id);
+        List<PontoInteresse> l = new ArrayList<>();
+        PontoInteresse pt = new PontoInteresse();
+        pt.setCreationDate(LocalDateTime.now());
+        l.add(pt);
+        pontoInteresseRepository.save(pt);
+        user1.setPontoInteresse(l);
+        userRepository.save(user1);
+
+        Assertions.assertTrue(userService.getPontosInteresse(id).size() > 0);
+    }
+
+    @Test
+    public void testGetImagesURL(){
+        User user = new User();
+        user.setUsername("user10");
+        user.setPassword("password");
+        user.setEmail("asd");
+
+        userService.saveUser(user);
+
+        // Create and assign a ponto
+        PontoInteresse ponto = new PontoInteresse();
+        ponto.setName("Test Spot");
+        ponto.setCreationDate(LocalDateTime.now());
+
+        List<User> users = new ArrayList<>();
+        users.add(user);
+        ponto.setUserList(users);
+        pontoInteresseRepository.save(ponto); // only if not in-memory
+
+        user.setPontoInteresse(List.of(ponto));
+        userRepository.save(user);
+
+        Review rev = new Review();
+        rev.setUserid(user.getId());
+        rev.setPontoInteresse(ponto); // this is key
+
+        reviewRepository.save(rev);
+
+        Image img = new Image();
+        img.setUrl("asd");
+        img.setReview(rev);
+
+        imageRepository.save(img);  // only if not cascade
+
+        rev.setImages(List.of(img));
+
+        reviewRepository.save(rev);
+
+
+        List<String> urls = userService.getImagesURL(user.getId());
+
+        Assertions.assertNotNull(urls);
+        Assertions.assertTrue(urls.contains("asd"));
+    }
+
+    @Test
+    public void testCheckPremium(){
+        User user = new User();
+        user.setUsername("user1");
+        user.setPassword("password");
+        user.setRole(1);
+
+        userService.saveUser(user);
+
+        Assertions.assertTrue(userService.checkPremium(user.getId()));
+    }
+
 }

@@ -36,5 +36,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     """)
     List<Image> getImagesFromReviews(@Param("reviews") List<Review> reviews);
 
+    @Query("SELECT COUNT(u) > 0 FROM User u WHERE u.id = :userId AND u.role = 1")
+    boolean checkPremium(@Param("userId") Long userId);
+
 
 }

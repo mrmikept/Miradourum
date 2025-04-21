@@ -45,6 +45,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public void saveUser(User user){
+        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+        userRepository.save(user);
+    }
+
+    @Override
     public boolean emailExists(String email) {
         return userRepository.existsByEmail(email);
     }
@@ -55,8 +61,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean checkPremium(String premium) {
-        return false;
+    public boolean checkPremium(Long userId) {
+        return userRepository.checkPremium(userId);
     }
 
     @Override
