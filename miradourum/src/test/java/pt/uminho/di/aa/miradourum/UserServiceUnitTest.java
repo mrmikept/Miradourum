@@ -18,6 +18,7 @@ import pt.uminho.di.aa.miradourum.services.UserService;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @SpringBootTest
@@ -68,8 +69,14 @@ public class UserServiceUnitTest {
 
     @Test
     public void testGetUserbyId() {
-        User user = userService.getUserById(74); // É preciso alterar pq o ID é gerado auto
-        Assertions.assertEquals("user1", user.getUsername());
+
+        Date date = new Date();
+        User user = new User("quim", "quim@mail.com","pass", 1, "image", date);
+        userRepository.save(user);
+
+        User user2 = userService.getUserById(user.getId());
+
+        Assertions.assertEquals(user.getId(),user2.getId());
     }
 
     @Test

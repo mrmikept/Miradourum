@@ -17,7 +17,7 @@ public interface UserService {
      * @param id do utilizador
      * @return dados de um utilizador
      */
-    User getUserById(int id);
+    User getUserById(Long id);
 
     /**
      *

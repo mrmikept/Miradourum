@@ -42,16 +42,21 @@ public class PontoInteresse
     @OneToMany(mappedBy = "pontoInteresse")
     private List<Review> reviews;
 
-    public PontoInteresse(Double score, Boolean state, Boolean accessibility, Integer difficulty, String description, String name, Double latitude, Double longitude) {
-        this.score = score;
-        this.state = state;
-        this.accessibility = accessibility;
-        this.difficulty = difficulty;
-        this.description = description;
-        this.name = name;
+    public PontoInteresse(Double latitude,Double longitude, String name, String description, Integer difficulty, Boolean accessibility, Boolean state, Boolean premium, Double score, LocalDateTime creationDate, List<User> userList, List<Review> reviews) {
         this.latitude = latitude;
         this.longitude = longitude;
+        this.name = name;
+        this.description = description;
+        this.difficulty = difficulty;
+        this.accessibility = accessibility;
+        this.state = state;
+        this.premium = premium;
+        this.score = score;
+        this.creationDate = creationDate;
+        this.userList = userList;
+        this.reviews = reviews;
     }
+
 
     public PontoInteresse() {
     }
