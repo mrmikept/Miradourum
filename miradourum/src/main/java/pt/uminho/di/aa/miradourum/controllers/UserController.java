@@ -29,7 +29,7 @@ public class UserController {
 
     // Get user by ID
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable int id) {
+    public ResponseEntity<User> getUserById(@PathVariable Long id) {
         User user = userService.getUserById(id);
         if (user == null) return ResponseEntity.notFound().build();
         return ResponseEntity.ok(user);
@@ -48,7 +48,7 @@ public class UserController {
     // Update user
     @PutMapping("/{id}/update")
     public ResponseEntity<String> updateUser(@PathVariable Long id, @RequestBody User updatedUser) {
-        User existingUser = userService.getUserById(id.intValue());
+        User existingUser = userService.getUserById(id.longValue());
         if (existingUser == null) return ResponseEntity.notFound().build();
 
         updatedUser.setId(id);
