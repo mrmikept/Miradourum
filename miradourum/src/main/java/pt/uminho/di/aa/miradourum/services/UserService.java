@@ -48,10 +48,11 @@ public interface UserService {
 
     /**
      * Verifica se um utilizador tem estatuto premium
-     * @param premium
+     * @param userId
      * @return true/false
      */
     boolean checkPremium(Long userid);
+
 
     /**
      *

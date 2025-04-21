@@ -13,8 +13,10 @@ public class PontoInteresse
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID")
     private Long id;
-    @Column(name = "Coordinates")
-    private String coordinates;
+    @Column(name = "Latitude")
+    private Double latitude;
+    @Column(name = "Longitude")
+    private Double longitude;
     @Column(name = "Name")
     private String name;
     @Column(name = "Description")
@@ -40,14 +42,15 @@ public class PontoInteresse
     @OneToMany(mappedBy = "pontoInteresse")
     private List<Review> reviews;
 
-    public PontoInteresse(Double score, Boolean state, Boolean accessibility, Integer difficulty, String description, String name, String coordinates) {
+    public PontoInteresse(Double score, Boolean state, Boolean accessibility, Integer difficulty, String description, String name, Double latitude, Double longitude) {
         this.score = score;
         this.state = state;
         this.accessibility = accessibility;
         this.difficulty = difficulty;
         this.description = description;
         this.name = name;
-        this.coordinates = coordinates;
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 
     public PontoInteresse() {
@@ -100,12 +103,20 @@ public class PontoInteresse
         return id;
     }
 
-    public String getCoordinates() {
-        return coordinates;
+    public Double getLatitude() {
+        return latitude;
     }
 
-    public void setCoordinates(String coordinates) {
-        this.coordinates = coordinates;
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
     }
 
     public String getName() {
