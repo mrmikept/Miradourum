@@ -15,23 +15,28 @@ public interface PontoInteresseRepository extends JpaRepository<PontoInteresse, 
     List<PontoInteresse> findByState();
 
     @Query("""
-    SELECT p FROM PontoInteresse p 
-    WHERE (:score IS NULL OR p.score >= :score)
-      AND (:date IS NULL OR p.creationDate >= :date)
-      AND (:accessibility IS NULL OR p.accessibility = :accessibility)
-      AND (:difficulty IS NULL OR p.difficulty = :difficulty)
-      AND (:visitantes IS NULL OR 
-           (SELECT COUNT(u) FROM User u JOIN u.pontoInteresse pi WHERE pi = p) >= :visitantes)
-      """)
-    List<PontoInteresse> findFiltered(
+        SELECT p FROM PontoInteresse p 
+        WHERE (:score IS NULL OR p.score >= :score)
+           AND (:date IS NULL OR p.creationDate >= :date)
+           AND (:accessibility IS NULL OR p.accessibility = :accessibility)
+           AND (:difficulty IS NULL OR p.difficulty = :difficulty)
+           AND (:visitantes IS NULL OR 
+            (SELECT COUNT(u) FROM User u JOIN u.pontoInteresse pi WHERE pi = p) >= :visitantes)
+           AND p.latitude BETWEEN :minLat AND :maxLat
+           AND p.longitude BETWEEN :minLon AND :maxLon
+    """)
+    List<PontoInteresse> findFilteredWithBox(
             @Param("score") Double score,
             @Param("date") LocalDateTime date,
             @Param("accessibility") Boolean accessibility,
             @Param("difficulty") Integer difficulty,
-            @Param("visitantes") Integer visitantes
+            @Param("visitantes") Integer visitantes,
+            @Param("minLat") Double minLat,
+            @Param("maxLat") Double maxLat,
+            @Param("minLon") Double minLon,
+            @Param("maxLon") Double maxLon
     );
 
     @Query("SELECT r FROM Review r WHERE r.pontoInteresse = :pontoInteresse")
     List<Review> findReviews(@Param("pontoInteresse") PontoInteresse pontoInteresse);
-
 }
