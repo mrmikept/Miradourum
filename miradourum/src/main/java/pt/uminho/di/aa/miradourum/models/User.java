@@ -15,9 +15,9 @@ public class User {
     private Boolean premium;
     private String premiumEndDate;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "user")
     private List<Review> reviews;
-    @ManyToMany
+    @ManyToMany(mappedBy = "PontoInteresse_User")
     private List<PontoInteresse> pontoInteresses;
 
     public User() {}
