@@ -1,12 +1,11 @@
 services:
-
   minio:
     image: minio/minio
     container_name: minio
     restart: always
     ports:
-      - "9000:9000"       # MinIO API
-      - "9001:9001"       # MinIO Console
+      - "9000:9000"
+      - "9001:9001"
     environment:
       - MINIO_ROOT_USER=admin
       - MINIO_ROOT_PASSWORD=admin123
@@ -27,6 +26,7 @@ services:
       - MYSQL_PASSWORD=mypassword
     volumes:
       - mysql-data:/var/lib/mysql
+      - ../sql/schema.sql:/docker-entrypoint-initdb.d/init.sql:ro  # This line mounts the SQL file
 
 volumes:
   minio-data:
