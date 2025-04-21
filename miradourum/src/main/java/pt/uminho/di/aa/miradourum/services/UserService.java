@@ -51,7 +51,8 @@ public interface UserService {
      * @param userId
      * @return true/false
      */
-    boolean checkPremium(Long userId);
+    boolean checkPremium(Long userid);
+
 
     /**
      *
@@ -66,4 +67,10 @@ public interface UserService {
      * @return lista de URLs das imagens que um utilizador adicionou nas suas reviews
      */
     List<String> getImagesURL(Long userId);
+
+    /**
+     * Guarda um user na base de dados, colocando a password encriptada
+     * @param user
+     */
+    void saveUser(User user);
 }
