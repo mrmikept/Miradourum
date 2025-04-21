@@ -1,5 +1,5 @@
-CREATE TABLE `User` (ID int(10) NOT NULL AUTO_INCREMENT, Email varchar(255), Username varchar(255), Password varchar(255), Premium bit(1), PremiumEndDate date, PRIMARY KEY (ID));
-CREATE TABLE PontoInteresse (ID int(10) NOT NULL AUTO_INCREMENT, Coordinates varchar(255), Name varchar(255), Description varchar(255), Dificulty int(10), Accessibility bit(1), State bit(1), Score double, PRIMARY KEY (ID));
+CREATE TABLE `User` (ID int(10) NOT NULL AUTO_INCREMENT, Email varchar(255), Username varchar(255), Password varchar(255), Role int(10),  ProfileImage varchar(255), PremiumEndDate date, PRIMARY KEY (ID));
+CREATE TABLE PontoInteresse (ID int(10) NOT NULL AUTO_INCREMENT, Coordinates varchar(255), Name varchar(255), Description varchar(255), Dificulty int(10), Accessibility bit(1), State bit(1),Premium bit(1), Score double, CreationDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (ID));
 CREATE TABLE Review (ID int(10) NOT NULL AUTO_INCREMENT, Comment varchar(255), Rating int(10), CreationDate date, UserID int(10) NOT NULL, PontoInteresseID int(10) NOT NULL, PRIMARY KEY (ID));
 CREATE TABLE Image (ID int(10) NOT NULL AUTO_INCREMENT, Url varchar(255), ReviewID int(10) NOT NULL, PRIMARY KEY (ID));
 CREATE TABLE PontoInteresse_User (PontoInteresseID int(10) NOT NULL, UserID int(10) NOT NULL, PRIMARY KEY (PontoInteresseID, UserID));
@@ -11,16 +11,16 @@ ALTER TABLE PontoInteresse_User ADD CONSTRAINT FKPontoInter594713 FOREIGN KEY (U
 
 
 -- Insert Users
-INSERT INTO `User` (Email, Username, Password, Premium, PremiumEndDate) VALUES
-('alice@example.com', 'alice', 'hashedpassword1', b'1', '2025-12-31'),
-('bob@example.com', 'bob', 'hashedpassword2', b'0', NULL),
-('charlie@example.com', 'charlie', 'hashedpassword3', b'1', '2025-06-30');
+INSERT INTO `User` (Email, Username, Password, Role,ProfileImage, PremiumEndDate) VALUES
+('alice@example.com', 'alice', 'hashedpassword1', 1,"example.com",'2025-12-31'),
+('bob@example.com', 'bob', 'hashedpassword2', 2,"example.com",NULL),
+('charlie@example.com', 'charlie', 'hashedpassword3', 3,"example.com",'2025-06-30');
 
 -- Insert Points of Interest
-INSERT INTO PontoInteresse (Coordinates, Name, Description, Dificulty, Accessibility, State, Score) VALUES
-('40.7128,-74.0060', 'Central Park', 'A large public park in NYC.', 2, b'1', b'1', 4.5),
-('48.8584,2.2945', 'Eiffel Tower', 'Famous landmark in Paris.', 3, b'1', b'1', 4.8),
-('35.6895,139.6917', 'Mount Takao', 'Popular hiking trail near Tokyo.', 4, b'0', b'1', 4.2);
+INSERT INTO PontoInteresse (Coordinates, Name, Description, Dificulty, Accessibility, State,Premium, Score) VALUES
+('40.7128,-74.0060', 'Central Park', 'A large public park in NYC.', 2, b'1', b'1',b'1' ,4.5),
+('48.8584,2.2945', 'Eiffel Tower', 'Famous landmark in Paris.', 3, b'1', b'1', b'0',4.8),
+('35.6895,139.6917', 'Mount Takao', 'Popular hiking trail near Tokyo.', 4, b'0', b'1',b'0', 4.2);
 
 -- Insert Reviews
 INSERT INTO Review (Comment, Rating, CreationDate, UserID, PontoInteresseID) VALUES
