@@ -55,8 +55,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean checkPremium(String premium) {
-        return false;
+    public boolean checkPremium(Long userId) {
+        return userRepository.checkPremium(userId);
     }
 
     @Override
