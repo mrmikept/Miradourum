@@ -2,6 +2,8 @@ package pt.uminho.di.aa.miradourum.models;
 
 import jakarta.persistence.*;
 
+import java.util.List;
+
 @Entity
 public class PontoInteresse
 {
