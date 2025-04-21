@@ -34,6 +34,18 @@ public class Review {
     @OneToMany(mappedBy = "review")
     private List<Image> images;
 
+    public Review(Integer rating, String comment, Date creationDate, User user, PontoInteresse pontoInteresse, List<Image> images) {
+        this.rating = rating;
+        this.comment = comment;
+        this.creationDate = creationDate;
+        this.user = user;
+        this.pontoInteresse = pontoInteresse;
+        this.images = images;
+    }
+
+    public Review() {
+    }
+
     public int getId() {
         return id;
     }

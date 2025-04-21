@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import pt.uminho.di.aa.miradourum.models.Review;
 import pt.uminho.di.aa.miradourum.models.PontoInteresse;
 
+import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -15,7 +16,7 @@ public class User {
     private String email;
     private String password;
     private Boolean premium;
-    private String premiumEndDate;
+    private Date premiumEndDate;
 
     @OneToMany(mappedBy = "user")
     private List<Review> reviews;
@@ -24,7 +25,7 @@ public class User {
 
     public User() {}
 
-    public User(String username, String email, String password, Boolean premium, String premiumEndDate) {
+    public User(String username, String email, String password, Boolean premium, Date premiumEndDate) {
         this.username = username;
         this.email = email;
         this.password = password;
@@ -72,11 +73,11 @@ public class User {
         this.premium = premium;
     }
 
-    public String getPremiumEndDate() {
+    public Date getPremiumEndDate() {
         return premiumEndDate;
     }
 
-    public void setPremiumEndDate(String premiumEndDate) {
+    public void setPremiumEndDate(Date premiumEndDate) {
         this.premiumEndDate = premiumEndDate;
     }
 
