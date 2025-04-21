@@ -85,4 +85,12 @@ public class User {
     public void setReviews(List<Review> reviews) {
         this.reviews = reviews;
     }
+
+    public List<PontoInteresse> getPontoInteresses() {
+        return pontoInteresses;
+    }
+
+    public void setPontoInteresses(List<PontoInteresse> pontoInteresses) {
+        this.pontoInteresses = pontoInteresses;
+    }
 }
