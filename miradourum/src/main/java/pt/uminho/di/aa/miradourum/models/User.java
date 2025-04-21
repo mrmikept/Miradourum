@@ -1,8 +1,6 @@
 package pt.uminho.di.aa.miradourum.models;
 
 import jakarta.persistence.*;
-import pt.uminho.di.aa.miradourum.models.Review;
-import pt.uminho.di.aa.miradourum.models.PontoInteresse;
 
 import java.util.Date;
 import java.util.List;
@@ -11,27 +9,35 @@ import java.util.List;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ID")
     private int id;
-    private String username;
+    @Column(name = "Email")
     private String email;
+    @Column(name = "Username")
+    private String username;
+    @Column(name = "Password")
     private String password;
-    private Boolean premium;
-    private Date premiumEndDate;
+    @Column(name = "Role")
+    private Integer role;
+    @Column(name = "ProfileImage")
     private String profileImage;
+    @Column(name = "PremiumEndDate")
+    private Date premiumEndDate;
+
 
 
     @OneToMany(mappedBy = "user")
     private List<Review> reviews;
-    @ManyToMany(mappedBy = "PontoInteresse_User")
-    private List<PontoInteresse> pontoInteresses;
+    @ManyToMany
+    private List<PontoInteresse> pontoInteresse;
 
     public User() {}
 
-    public User(String username, String email, String password, Boolean premium, Date premiumEndDate) {
+    public User(String username, String email, String password, Integer role, Date premiumEndDate) {
         this.username = username;
         this.email = email;
         this.password = password;
-        this.premium = premium;
+        this.role = role;
         this.premiumEndDate = premiumEndDate;
     }
 
@@ -67,12 +73,12 @@ public class User {
         this.password = password;
     }
 
-    public Boolean getPremium() {
-        return premium;
+    public Integer getRole() {
+        return role;
     }
 
-    public void setPremium(Boolean premium) {
-        this.premium = premium;
+    public void setRole(Integer role) {
+        this.role = role;
     }
 
     public Date getPremiumEndDate() {
@@ -91,12 +97,12 @@ public class User {
         this.reviews = reviews;
     }
 
-    public List<PontoInteresse> getPontoInteresses() {
-        return pontoInteresses;
+    public List<PontoInteresse> getPontoInteresse() {
+        return pontoInteresse;
     }
 
-    public void setPontoInteresses(List<PontoInteresse> pontoInteresses) {
-        this.pontoInteresses = pontoInteresses;
+    public void setPontoInteresse(List<PontoInteresse> pontoInteresse) {
+        this.pontoInteresse = pontoInteresse;
     }
 
     public String getProfileImage() {

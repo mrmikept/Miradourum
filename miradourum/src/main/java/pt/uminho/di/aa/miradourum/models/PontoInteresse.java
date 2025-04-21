@@ -10,18 +10,28 @@ public class PontoInteresse
 {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ID")
     private Long id;
+    @Column(name = "Coordinates")
     private String coordinates;
+    @Column(name = "Name")
     private String name;
+    @Column(name = "Description")
     private String description;
+    @Column(name = "Dificulty")
     private Integer difficulty;
+    @Column(name = "Accessibility")
     private Boolean accessibility;
+    @Column(name = "State")
     private Boolean state;
-    private Double score;
+    @Column(name = "Premium")
     private Boolean premium;
+    @Column(name = "Score")
+    private Double score;
+    @Column(name = "CreationDate")
     private LocalDateTime creationDate;
-    
-    @ManyToMany(mappedBy = "PontoInteresse_User")
+
+    @ManyToMany(mappedBy = "pontoInteresse")
     private List<User> userList;
 
     public PontoInteresse(Double score, Boolean state, Boolean accessibility, Integer difficulty, String description, String name, String coordinates) {
