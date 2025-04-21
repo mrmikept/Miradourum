@@ -16,18 +16,19 @@ public interface PontoInteresseRepository extends JpaRepository<PontoInteresse, 
 
     @Query("""
     SELECT p FROM PontoInteresse p 
-    WHERE p.score >= :score
-      AND p.creationDate >= :date
-      AND p.accessibility = :accessibility
-      AND p.difficulty = :difficulty
-      AND (SELECT COUNT(u) FROM User u JOIN u.pontoInteresse pi WHERE pi = p) >= :visitantes
+    WHERE (:score IS NULL OR p.score >= :score)
+      AND (:date IS NULL OR p.creationDate >= :date)
+      AND (:accessibility IS NULL OR p.accessibility = :accessibility)
+      AND (:difficulty IS NULL OR p.difficulty = :difficulty)
+      AND (:visitantes IS NULL OR 
+           (SELECT COUNT(u) FROM User u JOIN u.pontoInteresse pi WHERE pi = p) >= :visitantes)
       """)
     List<PontoInteresse> findFiltered(
-            @Param("score") double score,
+            @Param("score") Double score,
             @Param("date") LocalDateTime date,
-            @Param("accessibility") Boolean acessibilidade,
-            @Param("difficulty") int difficulty,
-            @Param("visitantes") int visitantes
+            @Param("accessibility") Boolean accessibility,
+            @Param("difficulty") Integer difficulty,
+            @Param("visitantes") Integer visitantes
     );
 
     @Query("SELECT r FROM Review r WHERE r.pontoInteresse = :pontoInteresse")
