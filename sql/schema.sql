@@ -1,0 +1,10 @@
+CREATE TABLE `User` (ID int(10) NOT NULL AUTO_INCREMENT, Email varchar(255), Username varchar(255), Password varchar(255), Premium bit(1), PremiumEndDate date, PRIMARY KEY (ID));
+CREATE TABLE PontoInteresse (ID int(10) NOT NULL AUTO_INCREMENT, Coordinates varchar(255), Name varchar(255), Description varchar(255), Dificulty int(10), Accessibility bit(1), State bit(1), Score double, PRIMARY KEY (ID));
+CREATE TABLE Review (ID int(10) NOT NULL AUTO_INCREMENT, Comment varchar(255), Rating int(10), CreationDate date, UserID int(10) NOT NULL, PontoInteresseID int(10) NOT NULL, PRIMARY KEY (ID));
+CREATE TABLE Image (ID int(10) NOT NULL AUTO_INCREMENT, Url varchar(255), UserID int(10) NOT NULL, ReviewID int(10) NOT NULL, PRIMARY KEY (ID));
+CREATE TABLE PontoInteresse_User (PontoInteresseID int(10) NOT NULL, UserID int(10) NOT NULL, PRIMARY KEY (PontoInteresseID, UserID));
+ALTER TABLE Review ADD CONSTRAINT FKReview970746 FOREIGN KEY (UserID) REFERENCES `User` (ID);
+ALTER TABLE Image ADD CONSTRAINT FKImage267607 FOREIGN KEY (ReviewID) REFERENCES Review (ID);
+ALTER TABLE Review ADD CONSTRAINT FKReview616691 FOREIGN KEY (PontoInteresseID) REFERENCES PontoInteresse (ID);
+ALTER TABLE PontoInteresse_User ADD CONSTRAINT FKPontoInter992724 FOREIGN KEY (PontoInteresseID) REFERENCES PontoInteresse (ID);
+ALTER TABLE PontoInteresse_User ADD CONSTRAINT FKPontoInter594713 FOREIGN KEY (UserID) REFERENCES `User` (ID);
