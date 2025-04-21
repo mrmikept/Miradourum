@@ -1,6 +1,7 @@
 package pt.uminho.di.aa.miradourum.auth;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
@@ -12,6 +13,7 @@ import pt.uminho.di.aa.miradourum.services.UserService;
 
 import javax.crypto.SecretKey;
 import java.security.Key;
+import java.security.SignatureException;
 import java.util.Date;
 import java.util.Map;
 
@@ -30,7 +32,7 @@ public class JwtService {
                 .setSubject(user.getEmail())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
-                .signWith(getSignInKey())
+                .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
@@ -45,12 +47,18 @@ public class JwtService {
 
 
     public Claims extractAllClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSignInKey()) // important for verification
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(getSignInKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (JwtException | IllegalArgumentException e) {
+            // log or rethrow
+            throw new RuntimeException("Invalid JWT token", e);
+        }
     }
+
 
     public String extractEmail(String token) {
         return extractAllClaims(token).getSubject();
@@ -61,7 +69,12 @@ public class JwtService {
     }
 
     public Long extractUserId(String token) {
-        return extractAllClaims(token).get("id", Long.class);
+        try {
+            return extractAllClaims(token).get("id", Long.class);
+        }catch (Exception e) {
+            return null;
+        }
+
     }
 
     public Integer extractRole(String token) {

@@ -1,7 +1,9 @@
 package pt.uminho.di.aa.miradourum.controllers;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pt.uminho.di.aa.miradourum.auth.JwtService;
 import pt.uminho.di.aa.miradourum.models.PontoInteresse;
 import pt.uminho.di.aa.miradourum.models.User;
 import pt.uminho.di.aa.miradourum.services.PontoInteresseService;
@@ -9,6 +11,7 @@ import pt.uminho.di.aa.miradourum.services.UserService;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/user")
@@ -16,15 +19,11 @@ public class UserController {
 
     private final UserService userService;
     private final PontoInteresseService pontoInteresseService;
-
-    public UserController(UserService userService, PontoInteresseService pontoInteresseService) {
+    private final JwtService jwtService;
+    public UserController(UserService userService, PontoInteresseService pontoInteresseService, JwtService jwtService) {
         this.userService = userService;
         this.pontoInteresseService = pontoInteresseService;
-    }
-
-    @PostMapping
-    public ResponseEntity<User> createUser (@RequestBody User user) {
-        userService.saveUser(user);
+        this.jwtService = jwtService;
     }
 
     // Get user by ID
@@ -46,14 +45,45 @@ public class UserController {
     }
 
     // Update user
-    @PutMapping("/{id}/update")
-    public ResponseEntity<String> updateUser(@PathVariable Long id, @RequestBody User updatedUser) {
-        User existingUser = userService.getUserById(id);
-        if (existingUser == null) return ResponseEntity.notFound().build();
+    @PutMapping("/update")
+    public ResponseEntity<String> updateUser(@RequestBody Map<String, String> credentials, @RequestHeader("Authorization") String authHeader) {
+        // 1. Check if token is provided
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or missing token");
+        }
 
-        updatedUser.setId(id);
-        userService.saveAndUpdateUser(updatedUser);
-        return ResponseEntity.ok("User updated successfully");
+        String token = authHeader.substring(7); // Remove "Bearer "
+
+        try {
+            // 2. Check if token is expired
+            if (jwtService.tokenExpired(token)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token expired");
+            }
+
+            // 3. Extract user ID
+            Long userId = jwtService.extractUserId(token);
+            if (userId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+            }
+
+            // 4. Fetch user and update
+            User existingUser = userService.getUserById(userId);
+            if (existingUser == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            }
+
+            String username = credentials.get("username");
+            String email = jwtService.extractEmail(token);
+            String password = credentials.get("password");
+            String image = credentials.get("profileImage");
+
+            userService.saveAndUpdateUser(username,email,password,image);
+            return ResponseEntity.ok("User updated successfully");
+
+        } catch (Exception e) {
+            // Handle token-related exceptions
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or tampered token");
+        }
     }
 
     // Check if user is premium

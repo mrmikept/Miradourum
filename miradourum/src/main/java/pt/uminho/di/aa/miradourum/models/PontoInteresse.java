@@ -1,12 +1,16 @@
 package pt.uminho.di.aa.miradourum.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
 public class PontoInteresse
 {
     @Id
@@ -38,7 +42,7 @@ public class PontoInteresse
     private List<User> userList;
 
 
-
+    @JsonManagedReference
     @OneToMany(mappedBy = "pontoInteresse")
     private List<Review> reviews;
 

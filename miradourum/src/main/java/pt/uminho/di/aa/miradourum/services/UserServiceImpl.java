@@ -40,13 +40,29 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void saveAndUpdateUser(User user) {
+    public void saveAndUpdateUser(String username,String email,String password,String image) {
+        User user = userRepository.findByEmail(email);
+
+        if(username != null){
+            user.setUsername(username);
+        }
+        if(password != null){
+            user.setPassword(encodePassword(password));
+        }
+        if(image != null){
+            user.setProfileImage(image);
+        }
+
         userRepository.save(user);
+    }
+
+    private String encodePassword(String password) {
+        return bCryptPasswordEncoder.encode(password);
     }
 
     @Override
     public void saveUser(User user){
-        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+        user.setPassword(encodePassword(user.getPassword()));
         userRepository.save(user);
     }
 

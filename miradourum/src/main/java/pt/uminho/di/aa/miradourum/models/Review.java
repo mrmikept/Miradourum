@@ -1,5 +1,7 @@
 package pt.uminho.di.aa.miradourum.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.util.Date;
@@ -28,9 +30,11 @@ public class Review {
 
 
     @OneToMany(mappedBy = "review")
+    @JsonManagedReference
     private List<Image> images;
 
     @ManyToOne
+    @JsonBackReference
     @JoinColumn(name = "PontoInteresseID") // this is the DB column that stores the FK
     private PontoInteresse pontoInteresse;
 

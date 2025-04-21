@@ -1,5 +1,6 @@
 package pt.uminho.di.aa.miradourum.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 @Entity
@@ -14,6 +15,7 @@ public class Image {
 
     @ManyToOne
     @JoinColumn(name = "ReviewID",referencedColumnName = "ID")
+    @JsonBackReference
     private Review review;
 
 
