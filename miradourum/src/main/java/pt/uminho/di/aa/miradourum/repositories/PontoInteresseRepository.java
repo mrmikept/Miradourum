@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import pt.uminho.di.aa.miradourum.models.PontoInteresse;
 import pt.uminho.di.aa.miradourum.models.Review;
+import pt.uminho.di.aa.miradourum.dtos.PontoInteresse.PIDetailsDto;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -39,4 +40,8 @@ public interface PontoInteresseRepository extends JpaRepository<PontoInteresse, 
 
     @Query("SELECT r FROM Review r WHERE r.pontoInteresse = :pontoInteresse")
     List<Review> findReviews(@Param("pontoInteresse") PontoInteresse pontoInteresse);
+
+    // Correct - no space between colon and parameter
+    @Query("SELECT new pt.uminho.di.aa.miradourum.dtos.PontoInteresse.PIDetailsDto(pi.latitude, pi.longitude, pi.name, pi.description, pi.difficulty, pi.accessibility, pi.premium, pi.score, pi.creationDate) FROM PontoInteresse pi WHERE pi.id = :id")
+    PIDetailsDto getFromId(@Param("id") Long id);
 }

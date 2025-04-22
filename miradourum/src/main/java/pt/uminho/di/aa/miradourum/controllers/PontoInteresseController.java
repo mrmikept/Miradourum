@@ -1,10 +1,15 @@
 package pt.uminho.di.aa.miradourum.controllers;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pt.uminho.di.aa.miradourum.auth.JwtService;
+import pt.uminho.di.aa.miradourum.dtos.PontoInteresse.PIDetailsDto;
 import pt.uminho.di.aa.miradourum.models.PontoInteresse;
 import pt.uminho.di.aa.miradourum.models.Review;
+import pt.uminho.di.aa.miradourum.models.User;
 import pt.uminho.di.aa.miradourum.services.PontoInteresseService;
+import pt.uminho.di.aa.miradourum.services.UserService;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -16,23 +21,47 @@ import java.util.Map;
 public class PontoInteresseController {
 
     private final PontoInteresseService pontoInteresseService;
+    private final UserService userService;
+    private final JwtService jwtService;
 
-    public PontoInteresseController(PontoInteresseService pontoInteresseService) {
+    public PontoInteresseController(PontoInteresseService pontoInteresseService, JwtService jwtService, UserService userService) {
         this.pontoInteresseService = pontoInteresseService;
+        this.jwtService = jwtService;
+        this.userService = userService;
     }
 
     // Obter ponto de interesse e seus detalhes
-    @GetMapping("/{id}/detalhes")
-    public ResponseEntity<?> getDetalhesPontoComReviews(@PathVariable Long id) {
-        PontoInteresse ponto = pontoInteresseService.getById(id);
-        if (ponto == null) return ResponseEntity.notFound().build();
-        List<Review> reviews = pontoInteresseService.getReviews(ponto);
+    @GetMapping("/details/{id}")
+    public ResponseEntity<?> getPontoInteresseDetails(@PathVariable("id") String id, @RequestHeader("Authorization") String authHeader) {
+        // 1. Check if token is provided
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or missing token");
+        }
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("ponto", ponto);
-        response.put("reviews", reviews);
+        String token = authHeader.substring(7); // Remove "Bearer "
 
-        return ResponseEntity.ok(response);
+        try {
+            // 2. Check if token is expired
+            if (jwtService.tokenExpired(token)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token expired");
+            }
+
+            // 3. Extract user ID
+            Long userId = jwtService.extractUserId(token);
+            if (userId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+            }
+
+            PIDetailsDto ponto = pontoInteresseService.getById(Long.valueOf(id));
+            if (ponto == null)
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("PI not found");
+
+            return ResponseEntity.ok(ponto);
+
+        } catch (Exception e) {
+            // Handle token-related exceptions
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or tampered token");
+        }
     }
 
     // Página inicial -> filtros
