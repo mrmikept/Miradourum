@@ -76,7 +76,7 @@ public class JwtService {
         }
 
     }
-
+    //0-Normal;1-Premium;2-Admin
     public Integer extractRole(String token) {
         return extractAllClaims(token).get("role", Integer.class);
     }

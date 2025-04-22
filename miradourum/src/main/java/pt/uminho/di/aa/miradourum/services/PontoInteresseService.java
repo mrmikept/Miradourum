@@ -18,4 +18,6 @@ public interface PontoInteresseService {
     List<PontoInteresse> getByState();
 
     List<Review> getReviews(PontoInteresse pontoInteresse);
+
+    public List<PontoInteresse> getInactive();
 }

@@ -61,6 +61,18 @@ public class PontoInteresse
         this.reviews = reviews;
     }
 
+    public PontoInteresse(Double latitude, Double longitude, String name, String description, Integer difficulty, Boolean accessibility, Boolean state, Boolean premium, Double score, LocalDateTime creationDate) {
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.name = name;
+        this.description = description;
+        this.difficulty = difficulty;
+        this.accessibility = accessibility;
+        this.state = state;
+        this.premium = premium;
+        this.score = score;
+        this.creationDate = creationDate;
+    }
 
     public PontoInteresse() {
     }
@@ -166,5 +178,8 @@ public class PontoInteresse
 
     public void setState(Boolean state) {
         this.state = state;
+    }
+    public void addReview(Review review) {
+        this.reviews.add(review);
     }
 }
