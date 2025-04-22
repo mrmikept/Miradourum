@@ -1,5 +1,6 @@
 package pt.uminho.di.aa.miradourum.services;
 
+import pt.uminho.di.aa.miradourum.dtos.PontoInteresse.PIDetailsDto;
 import pt.uminho.di.aa.miradourum.models.PontoInteresse;
 import pt.uminho.di.aa.miradourum.models.Review;
 
@@ -10,7 +11,7 @@ public interface PontoInteresseService {
 
     List<PontoInteresse> getNewest(String userCoordinates, int distancia, double score, LocalDateTime date, int visitantes, boolean acessibilidade, int difficulty);
 
-    PontoInteresse getById(Long pontoInteresseId);
+    PIDetailsDto getById(Long pontoInteresseId);
 
     void savePontoInteresse(PontoInteresse pontoInteresse);
 
