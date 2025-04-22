@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/pontos")
+@RequestMapping("/pi")
 public class PontoInteresseController {
 
     private final PontoInteresseService pontoInteresseService;
