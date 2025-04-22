@@ -1,6 +1,7 @@
 package pt.uminho.di.aa.miradourum.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
@@ -13,7 +14,7 @@ public class Review {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID")
-    private int id;
+    private Long id;
 
     @Column(name = "Comment")
     private String comment;
@@ -35,6 +36,7 @@ public class Review {
 
     @ManyToOne
     @JsonBackReference
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @JoinColumn(name = "PontoInteresseID") // this is the DB column that stores the FK
     private PontoInteresse pontoInteresse;
 
@@ -44,17 +46,17 @@ public class Review {
         this.comment = comment;
         this.creationDate = creationDate;
         this.userid = userid;
-        this.images = images;
+        this.pontoInteresse = pontoInteresse;
     }
 
     public Review() {
     }
 
-    public int getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

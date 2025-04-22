@@ -13,6 +13,8 @@ public interface PontoInteresseService {
 
     PIDetailsDto getById(Long pontoInteresseId);
 
+    public PontoInteresse getByIdComplete(Long pontoInteresseId);
+
     void savePontoInteresse(PontoInteresse pontoInteresse);
 
     List<PontoInteresse> getByState();

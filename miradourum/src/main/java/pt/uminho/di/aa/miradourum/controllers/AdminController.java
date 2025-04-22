@@ -82,7 +82,7 @@ public class AdminController {
 
             // get the wanted point
 
-            PontoInteresse ponto = pontoInteresseService.getById(id);
+            PontoInteresse ponto = pontoInteresseService.getByIdComplete(id);
             ponto.setState(true);
             pontoInteresseService.savePontoInteresse(ponto);
             return ResponseEntity.ok(ponto);

@@ -66,6 +66,14 @@ public class PontoInteresseServiceImpl implements PontoInteresseService {
     }
 
     @Override
+    public PontoInteresse getByIdComplete(Long pontoInteresseId){
+        PontoInteresse ponto = pontoInteresseRepository.getById(pontoInteresseId);
+        if(ponto == null)
+            return null;
+        return ponto;
+    }
+
+    @Override
     public void savePontoInteresse(PontoInteresse pontoInteresse) {
         pontoInteresseRepository.save(pontoInteresse);
     }

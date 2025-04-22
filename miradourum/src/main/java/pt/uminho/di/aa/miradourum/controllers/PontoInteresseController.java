@@ -4,13 +4,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pt.uminho.di.aa.miradourum.auth.JwtService;
+import pt.uminho.di.aa.miradourum.dtos.PontoInteresse.PIDetailsDto;
 import pt.uminho.di.aa.miradourum.models.Image;
 import pt.uminho.di.aa.miradourum.models.PontoInteresse;
 import pt.uminho.di.aa.miradourum.models.Review;
 import pt.uminho.di.aa.miradourum.models.User;
 import pt.uminho.di.aa.miradourum.repositories.ImageRepository;
 import pt.uminho.di.aa.miradourum.repositories.ReviewRepository;
+import pt.uminho.di.aa.miradourum.services.ImageService;
 import pt.uminho.di.aa.miradourum.services.PontoInteresseService;
+import pt.uminho.di.aa.miradourum.services.ReviewService;
 import pt.uminho.di.aa.miradourum.services.UserService;
 
 import java.time.LocalDateTime;
@@ -23,14 +26,14 @@ public class PontoInteresseController {
 
     private final PontoInteresseService pontoInteresseService;
     private final JwtService jwtService;
-    private final ImageRepository imageRepository;
-    private final ReviewRepository reviewRepository;
+    private final ImageService imageService;
+    private final ReviewService reviewService;
 
-    public PontoInteresseController(PontoInteresseService pontoInteresseService, JwtService jwtService, ImageRepository imageRepository, ReviewRepository reviewRepository) {
+    public PontoInteresseController(PontoInteresseService pontoInteresseService, JwtService jwtService, ImageService imageService, ReviewService reviewService) {
         this.pontoInteresseService = pontoInteresseService;
         this.jwtService = jwtService;
-        this.imageRepository = imageRepository;
-        this.reviewRepository = reviewRepository;
+        this.imageService = imageService;
+        this.reviewService = reviewService;
     }
 
     //rota que adiciona um novo ponto de interesse
@@ -41,6 +44,10 @@ public class PontoInteresseController {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or missing token");
         }
+        if (pontodata == null || pontodata.isEmpty()) {
+            return ResponseEntity.badRequest().body("Request body is missing or empty");
+        }
+
 
         String token = authHeader.substring(7); // Remove "Bearer "
 
@@ -125,9 +132,13 @@ public class PontoInteresseController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
             }
 
-            PontoInteresse point = pontoInteresseService.getById(id);
+            PontoInteresse point = pontoInteresseService.getByIdComplete(id);
             if(point == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or missing point of interest.");
+            }
+
+            if(point.getState()==false){
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Point is still inactive.");
             }
 
             // Define required fields
@@ -150,20 +161,18 @@ public class PontoInteresseController {
                 errorResponse.put("missing_fields", missingFields);
                 return ResponseEntity.badRequest().body(errorResponse);
             }
-            //Comment varchar(255), Rating int(10), CreationDate date, UserID int(10) NOT NULL, PontoInteresseID int(10) NOT NULL, PRIMARY KEY (ID));
-            //Review review = new Review(Integer rating, String comment, Date creationDate, Long userid, PontoInteresse pontoInteresse, List< Image > images)
+
             try {
                 String comment = String.valueOf(reviewdata.get("comment"));
                 Integer rating = Integer.valueOf(String.valueOf(reviewdata.get("rating")));
                 LocalDateTime creationDate = LocalDateTime.now();
                 Date creationDateConverted = Date.from(creationDate.atZone(ZoneId.systemDefault()).toInstant());
 
-                Review review = new Review(rating,comment,creationDateConverted,userId,point);
-
-
-
                 Object rawImages = reviewdata.get("images");
-
+                //**
+                //**
+                //Todo
+                //Depois aqui meter a logica de pegar no byte[] das images que vai vir no frontend, mandar para o image service que as enfia no minio
                 if (!(rawImages instanceof List<?>)) {
                     return ResponseEntity.badRequest().body("Invalid format for 'images' — expected an array of strings.");
                 }
@@ -171,20 +180,20 @@ public class PontoInteresseController {
                 List<?> rawList = (List<?>) rawImages;
                 List<Image> images = new ArrayList<>();
 
+                Review rev = reviewService.saveReview(rating,comment,creationDateConverted,userId,point);
+
                 for (Object obj : rawList) {
                     if (!(obj instanceof String)) {
                         return ResponseEntity.badRequest().body("Invalid image entry — must be a string.");
                     }
-                    Image img = new Image();
-                    img.setReview(review);
-                    img.setUrl((String) obj);
-                    images.add(img);
-                    imageRepository.save(img);
+                    Image image = imageService.saveImage((String) obj,null,rev);
+                    images.add(image);
                 }
 
-                review.setImages(images);
-                reviewRepository.save(review);
+                reviewService.addImages(rev.getId(),images);
 
+
+                point.addReview(rev);
                 pontoInteresseService.savePontoInteresse(point);
                 return ResponseEntity.ok(point);
 
@@ -196,9 +205,6 @@ public class PontoInteresseController {
             // Handle token-related exceptions
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or tampered token");
         }
-
-
-
     }
 
 
