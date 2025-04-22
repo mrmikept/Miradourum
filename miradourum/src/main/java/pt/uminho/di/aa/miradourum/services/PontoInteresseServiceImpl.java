@@ -71,6 +71,10 @@ public class PontoInteresseServiceImpl implements PontoInteresseService {
     }
 
     @Override
+    public List<PontoInteresse> getInactive() {return pontoInteresseRepository.findIncative();}
+
+
+    @Override
     public List<Review> getReviews(PontoInteresse pontoInteresse) {
         return pontoInteresseRepository.findReviews(pontoInteresse);
     }

@@ -14,6 +14,9 @@ public interface PontoInteresseRepository extends JpaRepository<PontoInteresse, 
     @Query("SELECT p FROM PontoInteresse p WHERE p.state = true")
     List<PontoInteresse> findByState();
 
+    @Query("SELECT p FROM PontoInteresse p WHERE p.state = false")
+    List<PontoInteresse> findIncative();
+
     @Query("""
         SELECT p FROM PontoInteresse p 
         WHERE (:score IS NULL OR p.score >= :score)

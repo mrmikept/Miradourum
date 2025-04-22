@@ -42,7 +42,7 @@ public class AuthController {
         return ResponseEntity.status(401).body(ex.getMessage());}
     }
 
-    @PostMapping("/register") //* Parece funcionar
+    @PostMapping("/register")
     public ResponseEntity<Object> registerUser(@RequestBody Map<String,String> userInfo, HttpServletResponse response) {
 
         try{

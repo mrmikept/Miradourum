@@ -39,7 +39,7 @@ public class Review {
     private PontoInteresse pontoInteresse;
 
 
-    public Review(Integer rating, String comment, Date creationDate, Long userid, PontoInteresse pontoInteresse, List<Image> images) {
+    public Review(Integer rating, String comment, Date creationDate, Long userid, PontoInteresse pontoInteresse) {
         this.rating = rating;
         this.comment = comment;
         this.creationDate = creationDate;
