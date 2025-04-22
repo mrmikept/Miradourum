@@ -204,17 +204,37 @@ public class PontoInteresseController {
 
 
     // Obter ponto de interesse e seus detalhes
-    @GetMapping("/{id}/detalhes")
-    public ResponseEntity<?> getDetalhesPontoComReviews(@PathVariable Long id) {
-        PontoInteresse ponto = pontoInteresseService.getById(id);
-        if (ponto == null) return ResponseEntity.notFound().build();
-        List<Review> reviews = pontoInteresseService.getReviews(ponto);
+    @GetMapping("/details/{id}")
+    public ResponseEntity<?> getPontoInteresseDetails(@PathVariable("id") String id, @RequestHeader("Authorization") String authHeader) {
+        // 1. Check if token is provided
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or missing token");
+        }
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("ponto", ponto);
-        response.put("reviews", reviews);
+        String token = authHeader.substring(7); // Remove "Bearer "
 
-        return ResponseEntity.ok(response);
+        try {
+            // 2. Check if token is expired
+            if (jwtService.tokenExpired(token)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token expired");
+            }
+
+            // 3. Extract user ID
+            Long userId = jwtService.extractUserId(token);
+            if (userId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+            }
+
+            PIDetailsDto ponto = pontoInteresseService.getById(Long.valueOf(id));
+            if (ponto == null)
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("PI not found");
+
+            return ResponseEntity.ok(ponto);
+
+        } catch (Exception e) {
+            // Handle token-related exceptions
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or tampered token");
+        }
     }
 
     // Página inicial -> filtros

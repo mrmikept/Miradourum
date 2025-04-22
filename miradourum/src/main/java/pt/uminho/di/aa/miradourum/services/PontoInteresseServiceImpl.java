@@ -3,6 +3,7 @@ package pt.uminho.di.aa.miradourum.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import pt.uminho.di.aa.miradourum.dtos.PontoInteresse.PIDetailsDto;
 import pt.uminho.di.aa.miradourum.models.PontoInteresse;
 import pt.uminho.di.aa.miradourum.models.Review;
 import pt.uminho.di.aa.miradourum.repositories.PontoInteresseRepository;
@@ -56,8 +57,12 @@ public class PontoInteresseServiceImpl implements PontoInteresseService {
     }
 
     @Override
-    public PontoInteresse getById(Long pontoInteresseId) {
-        return pontoInteresseRepository.findById(pontoInteresseId).orElse(null);
+    public PIDetailsDto getById(Long pontoInteresseId) {
+        PIDetailsDto pi = pontoInteresseRepository.getFromId(pontoInteresseId);
+        if (pi == null)
+            return null;
+
+        return pi;
     }
 
     @Override
