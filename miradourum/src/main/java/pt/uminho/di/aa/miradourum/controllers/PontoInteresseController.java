@@ -4,17 +4,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pt.uminho.di.aa.miradourum.auth.JwtService;
-import pt.uminho.di.aa.miradourum.dtos.PontoInteresse.PIDetailsDto;
+import pt.uminho.di.aa.miradourum.projections.PontoInteresse.PIDetailsFullProjection;
+import pt.uminho.di.aa.miradourum.projections.PontoInteresse.PIDetailsShortProjection;
 import pt.uminho.di.aa.miradourum.models.Image;
 import pt.uminho.di.aa.miradourum.models.PontoInteresse;
 import pt.uminho.di.aa.miradourum.models.Review;
-import pt.uminho.di.aa.miradourum.models.User;
-import pt.uminho.di.aa.miradourum.repositories.ImageRepository;
-import pt.uminho.di.aa.miradourum.repositories.ReviewRepository;
 import pt.uminho.di.aa.miradourum.services.ImageService;
 import pt.uminho.di.aa.miradourum.services.PontoInteresseService;
 import pt.uminho.di.aa.miradourum.services.ReviewService;
-import pt.uminho.di.aa.miradourum.services.UserService;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -36,7 +33,7 @@ public class PontoInteresseController {
         this.reviewService = reviewService;
     }
 
-    //rota que adiciona um novo ponto de interesse
+    // Add new PI
     @PostMapping
     public ResponseEntity<?> createPonto(@RequestBody Map<String, String> pontodata, @RequestHeader("Authorization") String authHeader) {
 
@@ -109,7 +106,7 @@ public class PontoInteresseController {
     }
 
 
-    //rota que adiciona uma review a um ponto de interesse
+    // Add new Review to PI
     @PostMapping("/{id}/reviews")
     public ResponseEntity<?> createReviewOnPonto(@PathVariable Long id,@RequestBody Map<String, Object> reviewdata, @RequestHeader("Authorization") String authHeader) {
 
@@ -209,9 +206,9 @@ public class PontoInteresseController {
 
 
 
-    // Obter ponto de interesse e seus detalhes
-    @GetMapping("/details/{id}")
-    public ResponseEntity<?> getPontoInteresseDetails(@PathVariable("id") String id, @RequestHeader("Authorization") String authHeader) {
+    // Get PI Details (Short)
+    @GetMapping("/shortdetails/{id}")
+    public ResponseEntity<?> getPontoInteresseShortDetails(@PathVariable("id") String id, @RequestHeader("Authorization") String authHeader) {
         // 1. Check if token is provided
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or missing token");
@@ -231,7 +228,41 @@ public class PontoInteresseController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
             }
 
-            PIDetailsDto ponto = pontoInteresseService.getById(Long.valueOf(id));
+            PIDetailsShortProjection ponto = pontoInteresseService.getById(Long.valueOf(id), PIDetailsShortProjection.class);
+            if (ponto == null)
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("PI not found");
+
+            return ResponseEntity.ok(ponto);
+
+        } catch (Exception e) {
+            // Handle token-related exceptions
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or tampered token");
+        }
+    }
+
+    // Get PI Details (Full)
+    @GetMapping("/details/{id}")
+    public ResponseEntity<?> getPontoInteresseFullDetails(@PathVariable("id") String id, @RequestHeader("Authorization") String authHeader) {
+        // 1. Check if token is provided
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or missing token");
+        }
+
+        String token = authHeader.substring(7); // Remove "Bearer "
+
+        try {
+            // 2. Check if token is expired
+            if (jwtService.tokenExpired(token)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token expired");
+            }
+
+            // 3. Extract user ID
+            Long userId = jwtService.extractUserId(token);
+            if (userId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+            }
+
+            PIDetailsFullProjection ponto = pontoInteresseService.getById(Long.valueOf(id), PIDetailsFullProjection.class);
             if (ponto == null)
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("PI not found");
 
