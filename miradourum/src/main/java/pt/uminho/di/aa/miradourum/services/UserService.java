@@ -17,7 +17,7 @@ public interface UserService {
      * @param id do utilizador
      * @return dados de um utilizador
      */
-    User getUserById(Long id);
+    <T> T getUserById(Long id, Class<T> clazz);
 
     /**
      *

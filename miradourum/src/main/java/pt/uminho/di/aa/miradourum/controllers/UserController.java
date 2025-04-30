@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.*;
 import pt.uminho.di.aa.miradourum.auth.JwtService;
 import pt.uminho.di.aa.miradourum.models.PontoInteresse;
 import pt.uminho.di.aa.miradourum.models.User;
+import pt.uminho.di.aa.miradourum.projections.User.UserEditProfileProjection;
+import pt.uminho.di.aa.miradourum.projections.User.UserProfileProjection;
 import pt.uminho.di.aa.miradourum.services.PontoInteresseService;
 import pt.uminho.di.aa.miradourum.services.UserService;
 
@@ -26,10 +28,69 @@ public class UserController {
         this.jwtService = jwtService;
     }
 
-    // Get user by ID
+    // Get User Profile
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
-        User user = userService.getUserById(id);
+    public ResponseEntity<?> getUserById(@PathVariable Long id, @RequestHeader("Authorization") String authHeader) {
+        // 1. Check if token is provided
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or missing token");
+        }
+        if (id == null) {
+            return ResponseEntity.badRequest().body("Request body is missing or empty");
+        }
+
+        String token = authHeader.substring(7); // Remove "Bearer "
+
+        try {
+            // 2. Check if token is expired
+            if (jwtService.tokenExpired(token)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token expired");
+            }
+
+            // 3. Extract user ID
+            Long userId = jwtService.extractUserId(token);
+            if (userId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or tampered token");
+        }
+
+        UserProfileProjection user = userService.getUserById(id, UserProfileProjection.class);
+        if (user == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(user);
+    }
+
+    // Get User Edit Profile
+    @GetMapping("/edit/{id}")
+    public ResponseEntity<?> getEditUserById(@PathVariable Long id, @RequestHeader("Authorization") String authHeader) {
+
+        // 1. Check if token is provided
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or missing token");
+        }
+        if (id == null) {
+            return ResponseEntity.badRequest().body("Request body is missing or empty");
+        }
+
+        String token = authHeader.substring(7); // Remove "Bearer "
+
+        try {
+            // 2. Check if token is expired
+            if (jwtService.tokenExpired(token)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token expired");
+            }
+
+            // 3. Extract user ID
+            Long userId = jwtService.extractUserId(token);
+            if (userId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or tampered token");
+        }
+
+        UserEditProfileProjection user = userService.getUserById(id, UserEditProfileProjection.class);
         if (user == null) return ResponseEntity.notFound().build();
         return ResponseEntity.ok(user);
     }
@@ -67,7 +128,7 @@ public class UserController {
             }
 
             // 4. Fetch user and update
-            User existingUser = userService.getUserById(userId);
+            User existingUser = userService.getUserById(userId, User.class);
             if (existingUser == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
             }
