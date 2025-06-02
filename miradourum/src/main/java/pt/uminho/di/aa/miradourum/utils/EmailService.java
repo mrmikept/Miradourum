@@ -26,25 +26,26 @@ public class EmailService {
         helper.setSubject("Your Point of Interest Was Rejected");
 
         String htmlContent = "<html>" +
-                "<body style='font-family: Arial, sans-serif;'>" +
-                "<div style='max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd;'>" +
+                "<body style='font-family: Arial, sans-serif; background-color: #000000; color: #ffffff;'>" +
+                "<div style='max-width: 600px; margin: auto; padding: 20px; border: 1px solid #444; background-color: #111111;'>" +
                 "<img src='cid:logoImage' style='width: 150px; display: block; margin-bottom: 20px;'/>" +
-                "<h2 style='color: #c0392b;'>Point of Interest Rejected</h2>" +
+                "<h2 style='color: #e74c3c;'>Point of Interest Rejected</h2>" +
                 "<p>Hello,</p>" +
                 "<p>Your submitted point of interest was <strong>rejected</strong> for the following reason:</p>" +
-                "<blockquote style='border-left: 4px solid #c0392b; margin: 10px 0; padding-left: 15px; color: #555;'>" +
+                "<blockquote style='border-left: 4px solid #e74c3c; margin: 10px 0; padding-left: 15px; color: #dddddd;'>" +
                 comment +
                 "</blockquote>" +
-                "<p>We appreciate your interest in contributing to <strong>Miradourum</strong>.</p>" +
+                "<p>We appreciate your interest in contributing to <strong style='color: #ffffff;'>Miradourum</strong>.</p>" +
                 "<p>Regards,<br/>The Miradourum Team</p>" +
                 "</div>" +
                 "</body>" +
                 "</html>";
 
+
         helper.setText(htmlContent, true);
 
         // Embed the logo
-        ClassPathResource logoImage = new ClassPathResource("/static/images/logo.png"); // Make sure this path is correct
+        ClassPathResource logoImage = new ClassPathResource("/static/images/logo2.png"); // Make sure this path is correct
         helper.addInline("logoImage", logoImage);
         mailSender.send(message);
     }
