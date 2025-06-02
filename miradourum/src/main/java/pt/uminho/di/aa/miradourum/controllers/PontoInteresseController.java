@@ -61,7 +61,7 @@ public class PontoInteresseController {
             }
 
             // Define required fields
-            String[] requiredFields = {"latitude", "longitude", "name", "description", "dificulty", "accessibility", "premium"};
+            String[] requiredFields = {"latitude", "longitude", "name", "description", "dificulty", "accessibility", "premium","creatorEmail"};
             List<String> missingFields = new ArrayList<>();
 
             // Check for missing fields
@@ -89,8 +89,9 @@ public class PontoInteresseController {
                 Boolean premium = Boolean.valueOf(pontodata.get("premium"));
                 Double score = (double)0;
                 LocalDateTime creationDate = LocalDateTime.now();
+                String CreatorEmail = pontodata.get("creatorEmail");
 
-                PontoInteresse pontoInteresse = new PontoInteresse(latitude, longitude, name, description, dificulty, accessibility, false, premium, 0.0, creationDate);
+                PontoInteresse pontoInteresse = new PontoInteresse(latitude, longitude, name, description, dificulty, accessibility, false, premium, 0.0, creationDate,CreatorEmail);
 
                 pontoInteresseService.savePontoInteresse(pontoInteresse);
                 return ResponseEntity.ok(pontoInteresse);
@@ -129,10 +130,12 @@ public class PontoInteresseController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
             }
 
-            PontoInteresse point = pontoInteresseService.getByIdComplete(id);
-            if(point == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or missing point of interest.");
+            Optional<PontoInteresse> optionalPonto = pontoInteresseService.getByIdComplete(id);
+            if (optionalPonto.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Ponto de interesse not found");
             }
+
+            PontoInteresse point = optionalPonto.get();
 
             if(point.getState()==false){
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Point is still inactive.");
@@ -298,14 +301,5 @@ public class PontoInteresseController {
         );
         return ResponseEntity.ok(resultado);
     }
-
-    //TODO -> ver se criamos um controller para o admin
-    // admin valida ponto de interesse Post("/validar?")
-    /*@PostMapping
-    public ResponseEntity<String> createPonto(@RequestBody PontoInteresse ponto) {
-        pontoInteresseService.savePontoInteresse(ponto);
-        return ResponseEntity.ok("Ponto de Interesse criado com sucesso");
-    }
-     */
 
 }

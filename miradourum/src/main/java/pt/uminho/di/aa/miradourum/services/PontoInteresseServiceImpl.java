@@ -5,10 +5,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pt.uminho.di.aa.miradourum.models.PontoInteresse;
 import pt.uminho.di.aa.miradourum.models.Review;
+import pt.uminho.di.aa.miradourum.models.User;
 import pt.uminho.di.aa.miradourum.repositories.PontoInteresseRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class PontoInteresseServiceImpl implements PontoInteresseService {
@@ -60,12 +62,10 @@ public class PontoInteresseServiceImpl implements PontoInteresseService {
     }
 
     @Override
-    public PontoInteresse getByIdComplete(Long pontoInteresseId){
-        PontoInteresse ponto = pontoInteresseRepository.getById(pontoInteresseId);
-        if(ponto == null)
-            return null;
-        return ponto;
+    public Optional<PontoInteresse> getByIdComplete(Long pontoInteresseId) {
+        return pontoInteresseRepository.findById(pontoInteresseId);
     }
+
 
     @Override
     public void savePontoInteresse(PontoInteresse pontoInteresse) {
@@ -84,5 +84,10 @@ public class PontoInteresseServiceImpl implements PontoInteresseService {
     @Override
     public List<Review> getReviews(PontoInteresse pontoInteresse) {
         return pontoInteresseRepository.findReviews(pontoInteresse);
+    }
+
+    @Override
+    public void deletePontoInteresse(PontoInteresse pontoInteresse){
+        pontoInteresseRepository.delete(pontoInteresse);
     }
 }

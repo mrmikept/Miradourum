@@ -10,6 +10,7 @@ import pt.uminho.di.aa.miradourum.models.Image;
 import pt.uminho.di.aa.miradourum.models.PontoInteresse;
 import pt.uminho.di.aa.miradourum.models.Review;
 import pt.uminho.di.aa.miradourum.models.User;
+import pt.uminho.di.aa.miradourum.projections.User.UserProfileProjection;
 import pt.uminho.di.aa.miradourum.repositories.ImageRepository;
 import pt.uminho.di.aa.miradourum.repositories.PontoInteresseRepository;
 import pt.uminho.di.aa.miradourum.repositories.ReviewRepository;
@@ -74,7 +75,7 @@ public class UserServiceUnitTest {
         User user = new User("quim", "quim@mail.com","pass", 1, "image", date);
         userRepository.save(user);
 
-        User user2 = userService.getUserById(user.getId());
+        User user2 = (User) userService.getUserById(user.getId(), UserProfileProjection.class);
 
         Assertions.assertEquals(user.getId(),user2.getId());
     }

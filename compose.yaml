@@ -26,10 +26,10 @@ services:
       - MYSQL_PASSWORD=mypassword
     volumes:
       - mysql-data:/var/lib/mysql
-      - ../sql/schema.sql:/docker-entrypoint-initdb.d/init.sql:ro  # This line mounts the SQL file
+      - ./sql/schema.sql:/docker-entrypoint-initdb.d/init.sql:ro  # This line mounts the SQL file
 
   payment_service:
-    build: ../payment_service
+    build: payment_service
     container_name: payment_service
     restart: always
     ports:

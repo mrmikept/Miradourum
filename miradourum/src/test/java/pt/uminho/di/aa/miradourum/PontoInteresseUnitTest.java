@@ -67,8 +67,8 @@ public class PontoInteresseUnitTest {
 
     @Test
     public void testGetById() {
-        PontoInteresse interesse = new PontoInteresse(40.7128,-74.0060, "vilarinho das furnas", "description", 4, false, true, false, 4.3, LocalDateTime.now(), null,null);
-        PontoInteresse interesse2 = new PontoInteresse(42.7128,-24.0060, "Moreira de conegos", "description", 4, false, true, false, 4.3, LocalDateTime.now(), null, null);
+        PontoInteresse interesse = new PontoInteresse(40.7128,-74.0060, "vilarinho das furnas", "description", 4, false, true, false, 4.3, LocalDateTime.now(), null,null,"jorge@gmail.com");
+        PontoInteresse interesse2 = new PontoInteresse(42.7128,-24.0060, "Moreira de conegos", "description", 4, false, true, false, 4.3, LocalDateTime.now(), null, null,"jorge@gmail.com");
         pontoInteresseRepository.save(interesse);
         pontoInteresseRepository.save(interesse2);
         PontoInteresse pontoInteresse = pontoInteresseService.getById(interesse.getId(), PontoInteresse.class);
@@ -77,7 +77,7 @@ public class PontoInteresseUnitTest {
 
     @Test
     public void savePontoInteresse() {
-        PontoInteresse interesse3 = new PontoInteresse(42.7128,-24.0060, "bizela", "description", 4, false, true, false, 4.3, LocalDateTime.now(), null, null);
+        PontoInteresse interesse3 = new PontoInteresse(42.7128,-24.0060, "bizela", "description", 4, false, true, false, 4.3, LocalDateTime.now(), null, null,"jorge@gmail.com");
 
         pontoInteresseRepository.save(interesse3);
         PontoInteresse saved = pontoInteresseService.getById(interesse3.getId(), PontoInteresse.class);

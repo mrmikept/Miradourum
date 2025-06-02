@@ -38,13 +38,14 @@ public class PontoInteresse
     @ManyToMany(mappedBy = "pontoInteresse")
     @JsonBackReference
     private List<User> userList;
-
+    @Column(name = "CreatorEmail")
+    private String creatorEmail;
 
     @JsonManagedReference
     @OneToMany(mappedBy = "pontoInteresse")
     private List<Review> reviews;
 
-    public PontoInteresse(Double latitude,Double longitude, String name, String description, Integer difficulty, Boolean accessibility, Boolean state, Boolean premium, Double score, LocalDateTime creationDate, List<User> userList, List<Review> reviews) {
+    public PontoInteresse(Double latitude,Double longitude, String name, String description, Integer difficulty, Boolean accessibility, Boolean state, Boolean premium, Double score, LocalDateTime creationDate, List<User> userList, List<Review> reviews,String creatorEmail) {
         this.latitude = latitude;
         this.longitude = longitude;
         this.name = name;
@@ -57,9 +58,10 @@ public class PontoInteresse
         this.creationDate = creationDate;
         this.userList = userList;
         this.reviews = reviews;
+        this.creatorEmail = creatorEmail;
     }
 
-    public PontoInteresse(Double latitude, Double longitude, String name, String description, Integer difficulty, Boolean accessibility, Boolean state, Boolean premium, Double score, LocalDateTime creationDate) {
+    public PontoInteresse(Double latitude, Double longitude, String name, String description, Integer difficulty, Boolean accessibility, Boolean state, Boolean premium, Double score, LocalDateTime creationDate,String creatorEmail) {
         this.latitude = latitude;
         this.longitude = longitude;
         this.name = name;
@@ -70,6 +72,7 @@ public class PontoInteresse
         this.premium = premium;
         this.score = score;
         this.creationDate = creationDate;
+        this.creatorEmail = creatorEmail;
     }
 
     public PontoInteresse() {
@@ -179,5 +182,13 @@ public class PontoInteresse
     }
     public void addReview(Review review) {
         this.reviews.add(review);
+    }
+
+    public String getCreatorEmail() {
+        return creatorEmail;
+    }
+
+    public void setCreatorEmail(String creatorEmail) {
+        this.creatorEmail = creatorEmail;
     }
 }
