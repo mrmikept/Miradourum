@@ -4,11 +4,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pt.uminho.di.aa.miradourum.auth.JwtService;
+import pt.uminho.di.aa.miradourum.models.ImagePontoInteresse;
 import pt.uminho.di.aa.miradourum.projections.PontoInteresse.PIDetailsFullProjection;
 import pt.uminho.di.aa.miradourum.projections.PontoInteresse.PIDetailsShortProjection;
 import pt.uminho.di.aa.miradourum.models.Image;
 import pt.uminho.di.aa.miradourum.models.PontoInteresse;
 import pt.uminho.di.aa.miradourum.models.Review;
+import pt.uminho.di.aa.miradourum.services.ImagePontoInteresseService;
 import pt.uminho.di.aa.miradourum.services.ImageService;
 import pt.uminho.di.aa.miradourum.services.PontoInteresseService;
 import pt.uminho.di.aa.miradourum.services.ReviewService;
@@ -25,17 +27,57 @@ public class PontoInteresseController {
     private final JwtService jwtService;
     private final ImageService imageService;
     private final ReviewService reviewService;
+    private final ImagePontoInteresseService imagePontoInteresseService;
 
-    public PontoInteresseController(PontoInteresseService pontoInteresseService, JwtService jwtService, ImageService imageService, ReviewService reviewService) {
+    public PontoInteresseController(PontoInteresseService pontoInteresseService, JwtService jwtService, ImageService imageService, ReviewService reviewService,ImagePontoInteresseService imagePontoInteresseService) {
         this.pontoInteresseService = pontoInteresseService;
         this.jwtService = jwtService;
         this.imageService = imageService;
         this.reviewService = reviewService;
+        this.imagePontoInteresseService=imagePontoInteresseService;
     }
+
+
+
+    @GetMapping
+    public ResponseEntity<?> getAllActivePontosShort(@RequestHeader("Authorization") String authHeader) {
+        // 1. Check if token is provided
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or missing token");
+        }
+
+        String token = authHeader.substring(7);
+
+        try {
+            // 2. Check if token is expired
+            if (jwtService.tokenExpired(token)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token expired");
+            }
+
+            // 3. Extract user ID
+            Long userId = jwtService.extractUserId(token);
+            if (userId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+            }
+
+            List<PIDetailsShortProjection> pontos = pontoInteresseService.getAllActive(PIDetailsShortProjection.class);
+            return ResponseEntity.ok(pontos);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or tampered token");
+        }
+    }
+
+
+
+
+
+
+
 
     // Add new PI
     @PostMapping
-    public ResponseEntity<?> createPonto(@RequestBody Map<String, String> pontodata, @RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<?> createPonto(@RequestBody Map<String, Object> pontodata, @RequestHeader("Authorization") String authHeader) {
 
         // 1. Check if token is provided
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
@@ -66,7 +108,7 @@ public class PontoInteresseController {
 
             // Check for missing fields
             for (String field : requiredFields) {
-                if (!pontodata.containsKey(field) || pontodata.get(field).isBlank()) {
+                if (!pontodata.containsKey(field) || pontodata.get(field)==null || pontodata.get(field).toString().isBlank()) {
                     missingFields.add(field);
                 }
             }
@@ -80,20 +122,40 @@ public class PontoInteresseController {
             }
 
             try {
-                Double latitude = Double.valueOf(pontodata.get("latitude"));
-                Double longitude = Double.valueOf(pontodata.get("longitude"));
-                String name = pontodata.get("name");
-                String description = pontodata.get("description");
-                Integer dificulty = Integer.valueOf(pontodata.get("dificulty"));
-                Boolean accessibility = Boolean.valueOf(pontodata.get("accessibility"));
-                Boolean premium = Boolean.valueOf(pontodata.get("premium"));
-                Double score = (double)0;
+                Double latitude = Double.valueOf(pontodata.get("latitude").toString());
+                Double longitude = Double.valueOf(pontodata.get("longitude").toString());
+                String name = pontodata.get("name").toString();
+                String description = pontodata.get("description").toString();
+                Integer dificulty = Integer.valueOf(pontodata.get("dificulty").toString());
+                Boolean accessibility = Boolean.valueOf(pontodata.get("accessibility").toString());
+                Boolean premium = Boolean.valueOf(pontodata.get("premium").toString());
+                String creatorEmail = pontodata.get("creatorEmail").toString();
                 LocalDateTime creationDate = LocalDateTime.now();
-                String CreatorEmail = pontodata.get("creatorEmail");
 
-                PontoInteresse pontoInteresse = new PontoInteresse(latitude, longitude, name, description, dificulty, accessibility, false, premium, 0.0, creationDate,CreatorEmail);
+                PontoInteresse pontoInteresse = new PontoInteresse(latitude, longitude, name, description, dificulty, accessibility, false, premium, 0.0, creationDate, creatorEmail);
 
                 pontoInteresseService.savePontoInteresse(pontoInteresse);
+
+                Object rawImages = pontodata.get("imageUrls");
+                //**
+
+                if (!(rawImages instanceof List<?>)) {
+                    return ResponseEntity.badRequest().body("Invalid format for 'images' — expected an array of strings.");
+                }
+
+                List<?> rawList = (List<?>) rawImages;
+                List<ImagePontoInteresse> images = new ArrayList<>();
+
+                for (Object obj : rawList) {
+                    if (!(obj instanceof String)) {
+                        return ResponseEntity.badRequest().body("Invalid image entry — must be a string.");
+                    }
+                    ImagePontoInteresse image = imagePontoInteresseService.saveImage((String) obj,pontoInteresse);
+                    images.add(image);
+                }
+
+                pontoInteresseService.addImages(pontoInteresse.getId(),images);
+
                 return ResponseEntity.ok(pontoInteresse);
 
             } catch (Exception e) {
@@ -170,9 +232,7 @@ public class PontoInteresseController {
 
                 Object rawImages = reviewdata.get("images");
                 //**
-                //**
-                //Todo
-                //Depois aqui meter a logica de pegar no byte[] das images que vai vir no frontend, mandar para o image service que as enfia no minio
+
                 if (!(rawImages instanceof List<?>)) {
                     return ResponseEntity.badRequest().body("Invalid format for 'images' — expected an array of strings.");
                 }
@@ -186,7 +246,7 @@ public class PontoInteresseController {
                     if (!(obj instanceof String)) {
                         return ResponseEntity.badRequest().body("Invalid image entry — must be a string.");
                     }
-                    Image image = imageService.saveImage((String) obj,null,rev);
+                    Image image = imageService.saveImage((String) obj,rev);
                     images.add(image);
                 }
 
@@ -234,7 +294,10 @@ public class PontoInteresseController {
             PIDetailsShortProjection ponto = pontoInteresseService.getById(Long.valueOf(id), PIDetailsShortProjection.class);
             if (ponto == null)
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("PI not found");
-
+            //ponto ainda esta inativo
+            if(!ponto.getState()){
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Ponto is inactive.");
+            }
             return ResponseEntity.ok(ponto);
 
         } catch (Exception e) {
@@ -268,7 +331,9 @@ public class PontoInteresseController {
             PIDetailsFullProjection ponto = pontoInteresseService.getById(Long.valueOf(id), PIDetailsFullProjection.class);
             if (ponto == null)
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("PI not found");
-
+            if(!ponto.getState()){
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Ponto is inactive.");
+            }
             return ResponseEntity.ok(ponto);
 
         } catch (Exception e) {
@@ -278,28 +343,28 @@ public class PontoInteresseController {
     }
 
     // Página inicial -> filtros
-    @GetMapping
-    public ResponseEntity<List<PontoInteresse>> getFiltered(
-            @RequestParam String userCoordinates,
-            @RequestParam(required = false, defaultValue = "10") int distancia,
-            @RequestParam(required = false) Double score,
-            @RequestParam(required = false) String date,
-            @RequestParam(required = false) Integer visitantes,
-            @RequestParam(required = false) Boolean acessibilidade,
-            @RequestParam(required = false) Integer dificuldade
-    ) {
-        LocalDateTime dataFinal = (date != null) ? LocalDateTime.parse(date) : null;
+    //@GetMapping
+    //public ResponseEntity<List<PontoInteresse>> getFiltered(
+    //        @RequestParam String userCoordinates,
+     //       @RequestParam(required = false, defaultValue = "10") int distancia,
+      //      @RequestParam(required = false) Double score,
+       //     @RequestParam(required = false) String date,
+        //    @RequestParam(required = false) Integer visitantes,
+         //   @RequestParam(required = false) Boolean acessibilidade,
+          //  @RequestParam(required = false) Integer dificuldade
+    //) {
+     //   LocalDateTime dataFinal = (date != null) ? LocalDateTime.parse(date) : null;
 
-        List<PontoInteresse> resultado = pontoInteresseService.getNewest(
-                userCoordinates,
-                distancia,
-                (score != null) ? score : 0.0,
-                dataFinal,
-                (visitantes != null) ? visitantes : 0,
-                (acessibilidade != null) ? acessibilidade : false,
-                (dificuldade != null) ? dificuldade : 0
-        );
-        return ResponseEntity.ok(resultado);
-    }
+        //List<PontoInteresse> resultado = pontoInteresseService.getNewest(
+         //       userCoordinates,
+          //      distancia,
+           //     (score != null) ? score : 0.0,
+            //    dataFinal,
+             //   (visitantes != null) ? visitantes : 0,
+              //  (acessibilidade != null) ? acessibilidade : false,
+               // (dificuldade != null) ? dificuldade : 0
+        //);
+        //return ResponseEntity.ok(resultado);
+    //}
 
 }

@@ -1,5 +1,6 @@
 package pt.uminho.di.aa.miradourum.projections.PontoInteresse;
 
+import pt.uminho.di.aa.miradourum.models.ImagePontoInteresse;
 import pt.uminho.di.aa.miradourum.projections.Review.ReviewProjection;
 
 import java.time.LocalDateTime;
@@ -17,4 +18,6 @@ public interface PIDetailsFullProjection {
     double getScore();
     LocalDateTime getCreationDate();
     List<ReviewProjection> getReviews();
+    List<ImagePontoInteresse> getImages();
+    boolean getState();
 }

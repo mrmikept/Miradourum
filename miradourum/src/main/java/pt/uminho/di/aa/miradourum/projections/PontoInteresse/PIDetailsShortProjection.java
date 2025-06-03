@@ -13,4 +13,6 @@ public interface PIDetailsShortProjection {
     boolean getPremium();
     double getScore();
     LocalDateTime getCreationDate();
+    boolean getState();
+
 }

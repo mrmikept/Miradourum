@@ -12,7 +12,7 @@ import java.util.Optional;
 
 public interface PontoInteresseRepository extends JpaRepository<PontoInteresse, Long> {
     @Query("SELECT p FROM PontoInteresse p WHERE p.state = true")
-    List<PontoInteresse> findByState();
+    <T> List<T> findByState(Class<T> type);
 
     @Query("SELECT p FROM PontoInteresse p WHERE p.state = false")
     List<PontoInteresse> findIncative();

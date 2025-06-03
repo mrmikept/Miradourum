@@ -16,11 +16,11 @@ public class ImageServiceImpl implements ImageService {
     private ImageRepository imageRepository;
 
     @Override
-    public Image saveImage(String url, byte[] imagedata, Review review) {
+    public Image saveImage(String url, Review review) {
         Image image = new Image();
         image.setUrl(url);
         image.setReview(review);
-        //Todo Logica de guardar no minio
+
         imageRepository.save(image);
         return image;
     }

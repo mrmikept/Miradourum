@@ -3,10 +3,10 @@ package pt.uminho.di.aa.miradourum.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import pt.uminho.di.aa.miradourum.models.PontoInteresse;
-import pt.uminho.di.aa.miradourum.models.Review;
-import pt.uminho.di.aa.miradourum.models.User;
+import pt.uminho.di.aa.miradourum.models.*;
+import pt.uminho.di.aa.miradourum.repositories.ImagePontoInteresseRepository;
 import pt.uminho.di.aa.miradourum.repositories.PontoInteresseRepository;
+import pt.uminho.di.aa.miradourum.repositories.ReviewRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,6 +17,11 @@ public class PontoInteresseServiceImpl implements PontoInteresseService {
 
     @Autowired
     private PontoInteresseRepository pontoInteresseRepository;
+
+    @Autowired
+    private ImagePontoInteresseRepository imagePontoInteresseRepository;
+    @Autowired
+    private ReviewRepository reviewRepository;
 
     @Override
     public List<PontoInteresse> getNewest(String userCoordinates, int distancia, double score, LocalDateTime date, int visitantes, boolean acessibilidade, int difficulty) {
@@ -72,10 +77,6 @@ public class PontoInteresseServiceImpl implements PontoInteresseService {
         pontoInteresseRepository.save(pontoInteresse);
     }
 
-    @Override
-    public List<PontoInteresse> getByState() {
-        return pontoInteresseRepository.findByState();
-    }
 
     @Override
     public List<PontoInteresse> getInactive() {return pontoInteresseRepository.findIncative();}
@@ -88,6 +89,21 @@ public class PontoInteresseServiceImpl implements PontoInteresseService {
 
     @Override
     public void deletePontoInteresse(PontoInteresse pontoInteresse){
+        reviewRepository.deleteAllByPontoInteresseId(pontoInteresse.getId());
+        imagePontoInteresseRepository.deleteAllByPontoInteresseId(pontoInteresse.getId());
         pontoInteresseRepository.delete(pontoInteresse);
     }
+
+    @Override
+    public void addImages(Long pontoId, List<ImagePontoInteresse> images){
+        PontoInteresse ponto = pontoInteresseRepository.getReferenceById(pontoId);
+        ponto.setImages(images);
+        pontoInteresseRepository.save(ponto);
+    }
+
+    @Override
+    public <T> List<T> getAllActive(Class<T> type) {
+        return pontoInteresseRepository.findByState(type);
+    }
+
 }

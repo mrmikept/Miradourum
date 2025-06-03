@@ -41,9 +41,14 @@ public class PontoInteresse
     @Column(name = "CreatorEmail")
     private String creatorEmail;
 
+    @OneToMany(mappedBy = "pontoInteresse")
+    @JsonManagedReference
+    private List<ImagePontoInteresse> images;
+
     @JsonManagedReference
     @OneToMany(mappedBy = "pontoInteresse")
     private List<Review> reviews;
+
 
     public PontoInteresse(Double latitude,Double longitude, String name, String description, Integer difficulty, Boolean accessibility, Boolean state, Boolean premium, Double score, LocalDateTime creationDate, List<User> userList, List<Review> reviews,String creatorEmail) {
         this.latitude = latitude;
@@ -174,7 +179,7 @@ public class PontoInteresse
     }
 
     public Boolean getState() {
-        return state;
+        return this.state;
     }
 
     public void setState(Boolean state) {
@@ -190,5 +195,13 @@ public class PontoInteresse
 
     public void setCreatorEmail(String creatorEmail) {
         this.creatorEmail = creatorEmail;
+    }
+
+    public List<ImagePontoInteresse> getImages() {
+        return images;
+    }
+
+    public void setImages(List<ImagePontoInteresse> images) {
+        this.images = images;
     }
 }

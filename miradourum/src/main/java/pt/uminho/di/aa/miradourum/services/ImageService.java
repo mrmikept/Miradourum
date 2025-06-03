@@ -5,5 +5,5 @@ import pt.uminho.di.aa.miradourum.models.Review;
 
 
 public interface ImageService {
-    Image saveImage(String url, byte[] imagedata, Review review);
+    Image saveImage(String url, Review review);
 }

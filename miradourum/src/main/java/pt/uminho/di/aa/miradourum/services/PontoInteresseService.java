@@ -1,5 +1,6 @@
 package pt.uminho.di.aa.miradourum.services;
 
+import pt.uminho.di.aa.miradourum.models.ImagePontoInteresse;
 import pt.uminho.di.aa.miradourum.models.PontoInteresse;
 import pt.uminho.di.aa.miradourum.models.Review;
 import pt.uminho.di.aa.miradourum.models.User;
@@ -17,11 +18,11 @@ public interface PontoInteresseService {
 
     void savePontoInteresse(PontoInteresse pontoInteresse);
 
-    List<PontoInteresse> getByState();
-
     List<Review> getReviews(PontoInteresse pontoInteresse);
 
     public List<PontoInteresse> getInactive();
 
     public void deletePontoInteresse(PontoInteresse pontoInteresse);
+    public void addImages(Long pontoID, List<ImagePontoInteresse> images);
+    <T> List<T> getAllActive (Class<T> type);
 }

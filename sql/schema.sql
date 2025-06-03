@@ -3,11 +3,15 @@ CREATE TABLE PontoInteresse (ID int(10) NOT NULL AUTO_INCREMENT, Latitude double
 CREATE TABLE Review (ID int(10) NOT NULL AUTO_INCREMENT, Comment varchar(255), Rating int(10), CreationDate date, UserID int(10) NOT NULL, PontoInteresseID int(10) NOT NULL, PRIMARY KEY (ID));
 CREATE TABLE Image (ID int(10) NOT NULL AUTO_INCREMENT, Url varchar(255), ReviewID int(10) NOT NULL, PRIMARY KEY (ID));
 CREATE TABLE PontoInteresse_User (PontoInteresseID int(10) NOT NULL, UserID int(10) NOT NULL, PRIMARY KEY (PontoInteresseID, UserID));
+CREATE TABLE ImagePontoInteresse (ID int(10) NOT NULL AUTO_INCREMENT,Url varchar(255) NOT NULL,PontoInteresseID int(10) NOT NULL,PRIMARY KEY (ID));
+
+
 ALTER TABLE Review ADD CONSTRAINT FKReview970746 FOREIGN KEY (UserID) REFERENCES `User` (ID);
 ALTER TABLE Image ADD CONSTRAINT FKImage267607 FOREIGN KEY (ReviewID) REFERENCES Review (ID);
 ALTER TABLE Review ADD CONSTRAINT FKReview616691 FOREIGN KEY (PontoInteresseID) REFERENCES PontoInteresse (ID);
 ALTER TABLE PontoInteresse_User ADD CONSTRAINT FKPontoInter992724 FOREIGN KEY (PontoInteresseID) REFERENCES PontoInteresse (ID);
 ALTER TABLE PontoInteresse_User ADD CONSTRAINT FKPontoInter594713 FOREIGN KEY (UserID) REFERENCES `User` (ID);
+ALTER TABLE ImagePontoInteresse ADD CONSTRAINT FK_ImagePontoInteresse_PontoInteresse FOREIGN KEY (PontoInteresseID) REFERENCES PontoInteresse(ID);
 
 
 -- Insert Users
@@ -40,4 +44,11 @@ INSERT INTO PontoInteresse_User (PontoInteresseID, UserID) VALUES
 (2, 1),
 (3, 2),
 (1, 3);
+
+-- Insert Images for PontoInteresse
+INSERT INTO ImagePontoInteresse (Url, PontoInteresseID) VALUES
+('https://example.com/poi1_img1.jpg', 1),
+('https://example.com/poi2_img1.jpg', 2),  
+('https://example.com/poi3_img1.jpg', 3),  
+('https://example.com/poi1_img2.jpg', 1);  
 
