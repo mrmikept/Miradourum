@@ -16,7 +16,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"admin@admin.com\",\n  \"password\": \"12345\",\n  \"username\": \"quim\"\n}",
+							"raw": "{\n  \"email\": \"admin@admin.com\",\n  \"password\": \"12345\",\n  \"username\": \"quim\",\n  \"profileimage\":\"url.sd\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -104,6 +104,45 @@
 							"path": [
 								"auth",
 								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Put profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoxLCJpZCI6MTAsIlByZW1pdW1FbmREYXRlIjoiIiwiZW1haWwiOiJhQGIuYyIsInVzZXJuYW1lIjoicXVpbSIsInN1YiI6ImFAYi5jIiwiaWF0IjoxNzQ4OTk3NjEwLCJleHAiOjE3NDkwODQwMTB9.WcCoBYOrEYxF8jD6w47ETSCsGiGINIuIg-1vBPZV89I",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/auth/profile",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"auth",
+								"profile"
 							]
 						}
 					},

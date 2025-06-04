@@ -46,8 +46,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void saveAndUpdateUser(String username,String email,String password,String image) {
-        User user = userRepository.findByEmail(email);
+    public void saveAndUpdateUser(Long id,String username,String password,String image) {
+        User user = userRepository.findById(id,User.class);
 
         if(username != null){
             user.setUsername(username);

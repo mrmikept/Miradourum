@@ -142,11 +142,10 @@ public class UserController {
             }
 
             String username = credentials.get("username");
-            String email = jwtService.extractEmail(token);
             String password = credentials.get("password");
             String image = credentials.get("profileImage");
 
-            userService.saveAndUpdateUser(username,email,password,image);
+            userService.saveAndUpdateUser(userId,username,password,image);
             return ResponseEntity.ok("User updated successfully");
 
         } catch (Exception e) {

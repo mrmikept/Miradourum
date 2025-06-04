@@ -54,10 +54,11 @@ public class JwtService {
                     .parseClaimsJws(token)
                     .getBody();
         } catch (JwtException | IllegalArgumentException e) {
-            // log or rethrow
+            System.out.println("Token parse failed: " + e.getMessage()); // Print root cause
             throw new RuntimeException("Invalid JWT token", e);
         }
     }
+
 
 
     public String extractEmail(String token) {

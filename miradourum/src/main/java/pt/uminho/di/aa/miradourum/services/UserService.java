@@ -33,7 +33,7 @@ public interface UserService {
      * Atualiza os dados de um utilizador caso exista, ou atualiza as informações de um dado utilizador
      * @param user
      */
-    void saveAndUpdateUser(String username,String email,String password,String image);
+    void saveAndUpdateUser(Long id,String username,String password,String image);
 
     /**
      * Verifica se um email já existe na base de dados
