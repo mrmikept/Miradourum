@@ -318,6 +318,30 @@
 						"url": "http://localhost:8080/user/pontos"
 					},
 					"response": []
+				},
+				{
+					"name": "Upgrade Premium",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoxLCJpZCI6NCwiUHJlbWl1bUVuZERhdGUiOiIiLCJlbWFpbCI6ImFkbWluQGFkbWluLmNvbSIsInVzZXJuYW1lIjoicXVpbSIsInN1YiI6ImFkbWluQGFkbWluLmNvbSIsImlhdCI6MTc0OTA2MTUxOSwiZXhwIjoxNzQ5MTQ3OTE5fQ.iWN3U718EakHs43yT4cECBgIDFq0ktmX17UBtQ3MHk8"
+							}
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"cardNumber\": \"1234567890123456\",\n    \"cardName\": \"João Silva\",\n    \"ccv\": \"123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8080/user/upgrade-premium"
+					},
+					"response": []
 				}
 			]
 		},
