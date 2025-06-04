@@ -1,9 +1,11 @@
 package pt.uminho.di.aa.miradourum.controllers;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 import pt.uminho.di.aa.miradourum.auth.JwtService;
+import pt.uminho.di.aa.miradourum.dto.PaymentDTO;
+import pt.uminho.di.aa.miradourum.dto.PaymentResponseDTO;
 import pt.uminho.di.aa.miradourum.models.Image;
 import pt.uminho.di.aa.miradourum.models.PontoInteresse;
 import pt.uminho.di.aa.miradourum.models.Review;
@@ -15,9 +17,8 @@ import pt.uminho.di.aa.miradourum.services.ReviewService;
 import pt.uminho.di.aa.miradourum.services.UserService;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.time.ZoneId;
+import java.util.*;
 
 @RestController
 @RequestMapping("/user")
@@ -228,4 +229,100 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or tampered token");
         }
     }
+
+    @PostMapping("/upgrade-premium")
+    public ResponseEntity<?> upgradeToPremium(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestBody PaymentDTO paymentData) {
+
+        // 1. Verificar token
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or missing token");
+        }
+
+        String token = authHeader.substring(7);
+
+        try {
+            // 2. Verificar se token está expirado
+            if (jwtService.tokenExpired(token)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token expired");
+            }
+
+            // 3. Extrair user ID
+            Long userId = jwtService.extractUserId(token);
+            if (userId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+            }
+
+            // 4. Verificar se utilizador existe e tem role=1
+            User user= userService.getUserById(userId, User.class);
+            if (user.getRole() != 1) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("User is not eligible for premium upgrade");
+            }
+
+            // 5. Chamar microsserviço de pagamento
+            PaymentResponseDTO paymentResponse = callPaymentService(paymentData);
+
+            if (!paymentResponse.isSuccess()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Payment failed: " + paymentResponse.getError());
+            }
+
+            // 6. Atualizar utilizador para role=3 e definir data de expiração
+            try {
+                String isoDate = paymentResponse.getExpiryDate().replace("Z", "");
+                LocalDateTime localDateTime = LocalDateTime.parse(isoDate);
+
+                // Converter LocalDateTime para Date se necessário
+                Date expiryDate = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
+
+                user.setRole(3);
+                user.setPremiumEndDate(expiryDate);
+                userService.saveUser(user);
+
+                return ResponseEntity.ok().body(Map.of(
+                        "success", true,
+                        "message", "Premium upgrade successful",
+                        "expiryDate", expiryDate,
+                        "newRole", 3
+                ));
+
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("Failed to update user: " + e.getMessage());
+            }
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or tampered token");
+        }
+    }
+
+    private PaymentResponseDTO callPaymentService(PaymentDTO paymentData) {
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            String paymentServiceUrl = "http://localhost:3000/api/pay";
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            HttpEntity<PaymentDTO> request = new HttpEntity<>(paymentData, headers);
+
+            ResponseEntity<PaymentResponseDTO> response = restTemplate.postForEntity(
+                    paymentServiceUrl,
+                    request,
+                    PaymentResponseDTO.class
+            );
+
+            return response.getBody();
+
+        } catch (Exception e) {
+            PaymentResponseDTO errorResponse = new PaymentResponseDTO();
+            errorResponse.setSuccess(false);
+            errorResponse.setError("Payment service unavailable: " + e.getMessage());
+            return errorResponse;
+        }
+    }
+
 }
+
