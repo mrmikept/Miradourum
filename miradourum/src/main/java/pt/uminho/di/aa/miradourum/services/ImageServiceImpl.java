@@ -24,4 +24,9 @@ public class ImageServiceImpl implements ImageService {
         imageRepository.save(image);
         return image;
     }
+    @Override
+    public void deleteImageById(Long id){
+        imageRepository.deleteById(id);
+    }
+
 }

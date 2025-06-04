@@ -9,6 +9,7 @@ import pt.uminho.di.aa.miradourum.models.Review;
 import pt.uminho.di.aa.miradourum.models.User;
 import pt.uminho.di.aa.miradourum.repositories.UserRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -32,6 +33,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public <T> T getUserById(Long id, Class<T> clazz) {
         return userRepository.findById((long) id, clazz);
+    }
+
+    @Override
+    public User getUserById(Long id){
+        return userRepository.findById(id).orElse(null);
     }
 
     @Override
@@ -86,18 +92,4 @@ public class UserServiceImpl implements UserService {
         return userRepository.getPontosInteresse(userId);
     }
 
-    @Override
-    public List<String> getImagesURL(Long userId) {
-        // reviews feitas pelo user nos pontos que ele visitou
-        List<Review> reviews = userRepository.getUserReviewsOnVisitedPontos(userId);
-
-        // magens das reviews de cima
-        List<Image> images = userRepository.getImagesFromReviews(reviews);
-
-        // urls
-        return images.stream()
-                .map(Image::getUrl)
-                .filter(Objects::nonNull)
-                .toList();
-    }
 }

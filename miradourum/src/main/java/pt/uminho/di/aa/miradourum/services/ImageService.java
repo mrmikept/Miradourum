@@ -6,4 +6,5 @@ import pt.uminho.di.aa.miradourum.models.Review;
 
 public interface ImageService {
     Image saveImage(String url, Review review);
+    void deleteImageById(Long id);
 }

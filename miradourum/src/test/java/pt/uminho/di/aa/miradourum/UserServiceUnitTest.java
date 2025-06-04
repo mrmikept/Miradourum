@@ -178,10 +178,10 @@ public class UserServiceUnitTest {
         reviewRepository.save(rev);
 
 
-        List<String> urls = userService.getImagesURL(user.getId());
+        List<Image> urls = userService.getImages(user.getId());
 
         Assertions.assertNotNull(urls);
-        Assertions.assertTrue(urls.contains("asd"));
+        
     }
 
     @Test

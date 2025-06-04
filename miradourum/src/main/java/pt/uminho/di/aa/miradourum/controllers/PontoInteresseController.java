@@ -4,16 +4,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pt.uminho.di.aa.miradourum.auth.JwtService;
-import pt.uminho.di.aa.miradourum.models.ImagePontoInteresse;
+import pt.uminho.di.aa.miradourum.models.*;
 import pt.uminho.di.aa.miradourum.projections.PontoInteresse.PIDetailsFullProjection;
 import pt.uminho.di.aa.miradourum.projections.PontoInteresse.PIDetailsShortProjection;
-import pt.uminho.di.aa.miradourum.models.Image;
-import pt.uminho.di.aa.miradourum.models.PontoInteresse;
-import pt.uminho.di.aa.miradourum.models.Review;
-import pt.uminho.di.aa.miradourum.services.ImagePontoInteresseService;
-import pt.uminho.di.aa.miradourum.services.ImageService;
-import pt.uminho.di.aa.miradourum.services.PontoInteresseService;
-import pt.uminho.di.aa.miradourum.services.ReviewService;
+import pt.uminho.di.aa.miradourum.projections.User.UserProfileProjection;
+import pt.uminho.di.aa.miradourum.services.*;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -28,13 +23,16 @@ public class PontoInteresseController {
     private final ImageService imageService;
     private final ReviewService reviewService;
     private final ImagePontoInteresseService imagePontoInteresseService;
-
-    public PontoInteresseController(PontoInteresseService pontoInteresseService, JwtService jwtService, ImageService imageService, ReviewService reviewService,ImagePontoInteresseService imagePontoInteresseService) {
+    private final PontoInteresseServiceImpl pontoInteresseServiceImpl;
+    private final UserService userService;
+    public PontoInteresseController(PontoInteresseService pontoInteresseService,UserService userService, JwtService jwtService, ImageService imageService, ReviewService reviewService, ImagePontoInteresseService imagePontoInteresseService, PontoInteresseServiceImpl pontoInteresseServiceImpl) {
         this.pontoInteresseService = pontoInteresseService;
         this.jwtService = jwtService;
         this.imageService = imageService;
         this.reviewService = reviewService;
         this.imagePontoInteresseService=imagePontoInteresseService;
+        this.pontoInteresseServiceImpl = pontoInteresseServiceImpl;
+        this.userService = userService;
     }
 
 
@@ -255,6 +253,12 @@ public class PontoInteresseController {
 
                 point.addReview(rev);
                 pontoInteresseService.savePontoInteresse(point);
+                User user = userService.getUserById(userId); // Or however you fetch a user
+
+                if (!user.getPontoInteresse().contains(point)) {
+                    user.getPontoInteresse().add(point);
+                    userService.saveUser(user);
+                }
                 return ResponseEntity.ok(point);
 
             } catch (Exception e) {
@@ -267,6 +271,48 @@ public class PontoInteresseController {
         }
     }
 
+    // Add new Review to PI
+    @GetMapping("/{id}/reviews")
+    public ResponseEntity<?> getReviewsOnPonto(@PathVariable Long id, @RequestHeader("Authorization") String authHeader) {
+
+        // 1. Check if token is provided
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or missing token");
+        }
+
+        String token = authHeader.substring(7); // Remove "Bearer "
+
+        try {
+            // 2. Check if token is expired
+            if (jwtService.tokenExpired(token)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token expired");
+            }
+
+            // 3. Extract user ID
+            Long userId = jwtService.extractUserId(token);
+            if (userId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+            }
+
+            Optional<PontoInteresse> optionalPonto = pontoInteresseService.getByIdComplete(id);
+            if (optionalPonto.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Ponto de interesse not found");
+            }
+
+            PontoInteresse point = optionalPonto.get();
+
+            if(point.getState()==false){
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Point is still inactive.");
+            }
+
+            List<Review> reviews = point.getReviews();
+
+            return ResponseEntity.ok(reviews);
+        } catch (Exception e) {
+            // Handle token-related exceptions
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or tampered token");
+        }
+    }
 
 
     // Get PI Details (Short)

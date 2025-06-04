@@ -1,5 +1,6 @@
 package pt.uminho.di.aa.miradourum.services;
 
+import pt.uminho.di.aa.miradourum.models.Image;
 import pt.uminho.di.aa.miradourum.models.PontoInteresse;
 import pt.uminho.di.aa.miradourum.models.User;
 
@@ -19,6 +20,8 @@ public interface UserService {
      */
     <T> T getUserById(Long id, Class<T> clazz);
 
+
+    User getUserById(Long id);
     /**
      *
      * @param email do utilizador
@@ -60,13 +63,6 @@ public interface UserService {
      * @return lista de pontos de interesse visitados por um dado utilizador
      */
     List<PontoInteresse> getPontosInteresse(Long userId);
-
-    /**
-     *
-     * @param userId
-     * @return lista de URLs das imagens que um utilizador adicionou nas suas reviews
-     */
-    List<String> getImagesURL(Long userId);
 
     /**
      * Guarda um user na base de dados, colocando a password encriptada

@@ -4,14 +4,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pt.uminho.di.aa.miradourum.auth.JwtService;
+import pt.uminho.di.aa.miradourum.models.Image;
 import pt.uminho.di.aa.miradourum.models.PontoInteresse;
+import pt.uminho.di.aa.miradourum.models.Review;
 import pt.uminho.di.aa.miradourum.models.User;
 import pt.uminho.di.aa.miradourum.projections.User.UserEditProfileProjection;
 import pt.uminho.di.aa.miradourum.projections.User.UserProfileProjection;
 import pt.uminho.di.aa.miradourum.services.PontoInteresseService;
+import pt.uminho.di.aa.miradourum.services.ReviewService;
 import pt.uminho.di.aa.miradourum.services.UserService;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -20,12 +24,13 @@ import java.util.Map;
 public class UserController {
 
     private final UserService userService;
-    private final PontoInteresseService pontoInteresseService;
     private final JwtService jwtService;
-    public UserController(UserService userService, PontoInteresseService pontoInteresseService, JwtService jwtService) {
+    private final ReviewService reviewService;
+
+    public UserController(UserService userService, JwtService jwtService, ReviewService reviewService) {
         this.userService = userService;
-        this.pontoInteresseService = pontoInteresseService;
         this.jwtService = jwtService;
+        this.reviewService = reviewService;
     }
 
     // Get User Profile
@@ -85,6 +90,9 @@ public class UserController {
             Long userId = jwtService.extractUserId(token);
             if (userId == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+            }
+            if(!userId.equals(id)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Can't acess other user info");
             }
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or tampered token");
@@ -155,8 +163,76 @@ public class UserController {
 
     // Get image URLs dos pontos visitados
     @GetMapping("/{id}/images")
-    public ResponseEntity<List<String>> getImageUrls(@PathVariable Long id) {
-        return ResponseEntity.ok(userService.getImagesURL(id));
-    }
+    public ResponseEntity<?> getImageUrls(@PathVariable Long id,@RequestHeader("Authorization") String authHeader) {
 
+
+        // 1. Check if token is provided
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or missing token");
+        }
+
+        String token = authHeader.substring(7); // Remove "Bearer "
+
+        try {
+            // 2. Check if token is expired
+            if (jwtService.tokenExpired(token)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token expired");
+            }
+
+            // 3. Extract user ID
+            Long userId = jwtService.extractUserId(token);
+            if (userId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+            }
+            if(!userId.equals(id)){
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User can't access other users images.");
+            }
+
+
+        List<Review> reviews = reviewService.getAllReviewsUser(id);
+        List<Image> images = new ArrayList<Image>();
+        for (Review review : reviews) {
+            images.addAll(review.getImages());
+        }
+        return ResponseEntity.ok(images);
+    }
+        catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or tampered token");
+        }
+    }
+    // Get image URLs dos pontos visitados
+    @GetMapping("/{id}/pontos")
+    public ResponseEntity<?> getPontos(@PathVariable Long id,@RequestHeader("Authorization") String authHeader) {
+
+
+        // 1. Check if token is provided
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or missing token");
+        }
+
+        String token = authHeader.substring(7); // Remove "Bearer "
+
+        try {
+            // 2. Check if token is expired
+            if (jwtService.tokenExpired(token)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token expired");
+            }
+
+            // 3. Extract user ID
+            Long userId = jwtService.extractUserId(token);
+            if (userId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+            }
+            if(!userId.equals(id)){
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User can't access other users visited pontos.");
+            }
+
+            User u = userService.getUserById(userId, User.class);
+
+            return ResponseEntity.ok(u.getPontoInteresse());
+        }
+        catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or tampered token");
+        }
+    }
 }

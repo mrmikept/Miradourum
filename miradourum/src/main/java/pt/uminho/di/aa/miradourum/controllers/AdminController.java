@@ -1,6 +1,7 @@
 package pt.uminho.di.aa.miradourum.controllers;
 
 
+import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -125,7 +126,11 @@ public class AdminController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or tampered token");
             }
 
-        } catch (Exception e) {
+        }
+        catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token expired");
+        }
+        catch (Exception e) {
             // Handle token-related exceptions
             e.printStackTrace(); // add this to log the actual error
         }

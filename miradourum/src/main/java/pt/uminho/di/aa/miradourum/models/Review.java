@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -107,5 +108,12 @@ public class Review {
 
     public void setImages(List<Image> images) {
         this.images = images;
+    }
+
+    public void addImages(List<Image> images) {
+        if (this.images == null) {
+            this.images = new ArrayList<Image>();
+            this.images.addAll(images);
+        }
     }
 }
