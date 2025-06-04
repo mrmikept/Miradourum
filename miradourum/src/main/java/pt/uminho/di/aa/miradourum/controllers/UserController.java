@@ -162,8 +162,8 @@ public class UserController {
     }
 
     // Get image URLs dos pontos visitados
-    @GetMapping("/{id}/images")
-    public ResponseEntity<?> getImageUrls(@PathVariable Long id,@RequestHeader("Authorization") String authHeader) {
+    @GetMapping("/images")
+    public ResponseEntity<?> getImageUrls(@RequestHeader("Authorization") String authHeader) {
 
 
         // 1. Check if token is provided
@@ -184,12 +184,9 @@ public class UserController {
             if (userId == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
             }
-            if(!userId.equals(id)){
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User can't access other users images.");
-            }
 
 
-        List<Review> reviews = reviewService.getAllReviewsUser(id);
+        List<Review> reviews = reviewService.getAllReviewsUser(userId);
         List<Image> images = new ArrayList<Image>();
         for (Review review : reviews) {
             images.addAll(review.getImages());
@@ -201,8 +198,8 @@ public class UserController {
         }
     }
     // Get image URLs dos pontos visitados
-    @GetMapping("/{id}/pontos")
-    public ResponseEntity<?> getPontos(@PathVariable Long id,@RequestHeader("Authorization") String authHeader) {
+    @GetMapping("/pontos")
+    public ResponseEntity<?> getPontos(@RequestHeader("Authorization") String authHeader) {
 
 
         // 1. Check if token is provided
@@ -222,9 +219,6 @@ public class UserController {
             Long userId = jwtService.extractUserId(token);
             if (userId == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
-            }
-            if(!userId.equals(id)){
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User can't access other users visited pontos.");
             }
 
             User u = userService.getUserById(userId, User.class);

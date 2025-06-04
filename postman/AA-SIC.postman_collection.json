@@ -55,7 +55,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"admin@admin.com\",\n  \"password\": \"12345\",\n  \"username\": \"quim\"\n}\n",
+							"raw": "{\n  \"email\": \"henriquevaz7@hotmail.com\",\n  \"password\": \"12345\",\n  \"username\": \"quim\"\n}\n",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -282,6 +282,86 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Get Reviews",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/pi/3/reviews",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"pi",
+								"3",
+								"reviews"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Put Review",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoxLCJpZCI6NCwiUHJlbWl1bUVuZERhdGUiOiIiLCJlbWFpbCI6ImFkbWluQGFkbWluLmNvbSIsInVzZXJuYW1lIjoicXVpbSIsInN1YiI6ImFkbWluQGFkbWluLmNvbSIsImlhdCI6MTc0ODk5MDIxMSwiZXhwIjoxNzQ5MDc2NjExfQ.KBRCvZ-TOguztI25mjG9wH8ZprTG1X535MCTvm70ggg",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"comment\": \"Updated review comment\",\n  \"rating\": 4,\n  \"images\": [\n    \"ranheta.jpeg\",\n    \"base64encodedImage2==\"\n  ]\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/reviews/3",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"reviews",
+								"3"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Review",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/reviews/5",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"reviews",
+								"5"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -373,10 +453,20 @@
 				{
 					"name": "Get Gallery",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoxLCJpZCI6NywiUHJlbWl1bUVuZERhdGUiOiIiLCJlbWFpbCI6ImFAYS5hIiwidXNlcm5hbWUiOiJxdWltIiwic3ViIjoiYUBhLmEiLCJpYXQiOjE3NDg5OTU0OTUsImV4cCI6MTc0OTA4MTg5NX0.EFVGu9rzMNPemytQO0ls-6m7RsODw1vjU-pEVqGIvIg",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:8080/user/4/images",
+							"raw": "http://localhost:8080/user/images",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -384,8 +474,37 @@
 							"port": "8080",
 							"path": [
 								"user",
-								"4",
 								"images"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get visitedPointsShort",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoxLCJpZCI6NywiUHJlbWl1bUVuZERhdGUiOiIiLCJlbWFpbCI6ImFAYS5hIiwidXNlcm5hbWUiOiJxdWltIiwic3ViIjoiYUBhLmEiLCJpYXQiOjE3NDg5OTU0OTUsImV4cCI6MTc0OTA4MTg5NX0.EFVGu9rzMNPemytQO0ls-6m7RsODw1vjU-pEVqGIvIg",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/user/pontos",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"user",
+								"pontos"
 							]
 						}
 					},
@@ -421,7 +540,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:8080/admin/pi/12",
+							"raw": "http://localhost:8080/admin/pi/1",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -430,7 +549,7 @@
 							"path": [
 								"admin",
 								"pi",
-								"12"
+								"1"
 							]
 						}
 					},
