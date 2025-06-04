@@ -1,9 +1,12 @@
 package pt.uminho.di.aa.miradourum.services;
 
+import pt.uminho.di.aa.miradourum.dto.PIFilterDTO;
 import pt.uminho.di.aa.miradourum.models.ImagePontoInteresse;
 import pt.uminho.di.aa.miradourum.models.PontoInteresse;
 import pt.uminho.di.aa.miradourum.models.Review;
 import pt.uminho.di.aa.miradourum.models.User;
+import pt.uminho.di.aa.miradourum.projections.PontoInteresse.PIDetailsShortWithVisitedProjection;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -24,5 +27,5 @@ public interface PontoInteresseService {
 
     public void deletePontoInteresse(PontoInteresse pontoInteresse);
     public void addImages(Long pontoID, List<ImagePontoInteresse> images);
-    <T> List<T> getAllActive (Class<T> type);
+    List<PIDetailsShortWithVisitedProjection> getAllActiveWithFilters(Long userId, PIFilterDTO filters);
 }

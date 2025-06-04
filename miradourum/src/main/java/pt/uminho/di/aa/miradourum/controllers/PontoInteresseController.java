@@ -4,9 +4,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pt.uminho.di.aa.miradourum.auth.JwtService;
+import pt.uminho.di.aa.miradourum.dto.PIFilterDTO;
 import pt.uminho.di.aa.miradourum.models.*;
 import pt.uminho.di.aa.miradourum.projections.PontoInteresse.PIDetailsFullProjection;
 import pt.uminho.di.aa.miradourum.projections.PontoInteresse.PIDetailsShortProjection;
+import pt.uminho.di.aa.miradourum.projections.PontoInteresse.PIDetailsShortWithVisitedProjection;
 import pt.uminho.di.aa.miradourum.projections.User.UserProfileProjection;
 import pt.uminho.di.aa.miradourum.services.*;
 
@@ -37,8 +39,23 @@ public class PontoInteresseController {
 
 
 
-    @GetMapping
-    public ResponseEntity<?> getAllActivePontosShort(@RequestHeader("Authorization") String authHeader) {
+    //Exemplo de uso no frontend (JSON do body)
+    /*
+    {
+        "maxDistance": 15.0,           // Distância máxima em km (default: 20)
+        "minScore": 4.0,               // Classificação mínima (default: null - qualquer)
+        "minCreationDate": "2024-01-01T00:00:00",  // Data mínima de adição (default: null)
+        "accessibility": true,          // Acessibilidade (default: null - qualquer)
+        "maxDifficulty": 3,            // Dificuldade máxima (default: null - qualquer)
+        "userLatitude": 41.5518,       // Latitude do usuário (para cálculo de distância)
+        "userLongitude": -8.4229       // Longitude do usuário (para cálculo de distância)
+    }
+    */
+    @PostMapping("/filtered")
+    public ResponseEntity<?> getAllActivePontosFiltered(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestBody(required = false) PIFilterDTO filters) {
+
         // 1. Check if token is provided
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or missing token");
@@ -58,19 +75,26 @@ public class PontoInteresseController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
             }
 
-            List<PIDetailsShortProjection> pontos = pontoInteresseService.getAllActive(PIDetailsShortProjection.class);
+            // 4. Aplicar valores default se não fornecidos
+            if (filters == null) {
+                filters = new PIFilterDTO();
+            }
+
+            // Valores default
+            if (filters.getMaxDistance() == null) {
+                filters.setMaxDistance(20.0); // 20km default
+            }
+
+            // 5. Buscar pontos com filtros
+            List<PIDetailsShortWithVisitedProjection> pontos =
+                    pontoInteresseService.getAllActiveWithFilters(userId, filters);
+
             return ResponseEntity.ok(pontos);
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or tampered token");
         }
     }
-
-
-
-
-
-
 
 
     // Add new PI

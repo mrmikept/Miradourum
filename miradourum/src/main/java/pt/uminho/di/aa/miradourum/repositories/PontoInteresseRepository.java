@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import pt.uminho.di.aa.miradourum.models.PontoInteresse;
 import pt.uminho.di.aa.miradourum.models.Review;
+import pt.uminho.di.aa.miradourum.projections.PontoInteresse.PIDetailsShortWithVisitedProjection;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -44,4 +45,33 @@ public interface PontoInteresseRepository extends JpaRepository<PontoInteresse, 
     List<Review> findReviews(@Param("pontoInteresse") PontoInteresse pontoInteresse);
 
     <T> Optional<T> findById(Long id, Class<T> type);
+
+    @Query("""
+    SELECT p.id as id, p.latitude as latitude, p.longitude as longitude, 
+           p.name as name, p.description as description, p.difficulty as difficulty, 
+           p.accessibility as accessibility, p.premium as premium, p.score as score, 
+           p.creationDate as creationDate, p.state as state,
+           CASE WHEN r.id IS NOT NULL THEN true ELSE false END as visited
+    FROM PontoInteresse p 
+    LEFT JOIN p.reviews r ON r.userid = :userId
+    WHERE p.state = true
+    AND (:minScore IS NULL OR p.score >= :minScore)
+    AND (:minCreationDate IS NULL OR p.creationDate >= :minCreationDate)
+    AND (:accessibility IS NULL OR p.accessibility = :accessibility)
+    AND (:maxDifficulty IS NULL OR p.difficulty <= :maxDifficulty)
+    AND (:userLat IS NULL OR :userLng IS NULL OR :maxDistance IS NULL OR 
+         (6371 * acos(cos(radians(:userLat)) * cos(radians(p.latitude)) * 
+          cos(radians(p.longitude) - radians(:userLng)) + 
+          sin(radians(:userLat)) * sin(radians(p.latitude)))) <= :maxDistance)
+    """)
+    List<PIDetailsShortWithVisitedProjection> findAllActiveWithFilters(
+            @Param("userId") Long userId,
+            @Param("minScore") Double minScore,
+            @Param("minCreationDate") LocalDateTime minCreationDate,
+            @Param("accessibility") Boolean accessibility,
+            @Param("maxDifficulty") Integer maxDifficulty,
+            @Param("userLat") Double userLatitude,
+            @Param("userLng") Double userLongitude,
+            @Param("maxDistance") Double maxDistance
+    );
 }

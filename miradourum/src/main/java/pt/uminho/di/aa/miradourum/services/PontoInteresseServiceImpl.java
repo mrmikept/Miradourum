@@ -3,7 +3,9 @@ package pt.uminho.di.aa.miradourum.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import pt.uminho.di.aa.miradourum.dto.PIFilterDTO;
 import pt.uminho.di.aa.miradourum.models.*;
+import pt.uminho.di.aa.miradourum.projections.PontoInteresse.PIDetailsShortWithVisitedProjection;
 import pt.uminho.di.aa.miradourum.repositories.ImagePontoInteresseRepository;
 import pt.uminho.di.aa.miradourum.repositories.PontoInteresseRepository;
 import pt.uminho.di.aa.miradourum.repositories.ReviewRepository;
@@ -102,8 +104,17 @@ public class PontoInteresseServiceImpl implements PontoInteresseService {
     }
 
     @Override
-    public <T> List<T> getAllActive(Class<T> type) {
-        return pontoInteresseRepository.findByState(type);
+    public List<PIDetailsShortWithVisitedProjection> getAllActiveWithFilters(Long userId, PIFilterDTO filters) {
+        return pontoInteresseRepository.findAllActiveWithFilters(
+                userId,
+                filters.getMinScore(),
+                filters.getMinCreationDate(),
+                filters.getAccessibility(),
+                filters.getMaxDifficulty(),
+                filters.getUserLatitude(),
+                filters.getUserLongitude(),
+                filters.getMaxDistance()
+        );
     }
 
 }
