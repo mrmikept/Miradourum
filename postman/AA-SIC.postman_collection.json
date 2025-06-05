@@ -16,7 +16,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"admin@admin.com\",\n  \"password\": \"12345\",\n  \"username\": \"quim\",\n  \"profileimage\":\"url.sd\"\n}",
+							"raw": "{\n  \"email\": \"admin1@admin.com\",\n  \"password\": \"123456\",\n  \"username\": \"quim\",\n  \"profileimage\":\"url.sd\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -61,7 +61,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"admin@admin.com\",\n  \"password\": \"12345\"\n}\n",
+							"raw": "{\n  \"email\": \"admin1@admin.com\",\n  \"password\": \"123456\"\n}\n",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -69,30 +69,6 @@
 							}
 						},
 						"url": "http://localhost:8080/auth/login"
-					},
-					"response": []
-				},
-				{
-					"name": "Put profile",
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": {
-								"token": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoxLCJpZCI6MTAsIlByZW1pdW1FbmREYXRlIjoiIiwiZW1haWwiOiJhQGIuYyIsInVzZXJuYW1lIjoicXVpbSIsInN1YiI6ImFAYi5jIiwiaWF0IjoxNzQ4OTk3NjEwLCJleHAiOjE3NDkwODQwMTB9.WcCoBYOrEYxF8jD6w47ETSCsGiGINIuIg-1vBPZV89I"
-							}
-						},
-						"method": "PUT",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": "http://localhost:8080/auth/profile"
 					},
 					"response": []
 				}
@@ -107,7 +83,7 @@
 						"auth": {
 							"type": "bearer",
 							"bearer": {
-								"token": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoxLCJpZCI6NCwiUHJlbWl1bUVuZERhdGUiOiIiLCJlbWFpbCI6InRlc3RAdGVzdC5jb20iLCJ1c2VybmFtZSI6InF1aW0iLCJzdWIiOiJ0ZXN0QHRlc3QuY29tIiwiaWF0IjoxNzQ2MDE3NzEyLCJleHAiOjE3NDYxMDQxMTJ9.MIcXMjnXUVxyd5ObdiLAKmUD9HbtJmybnfT2h7U7cl4"
+								"token": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoxLCJpZCI6NywiUHJlbWl1bUVuZERhdGUiOiIiLCJlbWFpbCI6ImFkbWluMUBhZG1pbi5jb20iLCJ1c2VybmFtZSI6InF1aW0iLCJzdWIiOiJhZG1pbjFAYWRtaW4uY29tIiwiaWF0IjoxNzQ5MTUwNzI0LCJleHAiOjE3NDkyMzcxMjR9.Kd3MoQ2aIctqHv84Uep1mFhDpRZQ6RvRbFnG3Ppf_TU"
 							}
 						},
 						"method": "POST",
@@ -251,17 +227,32 @@
 			"name": "User",
 			"item": [
 				{
-					"name": "Get User Info",
+					"name": "Get Other User Info",
 					"request": {
 						"auth": {
 							"type": "bearer",
 							"bearer": {
-								"token": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoxLCJpZCI6NCwiUHJlbWl1bUVuZERhdGUiOiIiLCJlbWFpbCI6InRlc3RAdGVzdC5jb20iLCJ1c2VybmFtZSI6InF1aW0iLCJzdWIiOiJ0ZXN0QHRlc3QuY29tIiwiaWF0IjoxNzQ2MDE3NzEyLCJleHAiOjE3NDYxMDQxMTJ9.MIcXMjnXUVxyd5ObdiLAKmUD9HbtJmybnfT2h7U7cl4"
+								"token": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoxLCJpZCI6NywiUHJlbWl1bUVuZERhdGUiOiIiLCJlbWFpbCI6ImFkbWluMUBhZG1pbi5jb20iLCJ1c2VybmFtZSI6InF1aW0iLCJzdWIiOiJhZG1pbjFAYWRtaW4uY29tIiwiaWF0IjoxNzQ5MTUwNzI0LCJleHAiOjE3NDkyMzcxMjR9.Kd3MoQ2aIctqHv84Uep1mFhDpRZQ6RvRbFnG3Ppf_TU"
 							}
 						},
 						"method": "GET",
 						"header": [],
-						"url": "http://localhost:8080/user/4"
+						"url": "http://localhost:8080/user/3"
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Own Info",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoxLCJpZCI6NywiUHJlbWl1bUVuZERhdGUiOiIiLCJlbWFpbCI6ImFkbWluMUBhZG1pbi5jb20iLCJ1c2VybmFtZSI6InF1aW0iLCJzdWIiOiJhZG1pbjFAYWRtaW4uY29tIiwiaWF0IjoxNzQ5MTUwNzI0LCJleHAiOjE3NDkyMzcxMjR9.Kd3MoQ2aIctqHv84Uep1mFhDpRZQ6RvRbFnG3Ppf_TU"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8080/user"
 					},
 					"response": []
 				},
@@ -271,21 +262,27 @@
 						"auth": {
 							"type": "bearer",
 							"bearer": {
-								"token": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoxLCJpZCI6NCwiUHJlbWl1bUVuZERhdGUiOiIiLCJlbWFpbCI6InRlc3RAdGVzdC5jb20iLCJ1c2VybmFtZSI6InF1aW0iLCJzdWIiOiJ0ZXN0QHRlc3QuY29tIiwiaWF0IjoxNzQ2MDE3NzEyLCJleHAiOjE3NDYxMDQxMTJ9.MIcXMjnXUVxyd5ObdiLAKmUD9HbtJmybnfT2h7U7cl4"
+								"token": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoxLCJpZCI6NywiUHJlbWl1bUVuZERhdGUiOiIiLCJlbWFpbCI6ImFkbWluMUBhZG1pbi5jb20iLCJ1c2VybmFtZSI6InF1aW0iLCJzdWIiOiJhZG1pbjFAYWRtaW4uY29tIiwiaWF0IjoxNzQ5MTUwNzI0LCJleHAiOjE3NDkyMzcxMjR9.Kd3MoQ2aIctqHv84Uep1mFhDpRZQ6RvRbFnG3Ppf_TU"
 							}
 						},
 						"method": "GET",
 						"header": [],
-						"url": "http://localhost:8080/user/edit/1"
+						"url": "http://localhost:8080/user/edit"
 					},
 					"response": []
 				},
 				{
 					"name": "Is Premium",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoxLCJpZCI6NywiUHJlbWl1bUVuZERhdGUiOiIiLCJlbWFpbCI6ImFkbWluMUBhZG1pbi5jb20iLCJ1c2VybmFtZSI6InF1aW0iLCJzdWIiOiJhZG1pbjFAYWRtaW4uY29tIiwiaWF0IjoxNzQ5MTUwNzI0LCJleHAiOjE3NDkyMzcxMjR9.Kd3MoQ2aIctqHv84Uep1mFhDpRZQ6RvRbFnG3Ppf_TU"
+							}
+						},
 						"method": "GET",
 						"header": [],
-						"url": "http://localhost:8080/user/1/premium"
+						"url": "http://localhost:8080/user/premium"
 					},
 					"response": []
 				},
@@ -310,7 +307,7 @@
 						"auth": {
 							"type": "bearer",
 							"bearer": {
-								"token": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoxLCJpZCI6NywiUHJlbWl1bUVuZERhdGUiOiIiLCJlbWFpbCI6ImFAYS5hIiwidXNlcm5hbWUiOiJxdWltIiwic3ViIjoiYUBhLmEiLCJpYXQiOjE3NDg5OTU0OTUsImV4cCI6MTc0OTA4MTg5NX0.EFVGu9rzMNPemytQO0ls-6m7RsODw1vjU-pEVqGIvIg"
+								"token": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoxLCJpZCI6NywiUHJlbWl1bUVuZERhdGUiOiIiLCJlbWFpbCI6ImFkbWluMUBhZG1pbi5jb20iLCJ1c2VybmFtZSI6InF1aW0iLCJzdWIiOiJhZG1pbjFAYWRtaW4uY29tIiwiaWF0IjoxNzQ5MTUwNzI0LCJleHAiOjE3NDkyMzcxMjR9.Kd3MoQ2aIctqHv84Uep1mFhDpRZQ6RvRbFnG3Ppf_TU"
 							}
 						},
 						"method": "GET",
@@ -340,6 +337,30 @@
 							}
 						},
 						"url": "http://localhost:8080/user/upgrade-premium"
+					},
+					"response": []
+				},
+				{
+					"name": "PUT Update Profile",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoxLCJpZCI6NywiUHJlbWl1bUVuZERhdGUiOiIiLCJlbWFpbCI6ImFkbWluMUBhZG1pbi5jb20iLCJ1c2VybmFtZSI6InF1aW0iLCJzdWIiOiJhZG1pbjFAYWRtaW4uY29tIiwiaWF0IjoxNzQ5MTUwNzI0LCJleHAiOjE3NDkyMzcxMjR9.Kd3MoQ2aIctqHv84Uep1mFhDpRZQ6RvRbFnG3Ppf_TU"
+							}
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"password\": \"123456\",\n  \"username\": \"quim1\",\n  \"profileimage\":\"url.sd\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8080/user/profile"
 					},
 					"response": []
 				}

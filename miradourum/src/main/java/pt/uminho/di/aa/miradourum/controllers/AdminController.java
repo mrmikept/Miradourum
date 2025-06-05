@@ -1,19 +1,19 @@
 package pt.uminho.di.aa.miradourum.controllers;
 
 
-import io.jsonwebtoken.ExpiredJwtException;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import pt.uminho.di.aa.miradourum.auth.JwtService;
+import pt.uminho.di.aa.miradourum.dto.ActivatePontoInteresseDTO;
 import pt.uminho.di.aa.miradourum.models.PontoInteresse;
-import pt.uminho.di.aa.miradourum.models.User;
 import pt.uminho.di.aa.miradourum.services.PontoInteresseService;
 import pt.uminho.di.aa.miradourum.services.UserService;
 import pt.uminho.di.aa.miradourum.utils.EmailService;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -66,25 +66,31 @@ public class AdminController {
 
     //altera o estado de um ponto de interesse para ativo
     @PutMapping("/pi/{id}")
-    public ResponseEntity<?> activatePoint(@PathVariable Long id,@RequestHeader("Authorization") String authHeader,@RequestBody Map<String, Object> body) {
+    public ResponseEntity<Object> activatePoint(@PathVariable Long id,
+                                                @Valid @RequestBody ActivatePontoInteresseDTO dto,
+                                                BindingResult bindingResult,
+                                                @RequestHeader("Authorization") String authHeader) {
+
+        // Verificar erros de validação primeiro
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.badRequest().body(bindingResult.getAllErrors());
+        }
+
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or missing token");
         }
 
-        String token = authHeader.substring(7); // Remove "Bearer "
+        String token = authHeader.substring(7);
 
         try {
-            // 2. Check if token is expired
             if (jwtService.tokenExpired(token)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token expired");
             }
 
-            // 3. getRole
             Integer role = jwtService.extractRole(token);
             if (role != 2) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User is not admin");
             }
-
 
             Optional<PontoInteresse> optionalPonto = pontoInteresseService.getByIdComplete(id);
             if (optionalPonto.isEmpty()) {
@@ -93,48 +99,25 @@ public class AdminController {
 
             PontoInteresse ponto = optionalPonto.get();
 
-            if(ponto.getState()==true){
+            if (ponto.getState() == true) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Ponto de interesse already active");
             }
 
-            Boolean accepted = (Boolean) body.get("accepted");
-            String comment = null;
-            if (accepted == null) {
-                return ResponseEntity.badRequest().body("Missing 'state' field");
-            }
-
-            //state false means admim did not accept the pi
-            if(!accepted){
-                comment = (String) body.get("comment");
-                if(comment==null){
-                    return ResponseEntity.badRequest().body("Missing 'comment' field");
-                }
-            }
-
-            if(accepted==true){
-                // get the wanted point
+            if (dto.getAccepted()) {
                 ponto.setState(true);
                 pontoInteresseService.savePontoInteresse(ponto);
                 return ResponseEntity.ok().body("Ponto interesse activated!");
-            }
-            else if(accepted==false){
-                pontoInteresseService.deletePontoInteresse(ponto);;
-                emailService.sendEmail(ponto.getCreatorEmail(),comment);
+            } else {
+                pontoInteresseService.deletePontoInteresse(ponto);
+                emailService.sendEmail(ponto.getCreatorEmail(), dto.getComment());
                 return ResponseEntity.ok().body("Ponto interesse removed successfully and email sent to user.");
             }
-            else{
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or tampered token");
-            }
 
-        }
-        catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token expired");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error");
         }
-        catch (Exception e) {
-            // Handle token-related exceptions
-            e.printStackTrace(); // add this to log the actual error
-        }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Mano, se o flow chegou aqui é mau sinal");
     }
-
 }

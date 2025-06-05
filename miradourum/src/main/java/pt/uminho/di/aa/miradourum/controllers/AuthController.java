@@ -1,18 +1,18 @@
 package pt.uminho.di.aa.miradourum.controllers;
 
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.boot.SpringApplication;
-import org.springframework.http.HttpStatus;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import pt.uminho.di.aa.miradourum.auth.AuthService;
 import pt.uminho.di.aa.miradourum.auth.JwtService;
+import pt.uminho.di.aa.miradourum.dto.LoginDTO;
+import pt.uminho.di.aa.miradourum.dto.RegisterDTO;
 import pt.uminho.di.aa.miradourum.models.User;
-import pt.uminho.di.aa.miradourum.services.PontoInteresseService;
-import pt.uminho.di.aa.miradourum.services.UserService;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
@@ -26,40 +26,54 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody Map<String,String> credentials, HttpServletResponse response) {
-        try{
-            String email = credentials.get("email");
-            String password = credentials.get("password");
+    public ResponseEntity<String> login(@Valid @RequestBody LoginDTO loginDTO,
+                                        BindingResult bindingResult,
+                                        HttpServletResponse response) {
+        try {
+            // Verificar erros de validação
+            if (bindingResult.hasErrors()) {
+                StringBuilder errorMessage = new StringBuilder();
+                bindingResult.getAllErrors().forEach(error ->
+                        errorMessage.append(error.getDefaultMessage()).append("; ")
+                );
+                return ResponseEntity.badRequest().body(errorMessage.toString());
+            }
 
-            String token = authService.login(email,password);
+            String token = authService.login(loginDTO.getEmail(), loginDTO.getPassword());
 
             if (token == null) {
                 return ResponseEntity.status(401).body("Invalid email or password");
             }
 
-            return ResponseEntity.ok(token); // JWT token returned if login successful
+            return ResponseEntity.ok(token);
+
+        } catch (Exception ex) {
+            return ResponseEntity.status(401).body(ex.getMessage());
         }
-        catch(Exception ex){
-        return ResponseEntity.status(401).body(ex.getMessage());}
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<Object> registerUser(@RequestBody Map<String, String> userInfo, HttpServletResponse response) {
-        try {
-            String email = userInfo.get("email");
-            String password = userInfo.get("password");
-            String username = userInfo.get("username");
-            String profileimage = userInfo.get("profileimage");
 
-            // Validate mandatory fields
-            if (email == null || email.trim().isEmpty() ||
-                    password == null || password.trim().isEmpty() ||
-                    username == null || username.trim().isEmpty() ||
-                    profileimage == null || profileimage.trim().isEmpty()) {
-                return ResponseEntity.badRequest().body("All fields (email, password, username, profileimage) are required.");
+    @PostMapping("/register")
+    public ResponseEntity<Object> registerUser(@Valid @RequestBody RegisterDTO registerDTO,
+                                               BindingResult bindingResult,
+                                               HttpServletResponse response) {
+        try {
+            // Verificar erros de validação
+            if (bindingResult.hasErrors()) {
+                StringBuilder errorMessage = new StringBuilder();
+                bindingResult.getAllErrors().forEach(error ->
+                        errorMessage.append(error.getDefaultMessage()).append("; ")
+                );
+                return ResponseEntity.badRequest().body(errorMessage.toString());
             }
 
-            User created = authService.register(email, username, password, 1,profileimage);
+            User created = authService.register(
+                    registerDTO.getEmail(),
+                    registerDTO.getUsername(),
+                    registerDTO.getPassword(),
+                    1, // Role padrão
+                    registerDTO.getProfileimage()
+            );
 
             if (created == null) {
                 return ResponseEntity.status(401).body("Email already exists");
@@ -71,58 +85,4 @@ public class AuthController {
             return ResponseEntity.status(500).body("Error: " + ex.getMessage());
         }
     }
-
-    @PutMapping("/profile")
-    public ResponseEntity<Object> updateProfile(@RequestHeader("Authorization") String authHeader,
-                                                @RequestBody Map<String, String> userInfo) {
-
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or missing token");
-        }
-
-        String token = authHeader.substring(7);
-
-        try {
-            if (jwtService.tokenExpired(token)) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token expired");
-            }
-
-            Long userId = jwtService.extractUserId(token);
-            if (userId == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
-            }
-
-            // Extract fields if provided
-            String newUsername = userInfo.get("username");
-            String newPassword = userInfo.get("password");
-            String newProfileImage = userInfo.get("profileimage");
-
-            // Check if at least one field is provided
-            if ((newUsername == null || newUsername.trim().isEmpty()) &&
-                    (newPassword == null || newPassword.trim().isEmpty()) &&
-                    (newProfileImage == null || newProfileImage.trim().isEmpty())) {
-                return ResponseEntity.badRequest().body("At least one field (username, password, or profileimage) must be provided.");
-            }
-
-            // Call service method to update only the fields provided
-            User user = authService.updateProfile(userId, newUsername, newPassword, newProfileImage);
-            if (user == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
-            }
-
-            Map<String, Object> safeUser = Map.of(
-                    "username", user.getUsername(),
-                    "email", user.getEmail(),
-                    "profileimage", user.getProfileImage()
-            );
-
-            return ResponseEntity.ok(safeUser);
-
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
-        }
-    }
-
-
-
 }
