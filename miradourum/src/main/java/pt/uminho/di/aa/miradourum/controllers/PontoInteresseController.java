@@ -1,20 +1,26 @@
 package pt.uminho.di.aa.miradourum.controllers;
 
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import pt.uminho.di.aa.miradourum.auth.JwtService;
+import pt.uminho.di.aa.miradourum.dto.CreatePontoInteresseDTO;
+import pt.uminho.di.aa.miradourum.dto.CreateReviewDTO;
 import pt.uminho.di.aa.miradourum.dto.PIFilterDTO;
 import pt.uminho.di.aa.miradourum.models.*;
 import pt.uminho.di.aa.miradourum.projections.PontoInteresse.PIDetailsFullProjection;
 import pt.uminho.di.aa.miradourum.projections.PontoInteresse.PIDetailsShortProjection;
 import pt.uminho.di.aa.miradourum.projections.PontoInteresse.PIDetailsShortWithVisitedProjection;
-import pt.uminho.di.aa.miradourum.projections.User.UserProfileProjection;
 import pt.uminho.di.aa.miradourum.services.*;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/pi")
@@ -56,385 +62,221 @@ public class PontoInteresseController {
             @RequestHeader("Authorization") String authHeader,
             @RequestBody(required = false) PIFilterDTO filters) {
 
-        // 1. Check if token is provided
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or missing token");
+        // 1. Validar token
+        ResponseEntity<?> tokenValidation = jwtService.validateToken(authHeader);
+        if (tokenValidation != null) {
+            return tokenValidation; // Retorna erro se token inválido
         }
 
-        String token = authHeader.substring(7);
+        Long userId = jwtService.extractUserIdFromValidToken(authHeader);
 
-        try {
-            // 2. Check if token is expired
-            if (jwtService.tokenExpired(token)) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token expired");
-            }
-
-            // 3. Extract user ID
-            Long userId = jwtService.extractUserId(token);
-            if (userId == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
-            }
-
-            // 4. Aplicar valores default se não fornecidos
-            if (filters == null) {
-                filters = new PIFilterDTO();
-            }
-
-            // Valores default
-            if (filters.getMaxDistance() == null) {
-                filters.setMaxDistance(20.0); // 20km default
-            }
-
-            // 5. Buscar pontos com filtros
-            List<PIDetailsShortWithVisitedProjection> pontos =
-                    pontoInteresseService.getAllActiveWithFilters(userId, filters);
-
-            return ResponseEntity.ok(pontos);
-
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or tampered token");
+        // 2. Aplicar valores default se não fornecidos
+        if (filters == null) {
+            filters = new PIFilterDTO();
         }
+
+        // Valores default
+        if (filters.getMaxDistance() == null) {
+            filters.setMaxDistance(20.0); // 20km default
+        }
+
+        // 3. Buscar pontos com filtros
+        List<PIDetailsShortWithVisitedProjection> pontos =
+                pontoInteresseService.getAllActiveWithFilters(userId, filters);
+
+        return ResponseEntity.ok(pontos);
     }
 
-
-    // Add new PI
     @PostMapping
-    public ResponseEntity<?> createPonto(@RequestBody Map<String, Object> pontodata, @RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<?> createPonto(@Valid @RequestBody CreatePontoInteresseDTO pontoDTO,
+                                         BindingResult bindingResult,
+                                         @RequestHeader("Authorization") String authHeader) {
 
-        // 1. Check if token is provided
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or missing token");
+        // 1. Validar token
+        ResponseEntity<?> tokenValidation = jwtService.validateToken(authHeader);
+        if (tokenValidation != null) {
+            return tokenValidation;
         }
-        if (pontodata == null || pontodata.isEmpty()) {
-            return ResponseEntity.badRequest().body("Request body is missing or empty");
+
+        Long userId = jwtService.extractUserIdFromValidToken(authHeader);
+
+        // 2. Verificar erros de validação
+        if (bindingResult.hasErrors()) {
+            StringBuilder errorMessage = new StringBuilder();
+            bindingResult.getAllErrors().forEach(error ->
+                    errorMessage.append(error.getDefaultMessage()).append("; ")
+            );
+            return ResponseEntity.badRequest().body(errorMessage.toString());
         }
 
+        // 3. Criar PontoInteresse
+        PontoInteresse pontoInteresse = new PontoInteresse(
+                pontoDTO.getLatitude(),
+                pontoDTO.getLongitude(),
+                pontoDTO.getName(),
+                pontoDTO.getDescription(),
+                pontoDTO.getDificulty(),
+                pontoDTO.getAccessibility(),
+                false, // state sempre false inicialmente
+                pontoDTO.getPremium(),
+                0.0, // rating inicial
+                LocalDateTime.now(),
+                pontoDTO.getCreatorEmail()
+        );
 
-        String token = authHeader.substring(7); // Remove "Bearer "
+        pontoInteresseService.savePontoInteresse(pontoInteresse);
 
-        try {
-            // 2. Check if token is expired
-            if (jwtService.tokenExpired(token)) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token expired");
-            }
-
-            // 3. Extract user ID
-            Long userId = jwtService.extractUserId(token);
-            if (userId == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
-            }
-
-            // Define required fields
-            String[] requiredFields = {"latitude", "longitude", "name", "description", "dificulty", "accessibility", "premium","creatorEmail"};
-            List<String> missingFields = new ArrayList<>();
-
-            // Check for missing fields
-            for (String field : requiredFields) {
-                if (!pontodata.containsKey(field) || pontodata.get(field)==null || pontodata.get(field).toString().isBlank()) {
-                    missingFields.add(field);
-                }
-            }
-
-            if (!missingFields.isEmpty()) {
-                Map<String, Object> errorResponse = new HashMap<>();
-                errorResponse.put("error", "Missing required fields");
-                errorResponse.put("required_fields", requiredFields);
-                errorResponse.put("missing_fields", missingFields);
-                return ResponseEntity.badRequest().body(errorResponse);
-            }
-
-            try {
-                Double latitude = Double.valueOf(pontodata.get("latitude").toString());
-                Double longitude = Double.valueOf(pontodata.get("longitude").toString());
-                String name = pontodata.get("name").toString();
-                String description = pontodata.get("description").toString();
-                Integer dificulty = Integer.valueOf(pontodata.get("dificulty").toString());
-                Boolean accessibility = Boolean.valueOf(pontodata.get("accessibility").toString());
-                Boolean premium = Boolean.valueOf(pontodata.get("premium").toString());
-                String creatorEmail = pontodata.get("creatorEmail").toString();
-                LocalDateTime creationDate = LocalDateTime.now();
-
-                PontoInteresse pontoInteresse = new PontoInteresse(latitude, longitude, name, description, dificulty, accessibility, false, premium, 0.0, creationDate, creatorEmail);
-
-                pontoInteresseService.savePontoInteresse(pontoInteresse);
-
-                Object rawImages = pontodata.get("imageUrls");
-                //**
-
-                if (!(rawImages instanceof List<?>)) {
-                    return ResponseEntity.badRequest().body("Invalid format for 'images' — expected an array of strings.");
-                }
-
-                List<?> rawList = (List<?>) rawImages;
-                List<ImagePontoInteresse> images = new ArrayList<>();
-
-                for (Object obj : rawList) {
-                    if (!(obj instanceof String)) {
-                        return ResponseEntity.badRequest().body("Invalid image entry — must be a string.");
-                    }
-                    ImagePontoInteresse image = imagePontoInteresseService.saveImage((String) obj,pontoInteresse);
-                    images.add(image);
-                }
-
-                pontoInteresseService.addImages(pontoInteresse.getId(),images);
-
-                return ResponseEntity.ok(pontoInteresse);
-
-            } catch (Exception e) {
-                return ResponseEntity.badRequest().body("Invalid data format: " + e.getMessage());
-            }
-
-        } catch (Exception e) {
-            // Handle token-related exceptions
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or tampered token");
+        // 4. Adicionar imagens
+        List<ImagePontoInteresse> images = new ArrayList<>();
+        for (String imageUrl : pontoDTO.getImageUrls()) {
+            ImagePontoInteresse image = imagePontoInteresseService.saveImage(imageUrl, pontoInteresse);
+            images.add(image);
         }
+
+        pontoInteresseService.addImages(pontoInteresse.getId(), images);
+
+        return ResponseEntity.ok(pontoInteresse);
     }
 
-
-    // Add new Review to PI
     @PostMapping("/{id}/reviews")
-    public ResponseEntity<?> createReviewOnPonto(@PathVariable Long id,@RequestBody Map<String, Object> reviewdata, @RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<?> createReviewOnPonto(@PathVariable Long id,
+                                                 @Valid @RequestBody CreateReviewDTO reviewDTO,
+                                                 BindingResult bindingResult,
+                                                 @RequestHeader("Authorization") String authHeader) {
 
-        // 1. Check if token is provided
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or missing token");
+        // 1. Validar token
+        ResponseEntity<?> tokenValidation = jwtService.validateToken(authHeader);
+        if (tokenValidation != null) {
+            return tokenValidation;
         }
 
-        String token = authHeader.substring(7); // Remove "Bearer "
+        Long userId = jwtService.extractUserIdFromValidToken(authHeader);
 
-        try {
-            // 2. Check if token is expired
-            if (jwtService.tokenExpired(token)) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token expired");
-            }
-
-            // 3. Extract user ID
-            Long userId = jwtService.extractUserId(token);
-            if (userId == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
-            }
-
-            Optional<PontoInteresse> optionalPonto = pontoInteresseService.getByIdComplete(id);
-            if (optionalPonto.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Ponto de interesse not found");
-            }
-
-            PontoInteresse point = optionalPonto.get();
-
-            if(point.getState()==false){
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Point is still inactive.");
-            }
-
-            // Define required fields
-            String[] requiredFields = {"rating", "comment", "images"};
-            List<String> missingFields = new ArrayList<>();
-
-            // Check for missing fields
-            for (String field : requiredFields) {
-                if (!reviewdata.containsKey(field) ||
-                        reviewdata.get(field) == null ||
-                        (reviewdata.get(field) instanceof String && ((String) reviewdata.get(field)).isBlank())) {
-                    missingFields.add(field);
-                }
-            }
-
-            if (!missingFields.isEmpty()) {
-                Map<String, Object> errorResponse = new HashMap<>();
-                errorResponse.put("error", "Missing required fields");
-                errorResponse.put("required_fields", requiredFields);
-                errorResponse.put("missing_fields", missingFields);
-                return ResponseEntity.badRequest().body(errorResponse);
-            }
-
-            try {
-                String comment = String.valueOf(reviewdata.get("comment"));
-                Integer rating = Integer.valueOf(String.valueOf(reviewdata.get("rating")));
-                LocalDateTime creationDate = LocalDateTime.now();
-                Date creationDateConverted = Date.from(creationDate.atZone(ZoneId.systemDefault()).toInstant());
-
-                Object rawImages = reviewdata.get("images");
-                //**
-
-                if (!(rawImages instanceof List<?>)) {
-                    return ResponseEntity.badRequest().body("Invalid format for 'images' — expected an array of strings.");
-                }
-
-                List<?> rawList = (List<?>) rawImages;
-                List<Image> images = new ArrayList<>();
-
-                Review rev = reviewService.saveReview(rating,comment,creationDateConverted,userId,point);
-
-                for (Object obj : rawList) {
-                    if (!(obj instanceof String)) {
-                        return ResponseEntity.badRequest().body("Invalid image entry — must be a string.");
-                    }
-                    Image image = imageService.saveImage((String) obj,rev);
-                    images.add(image);
-                }
-
-                reviewService.addImages(rev.getId(),images);
-
-
-                point.addReview(rev);
-                pontoInteresseService.savePontoInteresse(point);
-                User user = userService.getUserById(userId); // Or however you fetch a user
-
-                if (!user.getPontoInteresse().contains(point)) {
-                    user.getPontoInteresse().add(point);
-                    userService.saveUser(user);
-                }
-                return ResponseEntity.ok(point);
-
-            } catch (Exception e) {
-                return ResponseEntity.badRequest().body("Invalid data format: " + e.getMessage());
-            }
-
-        } catch (Exception e) {
-            // Handle token-related exceptions
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or tampered token");
+        // 2. Verificar erros de validação
+        if (bindingResult.hasErrors()) {
+            StringBuilder errorMessage = new StringBuilder();
+            bindingResult.getAllErrors().forEach(error ->
+                    errorMessage.append(error.getDefaultMessage()).append("; ")
+            );
+            return ResponseEntity.badRequest().body(errorMessage.toString());
         }
+
+        // 3. Verificar se ponto existe e está ativo
+        Optional<PontoInteresse> optionalPonto = pontoInteresseService.getByIdComplete(id);
+        if (optionalPonto.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Ponto de interesse not found");
+        }
+
+        PontoInteresse point = optionalPonto.get();
+        if (!point.getState()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Point is still inactive.");
+        }
+
+        // 4. Criar Review
+        LocalDateTime creationDate = LocalDateTime.now();
+        Date creationDateConverted = Date.from(creationDate.atZone(ZoneId.systemDefault()).toInstant());
+
+        Review rev = reviewService.saveReview(
+                reviewDTO.getRating(),
+                reviewDTO.getComment(),
+                creationDateConverted,
+                userId,
+                point
+        );
+
+        // 5. Adicionar imagens
+        List<Image> images = new ArrayList<>();
+        for (String imageUrl : reviewDTO.getImages()) {
+            Image image = imageService.saveImage(imageUrl, rev);
+            images.add(image);
+        }
+
+        reviewService.addImages(rev.getId(), images);
+
+        // 6. Atualizar relacionamentos
+        point.addReview(rev);
+        pontoInteresseService.savePontoInteresse(point);
+
+        User user = userService.getUserById(userId);
+        if (!user.getPontoInteresse().contains(point)) {
+            user.getPontoInteresse().add(point);
+            userService.saveUser(user);
+        }
+
+        return ResponseEntity.ok(point);
     }
 
-    // Add new Review to PI
     @GetMapping("/{id}/reviews")
-    public ResponseEntity<?> getReviewsOnPonto(@PathVariable Long id, @RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<?> getReviewsOnPonto(@PathVariable Long id,
+                                               @RequestHeader("Authorization") String authHeader) {
 
-        // 1. Check if token is provided
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or missing token");
+        // 1. Validar token
+        ResponseEntity<?> tokenValidation = jwtService.validateToken(authHeader);
+        if (tokenValidation != null) {
+            return tokenValidation;
         }
 
-        String token = authHeader.substring(7); // Remove "Bearer "
+        Long userId = jwtService.extractUserIdFromValidToken(authHeader);
 
-        try {
-            // 2. Check if token is expired
-            if (jwtService.tokenExpired(token)) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token expired");
-            }
-
-            // 3. Extract user ID
-            Long userId = jwtService.extractUserId(token);
-            if (userId == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
-            }
-
-            Optional<PontoInteresse> optionalPonto = pontoInteresseService.getByIdComplete(id);
-            if (optionalPonto.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Ponto de interesse not found");
-            }
-
-            PontoInteresse point = optionalPonto.get();
-
-            if(point.getState()==false){
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Point is still inactive.");
-            }
-
-            List<Review> reviews = point.getReviews();
-
-            return ResponseEntity.ok(reviews);
-        } catch (Exception e) {
-            // Handle token-related exceptions
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or tampered token");
+        Optional<PontoInteresse> optionalPonto = pontoInteresseService.getByIdComplete(id);
+        if (optionalPonto.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Ponto de interesse not found");
         }
+
+        PontoInteresse point = optionalPonto.get();
+
+        if (!point.getState()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Point is still inactive.");
+        }
+
+        List<Review> reviews = point.getReviews();
+
+        return ResponseEntity.ok(reviews);
     }
 
-
-    // Get PI Details (Short)
     @GetMapping("/shortdetails/{id}")
-    public ResponseEntity<?> getPontoInteresseShortDetails(@PathVariable("id") String id, @RequestHeader("Authorization") String authHeader) {
-        // 1. Check if token is provided
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or missing token");
+    public ResponseEntity<?> getPontoInteresseShortDetails(@PathVariable("id") String id,
+                                                           @RequestHeader("Authorization") String authHeader) {
+        // 1. Validar token
+        ResponseEntity<?> tokenValidation = jwtService.validateToken(authHeader);
+        if (tokenValidation != null) {
+            return tokenValidation;
         }
 
-        String token = authHeader.substring(7); // Remove "Bearer "
+        Long userId = jwtService.extractUserIdFromValidToken(authHeader);
 
-        try {
-            // 2. Check if token is expired
-            if (jwtService.tokenExpired(token)) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token expired");
-            }
+        PIDetailsShortProjection ponto = pontoInteresseService.getById(Long.valueOf(id), PIDetailsShortProjection.class);
+        if (ponto == null)
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("PI not found");
 
-            // 3. Extract user ID
-            Long userId = jwtService.extractUserId(token);
-            if (userId == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
-            }
-
-            PIDetailsShortProjection ponto = pontoInteresseService.getById(Long.valueOf(id), PIDetailsShortProjection.class);
-            if (ponto == null)
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("PI not found");
-            //ponto ainda esta inativo
-            if(!ponto.getState()){
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Ponto is inactive.");
-            }
-            return ResponseEntity.ok(ponto);
-
-        } catch (Exception e) {
-            // Handle token-related exceptions
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or tampered token");
+        // Ponto ainda está inativo
+        if (!ponto.getState()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Ponto is inactive.");
         }
+
+        return ResponseEntity.ok(ponto);
     }
 
-    // Get PI Details (Full)
     @GetMapping("/details/{id}")
-    public ResponseEntity<?> getPontoInteresseFullDetails(@PathVariable("id") String id, @RequestHeader("Authorization") String authHeader) {
-        // 1. Check if token is provided
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or missing token");
+    public ResponseEntity<?> getPontoInteresseFullDetails(@PathVariable("id") String id,
+                                                          @RequestHeader("Authorization") String authHeader) {
+        // 1. Validar token
+        ResponseEntity<?> tokenValidation = jwtService.validateToken(authHeader);
+        if (tokenValidation != null) {
+            return tokenValidation;
         }
 
-        String token = authHeader.substring(7); // Remove "Bearer "
+        Long userId = jwtService.extractUserIdFromValidToken(authHeader);
 
-        try {
-            // 2. Check if token is expired
-            if (jwtService.tokenExpired(token)) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token expired");
-            }
+        PIDetailsFullProjection ponto = pontoInteresseService.getById(Long.valueOf(id), PIDetailsFullProjection.class);
+        if (ponto == null)
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("PI not found");
 
-            // 3. Extract user ID
-            Long userId = jwtService.extractUserId(token);
-            if (userId == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
-            }
-
-            PIDetailsFullProjection ponto = pontoInteresseService.getById(Long.valueOf(id), PIDetailsFullProjection.class);
-            if (ponto == null)
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("PI not found");
-            if(!ponto.getState()){
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Ponto is inactive.");
-            }
-            return ResponseEntity.ok(ponto);
-
-        } catch (Exception e) {
-            // Handle token-related exceptions
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or tampered token");
+        if (!ponto.getState()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Ponto is inactive.");
         }
+
+        return ResponseEntity.ok(ponto);
     }
-
-    // Página inicial -> filtros
-    //@GetMapping
-    //public ResponseEntity<List<PontoInteresse>> getFiltered(
-    //        @RequestParam String userCoordinates,
-     //       @RequestParam(required = false, defaultValue = "10") int distancia,
-      //      @RequestParam(required = false) Double score,
-       //     @RequestParam(required = false) String date,
-        //    @RequestParam(required = false) Integer visitantes,
-         //   @RequestParam(required = false) Boolean acessibilidade,
-          //  @RequestParam(required = false) Integer dificuldade
-    //) {
-     //   LocalDateTime dataFinal = (date != null) ? LocalDateTime.parse(date) : null;
-
-        //List<PontoInteresse> resultado = pontoInteresseService.getNewest(
-         //       userCoordinates,
-          //      distancia,
-           //     (score != null) ? score : 0.0,
-            //    dataFinal,
-             //   (visitantes != null) ? visitantes : 0,
-              //  (acessibilidade != null) ? acessibilidade : false,
-               // (dificuldade != null) ? dificuldade : 0
-        //);
-        //return ResponseEntity.ok(resultado);
-    //}
 
 }

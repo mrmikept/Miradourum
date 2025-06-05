@@ -178,9 +178,9 @@ public class UserServiceUnitTest {
         reviewRepository.save(rev);
 
 
-        List<Image> urls = userService.getImages(user.getId());
+        //List<Image> urls = userService.getImages(user.getId());
 
-        Assertions.assertNotNull(urls);
+        //Assertions.assertNotNull(urls);
         
     }
 

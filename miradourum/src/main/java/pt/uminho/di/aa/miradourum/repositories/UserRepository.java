@@ -3,13 +3,11 @@ package pt.uminho.di.aa.miradourum.repositories;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import pt.uminho.di.aa.miradourum.models.Image;
 import pt.uminho.di.aa.miradourum.models.PontoInteresse;
 import pt.uminho.di.aa.miradourum.models.Review;
 import pt.uminho.di.aa.miradourum.models.User;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u WHERE u.email = :email")
@@ -30,7 +28,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     """)
     List<Review> getUserReviewsOnVisitedPontos(@Param("userId") Long userId);
 
-    @Query("SELECT COUNT(u) > 0 FROM User u WHERE u.id = :userId AND u.role = 1")
+    @Query("SELECT COUNT(u) > 0 FROM User u WHERE u.id = :userId AND u.role = 3")
     boolean checkPremium(@Param("userId") Long userId);
 
     <T> T findById(Long id, Class<T> clazz);

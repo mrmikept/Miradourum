@@ -6,8 +6,6 @@ import pt.uminho.di.aa.miradourum.models.Image;
 import pt.uminho.di.aa.miradourum.models.Review;
 import pt.uminho.di.aa.miradourum.repositories.ImageRepository;
 
-import java.util.List;
-
 
 @Service
 public class ImageServiceImpl implements ImageService {

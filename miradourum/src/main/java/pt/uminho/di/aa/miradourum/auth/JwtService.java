@@ -7,6 +7,8 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import pt.uminho.di.aa.miradourum.models.User;
 import pt.uminho.di.aa.miradourum.services.UserService;
@@ -90,6 +92,32 @@ public class JwtService {
         return extractAllClaims(token).getExpiration().before(new Date(System.currentTimeMillis()));
     }
 
+    public ResponseEntity<?> validateToken(String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or missing token");
+        }
 
+        String token = authHeader.substring(7);
 
+        try {
+            if (tokenExpired(token)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token expired");
+            }
+
+            Long userId = extractUserId(token);
+            if (userId == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid token");
+            }
+
+            return null; // Token válido
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid or tampered token");
+        }
+    }
+
+    // Método helper para extrair userId após validação
+    public Long extractUserIdFromValidToken(String authHeader) {
+        String token = authHeader.substring(7);
+        return extractUserId(token);
+    }
 }
