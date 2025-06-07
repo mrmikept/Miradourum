@@ -1,4 +1,3 @@
-<!-- O template é responsável -->
 <template>
   <div class="home-page">
     <nav class="navbar">
@@ -13,10 +12,8 @@
       </div>
     </nav>
 
-    
     <div class="content">
       <div class="map-container">
-
         <!-- Division "Pontos de Interesse" e botões em cima do mapa -->
         <div class="map-header">
           <h2>Pontos de Interesse</h2>
@@ -65,9 +62,7 @@
           </div>
         </div>
         
-        <!-- -->
         <div class="map-content">
-
           <!-- Lista lateral de pontos -->
           <div class="points-sidebar" v-if="pontosInteresse.length > 0">
             <div class="sidebar-header">
@@ -129,7 +124,9 @@
       </div>
     </div>
 
-    <!-- Popup para selecionar filtros -->
+    <!-- TODOS OS MODAIS AGRUPADOS AQUI, FORA DO CONTAINER DO MAPA -->
+    
+    <!-- Modal de filtros -->
     <div v-if="showFiltersModal" class="modal-overlay" @click="closeFiltersModal">
       <div class="modal" @click.stop>
         <div class="modal-header">
@@ -189,7 +186,7 @@
       </div>
     </div>
 
-    <!-- Popup pesquisar coordenadas -->
+    <!-- Modal de pesquisa por coordenadas -->
     <div v-if="showSearchModal" class="modal-overlay" @click="closeSearchModal">
       <div class="modal search-modal" @click.stop>
         <div class="modal-header">
@@ -222,6 +219,8 @@
           </button>
         </div>
       </div>
+    </div>
+
     <!-- Modal de detalhes do ponto -->
     <div v-if="showDetailsModal" class="modal-overlay" @click="closeDetailsModal">
       <div class="modal details-modal" @click.stop>
@@ -269,7 +268,7 @@
                 <span v-if="selectedPointDetails.premium" class="char-tag premium">👑 Premium</span>
                 <span v-if="selectedPointDetails.accessibility" class="char-tag accessible">♿ Acessível</span>
                 <span v-if="!selectedPointDetails.premium" class="char-tag free">🆓 Gratuito</span>
-                <span v-if="!selectedPointDetails.accessibility" class="char-tag not-accessible">🚫 Não Acessível</span>
+                <span v-if="!selectedPointDetails.accessibility" class="char-tag free">🚫 Não Acessível a Cadeira de Rodas</span>
               </div>
             </div>
             
@@ -286,7 +285,7 @@
         </div>
       </div>
     </div>
-    </div>
+
   </div>
 </template>
 
@@ -577,12 +576,24 @@ const addPIMarkersToMap = (pontos) => {
       </div>
     `
 
-    // Bind do popup
-    marker.bindPopup(popupContent)
     
     // Apenas UM event listener de clique
     marker.on('click', () => {
-      selectPoint(ponto)
+      // Definir o ponto selecionado visualmente
+      selectedPointId.value = ponto.id
+      
+      // Atualizar marcadores visuais
+      piMarkers.forEach(({ marker, ponto: markerPonto }) => {
+        const color = getMarkerColor(markerPonto)
+        const isSelected = selectedPointId.value === markerPonto.id
+        marker.setIcon(createColoredIcon(color, isSelected))
+      })
+      
+      // Centralizar no ponto
+      map.setView([ponto.latitude, ponto.longitude], 16)
+      
+      // Abrir modal com detalhes
+      fetchPointDetails(ponto.id)
     })
     
     piMarkers.push({ marker, ponto })
