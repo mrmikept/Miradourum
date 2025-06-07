@@ -253,7 +253,13 @@
                 </span>
                 <span v-else>Sem classificação</span>
               </p>
-              <p><strong>Dificuldade:</strong> {{ selectedPointDetails.difficulty || 'Não especificada' }}</p>
+              <p><strong>Dificuldade:</strong> 
+                <span v-if="selectedPointDetails.difficulty">
+                  {{ selectedPointDetails.difficulty }} - 
+                  {{ ['', 'Muito Fácil', 'Fácil', 'Moderado', 'Difícil', 'Muito Difícil'][selectedPointDetails.difficulty] }}
+                </span>
+                <span v-else>Não especificada</span>
+              </p>
               <p><strong>Data de Criação:</strong> {{ new Date(selectedPointDetails.creationDate).toLocaleDateString('pt-PT') }}</p>
             </div>
             
@@ -263,18 +269,20 @@
                 <span v-if="selectedPointDetails.premium" class="char-tag premium">👑 Premium</span>
                 <span v-if="selectedPointDetails.accessibility" class="char-tag accessible">♿ Acessível</span>
                 <span v-if="!selectedPointDetails.premium" class="char-tag free">🆓 Gratuito</span>
+                <span v-if="!selectedPointDetails.accessibility" class="char-tag not-accessible">🚫 Não Acessível</span>
               </div>
             </div>
             
             <div class="detail-section" v-if="selectedPointDetails.description">
               <h4>📝 Descrição</h4>
-              <div class="description-content" v-html="selectedPointDetails.description"></div>
+              <div class="description-content">{{ selectedPointDetails.description }}</div>
             </div>
           </div>
         </div>
         
         <div class="modal-footer">
-          <button @click="closeDetailsModal" class="apply-btn">Fechar</button>
+          <button @click="closeDetailsModal" class="reset-btn">Fechar</button>
+          <button @click="goToDetailsPage" class="apply-btn">Obter mais detalhes</button>
         </div>
       </div>
     </div>
@@ -522,11 +530,21 @@ const clearPIMarkers = () => {
   selectedPointId.value = null
 }
 
-// Função para adicionar marcadores de PIs ao mapa
+// Adicione esta função global para o botão do popup:
+window.openPointDetails = (pointId) => {
+  router.push(`/pi/details/${pointId}`)
+}
+
+// Substitua a função addPIMarkersToMap existente por esta versão corrigida:
+
 const addPIMarkersToMap = (pontos) => {
   pontos.forEach(ponto => {
     const color = getMarkerColor(ponto)
     const isSelected = selectedPointId.value === ponto.id
+
+    // Calcular distância aqui se necessário
+    const distance = userLocation.value ? 
+      calculateDistance(userLocation.value.lat, userLocation.value.lng, ponto.latitude, ponto.longitude) : null
 
     const marker = L.marker([ponto.latitude, ponto.longitude], {
       icon: createColoredIcon(color, isSelected)
@@ -535,19 +553,34 @@ const addPIMarkersToMap = (pontos) => {
     const popupContent = `
       <div class="pi-popup">
         <h4>${ponto.name}</h4>
-        <p><strong>Distância:</strong> ${ponto.distanceFromUser ? ponto.distanceFromUser.toFixed(2) + ' km' : 'N/A'}</p>
+        ${ponto.description ? `<p><strong>Descrição:</strong> ${ponto.description}</p>` : ''}
         <p><strong>Classificação:</strong> ${ponto.score && ponto.score > 0 ? ponto.score.toFixed(1) + '★' : 'Sem classificação'}</p>
+        <p><strong>Data de Criação:</strong> ${new Date(ponto.creationDate).toLocaleDateString('pt-PT')}</p>
+        <p><strong>Distância:</strong> ${distance ? distance.toFixed(2) + ' km' : 'N/A'}</p>
         <p><strong>Status:</strong> ${ponto.visited ? 'Visitado' : 'Não visitado'}</p>
         <p><strong>Dificuldade:</strong> ${ponto.difficulty || 'N/A'}</p>
-        ${ponto.premium ? '<p><strong>Premium</strong> 👑</p>' : ''}
-        ${ponto.accessibility ? '<p>♿ Acessível</p>' : ''}
-        ${ponto.description ? `<p><strong>Descrição:</strong> ${ponto.description}</p>` : ''}
+        <p><strong>Coordenadas:</strong> ${ponto.latitude.toFixed(6)}, ${ponto.longitude.toFixed(6)}</p>
+        ${ponto.premium ? '<p><strong>Tipo:</strong> Premium 👑</p>' : '<p><strong>Tipo:</strong> Básico</p> '}
+        ${ponto.accessibility ? '<p>♿ Acessível</p>' : '<p>♿ Não acessível a cadeira de rodas</p>'}
+        
+        <div style="margin-top: 10px;">
+          <button onclick="window.openPointDetails(${ponto.id})" style="
+            background-color: #427F99; 
+            color: white; 
+            border: none; 
+            padding: 8px 16px; 
+            border-radius: 4px; 
+            cursor: pointer;
+            font-size: 0.85rem;
+          ">Ver Detalhes</button>
+        </div>
       </div>
     `
 
+    // Bind do popup
     marker.bindPopup(popupContent)
     
-    // Adicionar evento de clique no marcador
+    // Apenas UM event listener de clique
     marker.on('click', () => {
       selectPoint(ponto)
     })
@@ -578,7 +611,7 @@ const fetchPointDetails = async (pointId) => {
       throw new Error('Token não encontrado')
     }
 
-    const response = await fetch(`http://localhost:8080/pi/details/${pointId}`, {
+    const response = await fetch(`http://localhost:8080/pi/shortdetails/${pointId}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`
@@ -727,6 +760,13 @@ const closeSearchModal = () => {
 const closeDetailsModal = () => {
   showDetailsModal.value = false
   selectedPointDetails.value = null
+}
+
+// Função para ir para a página de detalhes
+const goToDetailsPage = () => {
+  if (selectedPointDetails.value && selectedPointDetails.value.id) {
+    router.push(`/pi/details/${selectedPointDetails.value.id}`)
+  }
 }
 
 const resetFilters = () => {
