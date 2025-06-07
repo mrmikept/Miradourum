@@ -14,19 +14,76 @@
         <p>Cria a tua conta e junta-te à comunidade de exploradores!</p>
       </div>
 
+      <SuccessPopup v-if="successMessage" :text="successMessage" />
       <ErrorPopup v-if="errorMessage" :text="errorMessage" />
 
       <div class="login-popup">
         <h2>Registar</h2>
-        <form @submit.prevent="handleRegister">
-          <input type="text" v-model="username" placeholder="Username" required />
-          <input type="email" v-model="email" placeholder="Email" required />
-          <input type="password" v-model="password" placeholder="Password" required />
+        <form @submit.prevent="handleRegister" novalidate>
+          <div class="input-group">
+            <div class="input-wrapper">
+              <input 
+                type="text" 
+                v-model="username" 
+                placeholder="Username" 
+                :class="{ 'error': usernameError }"
+                @input="clearUsernameError"
+              />
+              <FieldErrorPopup 
+                :show="showUsernameError" 
+                :message="usernameError"
+                @hide="hideUsernameError"
+              />
+            </div>
+          </div>
 
-          <label class="file-upload-label">
-            Escolher imagem de perfil
-            <input type="file" accept="image/*" @change="handleImageUpload" />
-          </label>
+          <div class="input-group">
+            <div class="input-wrapper">
+              <input 
+                type="email" 
+                v-model="email" 
+                placeholder="Email" 
+                :class="{ 'error': emailError }"
+                @input="clearEmailError"
+              />
+              <FieldErrorPopup 
+                :show="showEmailError" 
+                :message="emailError"
+                @hide="hideEmailError"
+              />
+            </div>
+          </div>
+
+          <div class="input-group">
+            <div class="input-wrapper">
+              <input 
+                type="password" 
+                v-model="password" 
+                placeholder="Password" 
+                :class="{ 'error': passwordError }"
+                @input="clearPasswordError"
+              />
+              <FieldErrorPopup 
+                :show="showPasswordError" 
+                :message="passwordError"
+                @hide="hidePasswordError"
+              />
+            </div>
+          </div>
+
+          <div class="input-group">
+            <div class="input-wrapper">
+              <label class="file-upload-label" :class="{ 'error': imageError }">
+                Escolher imagem de perfil
+                <input type="file" accept="image/*" @change="handleImageUpload" />
+              </label>
+              <FieldErrorPopup 
+                :show="showImageError" 
+                :message="imageError"
+                @hide="hideImageError"
+              />
+            </div>
+          </div>
 
           <div v-if="imagePreview" class="preview">
             <img :src="imagePreview" alt="Preview" />
@@ -50,40 +107,174 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import LogoButton from '@/components/LogoButton.vue'
 import ErrorPopup from '@/components/ErrorPopup.vue'
+import SuccessPopup from '@/components/SuccessPopup.vue'
+import FieldErrorPopup from '@/components/FieldErrorPopup.vue'
 
 const email = ref('')
 const password = ref('')
 const username = ref('')
 const errorMessage = ref('')
+const successMessage = ref('')
 const imageFile = ref(null)
 const imagePreview = ref('')
 
+// Estados dos erros de validação
+const usernameError = ref('')
+const emailError = ref('')
+const passwordError = ref('')
+const imageError = ref('')
+
+// Estados de visibilidade dos popups
+const showUsernameError = ref(false)
+const showEmailError = ref(false)
+const showPasswordError = ref(false)
+const showImageError = ref(false)
+
 const router = useRouter()
+
+// Funções para limpar erros quando utilizador digita/interage
+const clearUsernameError = () => {
+  if (usernameError.value) {
+    usernameError.value = ''
+    showUsernameError.value = false
+  }
+}
+
+const clearEmailError = () => {
+  if (emailError.value) {
+    emailError.value = ''
+    showEmailError.value = false
+  }
+}
+
+const clearPasswordError = () => {
+  if (passwordError.value) {
+    passwordError.value = ''
+    showPasswordError.value = false
+  }
+}
+
+const clearImageError = () => {
+  if (imageError.value) {
+    imageError.value = ''
+    showImageError.value = false
+  }
+}
+
+// Funções para esconder popups manualmente
+const hideUsernameError = () => {
+  showUsernameError.value = false
+}
+
+const hideEmailError = () => {
+  showEmailError.value = false
+}
+
+const hidePasswordError = () => {
+  showPasswordError.value = false
+}
+
+const hideImageError = () => {
+  showImageError.value = false
+}
+
+// Validação de email
+const isValidEmail = (email) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return emailRegex.test(email)
+}
+
+// Função de validação do formulário
+const validateForm = () => {
+  // Limpar todos os erros
+  usernameError.value = ''
+  emailError.value = ''
+  passwordError.value = ''
+  imageError.value = ''
+  showUsernameError.value = false
+  showEmailError.value = false
+  showPasswordError.value = false
+  showImageError.value = false
+  
+  let isValid = true
+  
+  // Validar username
+  if (!username.value.trim()) {
+    usernameError.value = 'Username é obrigatório'
+    showUsernameError.value = true
+    isValid = false
+  } else if (username.value.trim().length < 3) {
+    usernameError.value = 'Username deve ter pelo menos 3 caracteres'
+    showUsernameError.value = true
+    isValid = false
+  }
+  
+  // Validar email
+  if (!email.value.trim()) {
+    emailError.value = 'Email é obrigatório'
+    showEmailError.value = true
+    isValid = false
+  } else if (!isValidEmail(email.value)) {
+    emailError.value = 'Email deve ser válido'
+    showEmailError.value = true
+    isValid = false
+  }
+  
+  // Validar password
+  if (!password.value.trim()) {
+    passwordError.value = 'Password é obrigatória'
+    showPasswordError.value = true
+    isValid = false
+  } else if (password.value.length < 6) {
+    passwordError.value = 'Password deve ter pelo menos 6 caracteres'
+    showPasswordError.value = true
+    isValid = false
+  }
+  
+  // Validar imagem
+  if (!imageFile.value) {
+    imageError.value = 'Imagem de perfil é obrigatória'
+    showImageError.value = true
+    isValid = false
+  }
+  
+  return isValid
+}
 
 const handleImageUpload = (event) => {
   const file = event.target.files[0]
   if (!file) return
+  
+  // Limpar erro de imagem quando utilizador seleciona uma
+  clearImageError()
+  
   imageFile.value = file
   imagePreview.value = URL.createObjectURL(file)
 }
+
 function showError(msg) {
   errorMessage.value = msg
+  successMessage.value = ''
   setTimeout(() => {
     errorMessage.value = ''
-  }, 3000) // hide after 3 seconds
+  }, 3000)
 }
-const handleRegister = async () => {
+
+function showSuccess(msg) {
+  successMessage.value = msg
   errorMessage.value = ''
+  setTimeout(() => {
+    successMessage.value = ''
+  }, 3000)
+}
 
-  // Enforce password minimum length
-  if (password.value.length < 6) {
-    showError('A palavra-passe deve ter pelo menos 6 caracteres.')
-    return
-  }
-
-  // Enforce profile image selection
-  if (!imageFile.value) {
-    showError('Por favor, escolha uma imagem de perfil.')
+const handleRegister = async () => {
+  // Limpar mensagens globais
+  errorMessage.value = ''
+  successMessage.value = ''
+  
+  // Validar formulário
+  if (!validateForm()) {
     return
   }
 
@@ -104,31 +295,74 @@ const handleRegister = async () => {
     })
 
     if (!response.ok) {
-      showError('O email indicado já se encontra registado.')
+      // Tentar ler a mensagem de erro do backend (texto simples)
+      let errorMessage;
+      try {
+        errorMessage = await response.text();
+      } catch (e) {
+        errorMessage = 'Erro desconhecido';
+      }
+
+      // Verificar se é erro de email já registado
+      if (response.status === 401 && errorMessage.includes('Email already exists')) {
+        showError('O email indicado já se encontra registado.');
+      } else if (response.status === 400) {
+        // Erros de validação do backend
+        showError(errorMessage);
+      } else {
+        // Para outros erros
+        showError(errorMessage || 'Erro ao criar conta. Tente novamente.');
+      }
       return
     }
 
-    router.push('/login')
+    // Sucesso - mostrar mensagem e redirecionar
+    showSuccess('Conta criada com sucesso! A redirecionar para o login...')
+    
+    setTimeout(() => {
+      router.push('/login')
+    }, 1000)
+
   } catch (err) {
     showError('Erro de rede. Tente novamente.')
     console.error(err)
   }
 }
-
 </script>
 
 <style scoped>
+.input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.input-group {
+  margin-bottom: 20px;
+}
 
 .file-upload-label {
   display: block;
   margin-top: 1rem;
   background-color: white;
   color: #427F99;
-  padding: 0.5rem;
+  padding: 0.75rem;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 1rem;
   text-align: center;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.file-upload-label:hover {
+  background-color: #f8f9fa;
+}
+
+.file-upload-label.error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
 }
 
 .file-upload-label input {
@@ -151,7 +385,6 @@ const handleRegister = async () => {
   text-decoration: underline;
   font-size: 0.9rem;
 }
-
 
 .home-page {
   background-color: white;
@@ -190,7 +423,6 @@ const handleRegister = async () => {
   z-index: 1;
 }
 
-
 .hero-image {
   width: 100%;
   max-height: 500px;
@@ -216,7 +448,7 @@ const handleRegister = async () => {
   border-radius: 12px;
   width: 400px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-  z-index: 100; /* Higher than corner image */
+  z-index: 100;
   text-align: center;
 }
 
@@ -227,10 +459,18 @@ const handleRegister = async () => {
 .login-popup input {
   width: 100%;
   padding: 0.75rem;
-  margin: 0.5rem 0;
+  margin: 0;
   border: none;
   border-radius: 8px;
   font-size: 1rem;
+  box-sizing: border-box;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.login-popup input.error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
 }
 
 .login-popup button {
@@ -268,8 +508,6 @@ const handleRegister = async () => {
     margin: 2rem auto;
   }
 
-
-
   .navbar {
     flex-direction: column;
     text-align: center;
@@ -290,6 +528,7 @@ const handleRegister = async () => {
     margin: 0 auto;
   }
 }
+
 .corner-image {
   position: fixed;
   bottom: 0%;
@@ -306,7 +545,7 @@ const handleRegister = async () => {
     position: static;
     display: block;
     margin: 2rem auto 1rem auto;
-    width: 150px; /* smaller on small screens */
+    width: 150px;
   }
 }
 </style>
