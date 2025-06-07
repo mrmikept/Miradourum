@@ -22,27 +22,24 @@
         </p>
       </div>
 
-      <SuccessPopup v-if="successMessage" :text="successMessage" />
-      <ErrorPopup v-if="errorMessage" :text="errorMessage" />
+      <SuccessPopup v-if="successMessage" :text="successMessage" /> <!-- mostra se successMessage não estiver vazio-->
+      <ErrorPopup v-if="errorMessage" :text="errorMessage" /> <!-- mostra se errorMessage não estiver vazio-->
 
       <!-- Login Popup -->
       <div class="login-popup">
         <h2>Iniciar Sessão</h2>
-        <form @submit.prevent="handleLogin" novalidate>
+        <form @submit.prevent="handleLogin" novalidate> <!-- invoca handleLogin quando se faz submit, novalidate para não validar com HTML5-->
           <div class="input-group">
             <div class="input-wrapper">
               <input 
                 type="email" 
-                v-model="email" 
+                v-model="email"
                 placeholder="Email" 
                 :class="{ 'error': emailError }"
                 @input="clearEmailError"
-              />
-              <FieldErrorPopup 
-                :show="showEmailError" 
-                :message="emailError"
-                @hide="hideEmailError"
-              />
+              /> <!-- v-model liga o input à variável email, 
+                      quando o user insere algo, apaga o popup de erro, se estiver ativo invocando a clearEmailError-->
+              <FieldErrorPopup :show="showEmailError" :message="emailError" @hide="hideEmailError"/> <!-- controla se o popup está ativo-->
             </div>
           </div>
           
@@ -88,31 +85,30 @@ import { useRouter, useRoute } from 'vue-router'
 import LogoButton from '@/components/LogoButton.vue'
 import ErrorPopup from '@/components/ErrorPopup.vue'
 import SuccessPopup from '@/components/SuccessPopup.vue'
-import FieldErrorPopup from '@/components/FieldErrorPopup.vue'
+import FieldErrorPopup from '@/components/FieldErrorPopup.vue' 
 
 const router = useRouter()
-const route = useRoute()
 
+// Variáveis para armazenar, validar e enviar os campos inseridos pelo utilizador
 const email = ref('')
 const password = ref('')
+// Variáveis para armazenar mensagens de erro e sucesso, '' significa que não há mensagens
 const errorMessage = ref('')
 const successMessage = ref('')
+// Variáveis para armazenar erros específicos de email e password (para mostrar popups específicos)
 const emailError = ref('') 
 const passwordError = ref('')
-const showReset = ref(false)
-
 // Estados para controlar a visibilidade dos popups de erro
 const showEmailError = ref(false)
 const showPasswordError = ref(false)
 
-// Funções para limpar erros quando utilizador digita
+// Funções para limpar os erros quando o utilizador começa a digitar, deixando de mostrar os
 const clearEmailError = () => {
   if (emailError.value) {
     emailError.value = ''
     showEmailError.value = false
   }
 }
-
 const clearPasswordError = () => {
   if (passwordError.value) {
     passwordError.value = ''
@@ -120,16 +116,15 @@ const clearPasswordError = () => {
   }
 }
 
-// Funções para esconder popups manualmente
+// Funções para esconder popups manualmente, necessárias para respeitar o evento @hide emitido pelo componente quando o timeout passa
 const hideEmailError = () => {
   showEmailError.value = false
 }
-
 const hidePasswordError = () => {
   showPasswordError.value = false
 }
 
-// Função de validação
+// Função de validação, adiciona os erros se houver para que sejam demonstrados ao utilizador
 const validateForm = () => {
   emailError.value = ''
   passwordError.value = ''
@@ -167,6 +162,7 @@ const isValidEmail = (email) => {
   return emailRegex.test(email)
 }
 
+// Ativa o popup de erro no canto esquerdo
 function showError(msg) {
   errorMessage.value = msg
   successMessage.value = '' // Limpar mensagem de sucesso
@@ -175,6 +171,7 @@ function showError(msg) {
   }, 3000)
 }
 
+// Ativa o popup de sucesso no canto esquerdo
 function showSuccess(msg) {
   successMessage.value = msg
   errorMessage.value = '' // Limpar mensagem de erro
@@ -183,6 +180,7 @@ function showSuccess(msg) {
   }, 3000)
 }
 
+// Invocada quando o utilizador clica no botão "Entrar" que submete o formulário
 const handleLogin = async () => {
   // Limpar todas as mensagens
   errorMessage.value = ''
@@ -211,7 +209,6 @@ const handleLogin = async () => {
 
     if (response.status === 401) {
       showError('Email ou palavra-passe incorretos.')
-      showReset.value = true
       return
     }
 
@@ -316,7 +313,7 @@ const handleLogin = async () => {
   background-color: white;
   color: black;
   padding: 1rem;
-  max-width: 600px;
+  max-width: 1000px;
   margin: 0 auto;
 }
 

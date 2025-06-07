@@ -1,32 +1,682 @@
+<!-- O template é responsável -->
 <template>
   <div class="home-page">
     <nav class="navbar">
       <div class="navbar-left">
         <LogoButton to="/home">
         </LogoButton>
-        
       </div>
       <div class="navbar-right">
-
+        <div class="location-info" v-if="userLocation">
+          <span class="location-text">📍 {{ userLocation.lat.toFixed(4) }}, {{ userLocation.lng.toFixed(4) }}</span>
+        </div>
       </div>
     </nav>
-    <p class = mimi>
-      if you are here you sucessfully have a token :)
-    </p>
+
     
+    <div class="content">
+      <div class="map-container">
+
+        <!-- Division "Pontos de Interesse" e botões em cima do mapa -->
+        <div class="map-header">
+          <h2>Pontos de Interesse</h2>
+          <div class="map-controls">
+            <!-- Botão para obter localização do utilizador-->
+            <button @click="getCurrentLocation" :disabled="isLoadingLocation" class="location-btn">
+              <span v-if="isLoadingLocation">🔄</span>
+              <span v-else>📍</span>
+              {{ isLoadingLocation ? 'Obtendo localização...' : 'Minha Localização' }}
+            </button>
+            <!-- Botão para pesquisar coordenadas-->
+            <button @click="showSearchModal = true" class="search-btn">
+              🔍 Pesquisar Coordenadas
+            </button>
+            <!-- Botão para selecionar filtros-->
+            <button @click="showFiltersModal = true" class="filters-btn">
+              ⚙️ Filtros
+              <span v-if="hasActiveFilters" class="filter-indicator">●</span>
+            </button>
+            <!-- Selecionar o tipo de mapa (street, terreno, satélite)-->
+            <select v-model="selectedLayer" @change="changeMapLayer" class="layer-select">
+              <option value="streets">Ruas</option>
+              <option value="satellite">Satélite</option>
+              <option value="terrain">Terreno</option>
+            </select>
+          </div>
+        </div>
+        
+        <!-- Legenda dos pontos adicionados no mapa-->
+        <div class="legend">
+          <div class="legend-item">
+            <span class="legend-color green"></span>
+            <span>Visitado</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color yellow"></span>
+            <span>Não Visitado</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color gray"></span>
+            <span>Premium</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color blue"></span>
+            <span>Sua Localização</span>
+          </div>
+        </div>
+        
+        <!-- -->
+        <div class="map-content">
+
+          <!-- Lista lateral de pontos -->
+          <div class="points-sidebar" v-if="pontosInteresse.length > 0">
+            <div class="sidebar-header">
+              <h3>Pontos Encontrados</h3>
+            </div>
+            <div class="sidebar-content">
+              <div class="points-list">
+                <div 
+                  v-for="(ponto, index) in sortedPontos" 
+                  :key="ponto.id"
+                  class="point-item"
+                  :class="{ 'active': selectedPointId === ponto.id }"
+                  @click="selectPoint(ponto)"
+                >
+                  <div class="point-marker" :style="{ backgroundColor: getMarkerColor(ponto) }"></div>
+
+                  <!-- Informação a mostrar sobre cada ponto (SEM CARREGAR)-->
+                  <div class="point-info">
+                    <h4>{{ ponto.name }}</h4>
+                    <p class="point-distance">
+                      📍 {{ ponto.distanceFromUser ? ponto.distanceFromUser.toFixed(2) + ' km' : 'N/A' }}
+                    </p>
+                    <p class="point-rating" v-if="ponto.score && ponto.score > 0">
+                      ⭐ {{ ponto.score.toFixed(1) }}
+                    </p>
+                    
+                    <!-- São tags que aparecem no fundo de cada PI-->
+                    <div class="point-tags">
+                      <span v-if="ponto.visited" class="tag visited">Visitado</span>
+                      <span v-if="ponto.premium" class="tag premium">Premium</span>
+                      <span v-if="ponto.accessibility" class="tag accessible">Acessível</span>
+                      <span v-if="ponto.difficulty" class="tag difficulty">Dificuldade: {{ ponto.difficulty }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Mapa -->
+          <div class="map-wrapper" :class="{ 'with-sidebar': pontosInteresse.length > 0}">
+            <div ref="mapContainer" class="map" id="map"></div>
+          </div>
+        </div>
+        
+        <!-- Footer que indica quantos pontos foram loaded-->
+        <div class="map-footer">
+          <div class="stats">
+            <span><strong>{{ pontosInteresse.length }}</strong> pontos encontrados</span>
+            <span v-if="isLoadingPontos">Carregando pontos...</span>
+          </div>
+          
+          <!-- Ao clicar no mapa seleciona um ponto e mostra as coordenadas desse sítio-->
+          <div class="map-info" v-if="clickedLocation">
+            <p><strong>Localização clicada:</strong></p>
+            <p>{{ clickedLocation.lat.toFixed(6) }}, {{ clickedLocation.lng.toFixed(6) }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Popup para selecionar filtros -->
+    <div v-if="showFiltersModal" class="modal-overlay" @click="closeFiltersModal">
+      <div class="modal" @click.stop>
+        <div class="modal-header">
+          <h3>Filtros de Busca</h3>
+          <button @click="closeFiltersModal" class="close-btn">×</button>
+        </div>
+        
+        <div class="modal-body">
+          <div class="filter-group">
+            <label>Distância Máxima (km):</label>
+            <input v-model.number="filters.maxDistance" type="number" min="1" max="100" step="0.1">
+          </div>
+          
+          <div class="filter-group">
+            <label>Classificação Mínima:</label>
+            <select v-model="filters.minScore">
+              <option :value="null">Qualquer</option>
+              <option :value="1">1 estrela</option>
+              <option :value="2">2 estrelas</option>
+              <option :value="3">3 estrelas</option>
+              <option :value="4">4 estrelas</option>
+              <option :value="5">5 estrelas</option>
+            </select>
+          </div>
+          
+          <div class="filter-group">
+            <label>Data Mínima de Criação:</label>
+            <input v-model="filters.minCreationDate" type="date">
+          </div>
+          
+          <div class="filter-group">
+            <label>Acessibilidade:</label>
+            <select v-model="filters.accessibility">
+              <option :value="null">Qualquer</option>
+              <option :value="true">Sim</option>
+              <option :value="false">Não</option>
+            </select>
+          </div>
+          
+          <div class="filter-group">
+            <label>Dificuldade Máxima:</label>
+            <select v-model="filters.maxDifficulty">
+              <option :value="null">Qualquer</option>
+              <option :value="1">1 - Muito Fácil</option>
+              <option :value="2">2 - Fácil</option>
+              <option :value="3">3 - Moderado</option>
+              <option :value="4">4 - Difícil</option>
+              <option :value="5">5 - Muito Difícil</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button @click="resetFilters" class="reset-btn">Limpar Filtros</button>
+          <button @click="applyFilters" class="apply-btn">Aplicar Filtros</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Popup pesquisar coordenadas -->
+    <div v-if="showSearchModal" class="modal-overlay" @click="closeSearchModal">
+      <div class="modal search-modal" @click.stop>
+        <div class="modal-header">
+          <h3>Pesquisar por Coordenadas</h3>
+          <button @click="closeSearchModal" class="close-btn">×</button>
+        </div>
+        
+        <div class="modal-body">
+          <div class="search-group">
+            <label>Latitude:</label>
+            <input v-model.number="searchCoords.lat" type="number" step="any" placeholder="Ex: 41.1579">
+          </div>
+          
+          <div class="search-group">
+            <label>Longitude:</label>
+            <input v-model.number="searchCoords.lng" type="number" step="any" placeholder="Ex: -8.6291">
+          </div>
+          
+          <div class="search-examples">
+            <p><strong>Exemplos:</strong></p>
+            <button @click="setSearchCoords(41.1579, -8.6291)" class="example-btn">Porto</button>
+            <button @click="setSearchCoords(38.7223, -9.1393)" class="example-btn">Lisboa</button>
+            <button @click="setSearchCoords(40.2033, -8.4103)" class="example-btn">Coimbra</button>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button @click="searchByCoordinates" :disabled="!searchCoords.lat || !searchCoords.lng" class="apply-btn">
+            Ir para Localização
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import LogoButton from '@/components/LogoButton.vue'
 
 const router = useRouter()
 const route = useRoute()
 
+// Refs para o mapa e dados
+const mapContainer = ref(null)
+const userLocation = ref(null)
+const clickedLocation = ref(null)
+const isLoadingLocation = ref(false)
+const selectedLayer = ref('streets')
+const pontosInteresse = ref([])
+const isLoadingPontos = ref(false)
+const selectedPointId = ref(null)
+
+// Modais (Popups)
+const showFiltersModal = ref(false)
+const showSearchModal = ref(false)
+
+// Pesquisa por coordenadas
+const searchCoords = ref({
+  lat: null,
+  lng: null
+})
+
+// Filtros
+const filters = ref({
+  maxDistance: 20.0,
+  minScore: null,
+  minCreationDate: null,
+  accessibility: null,
+  maxDifficulty: null
+})
+
+let map = null
+let userMarker = null
+let clickMarker = null
+let piMarkers = []
+
+// Configurações dos layers e cores dos marcadores
+const mapLayers = {
+  streets: {
+    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  },
+  satellite: {
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    attribution: '© <a href="https://www.esri.com/">Esri</a>, © <a href="https://www.digitalglobe.com/">DigitalGlobe</a>'
+  },
+  terrain: {
+    url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+    attribution: '© <a href="https://opentopomap.org">OpenTopoMap</a> contributors'
+  }
+}
+
+const markerColors = {
+  visited: '#28a745',    // Verde
+  notVisited: '#ffc107', // Amarelo
+  premium: '#6c757d',    // Cinzento
+  user: '#007bff'        // Azul
+}
+
+// Computed
+const hasActiveFilters = computed(() => {
+  return filters.value.maxDistance !== 20.0 ||
+         filters.value.minScore !== null ||
+         filters.value.minCreationDate !== null ||
+         filters.value.accessibility !== null ||
+         filters.value.maxDifficulty !== null
+})
+
+const sortedPontos = computed(() => {
+  return [...pontosInteresse.value].sort((a, b) => {
+    const distA = a.distanceFromUser || 0
+    const distB = b.distanceFromUser || 0
+    return distA - distB
+  })
+})
+
+// Função para obter cor do marcador
+const getMarkerColor = (ponto) => {
+  if (ponto.visited) return markerColors.visited
+  if (ponto.premium) return markerColors.premium
+  return markerColors.notVisited
+}
+
+// Funções do mapa
+const initMap = () => {
+  const initialLat = 41.1579
+  const initialLng = -8.6291
+  
+  map = L.map('map').setView([initialLat, initialLng], 13)
+  
+  L.tileLayer(mapLayers.streets.url, {
+    attribution: mapLayers.streets.attribution,
+    maxZoom: 19
+  }).addTo(map)
+  
+  map.on('click', (e) => {
+    clickedLocation.value = {
+      lat: e.latlng.lat,
+      lng: e.latlng.lng
+    }
+    
+    if (clickMarker) {
+      map.removeLayer(clickMarker)
+    }
+    
+    clickMarker = L.marker([e.latlng.lat, e.latlng.lng])
+      .addTo(map)
+      .bindPopup(`<b>Localização selecionada</b><br>Lat: ${e.latlng.lat.toFixed(6)}<br>Lng: ${e.latlng.lng.toFixed(6)}`)
+      .openPopup()
+  })
+}
+
+// Função para criar ícone colorido customizado
+const createColoredIcon = (color, isSelected = false) => {
+  const size = isSelected ? 35 : 25
+  const borderWidth = isSelected ? 4 : 3
+  
+  return L.divIcon({
+    className: 'custom-marker',
+    html: `<div style="
+      background-color: ${color};
+      width: ${size}px;
+      height: ${size}px;
+      border-radius: 50%;
+      border: ${borderWidth}px solid white;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.4);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      ${isSelected ? 'transform: scale(1.1);' : ''}
+    "></div>`,
+    iconSize: [size, size],
+    iconAnchor: [size/2, size/2]
+  })
+}
+
+// Função para buscar pontos de interesse na API
+const fetchPontosInteresse = async () => {
+  if (!userLocation.value) {
+    console.log('Aguardando localização do usuário...')
+    return
+  }
+
+  isLoadingPontos.value = true
+  
+  try {
+    const token = localStorage.getItem('authToken')
+    if (!token) {
+      throw new Error('Token não encontrado')
+    }
+
+    const requestBody = {
+      userLatitude: userLocation.value.lat,
+      userLongitude: userLocation.value.lng
+    }
+
+    if (filters.value.maxDistance !== 20.0) {
+      requestBody.maxDistance = filters.value.maxDistance
+    }
+    
+    if (filters.value.minScore !== null) {
+      requestBody.minScore = filters.value.minScore
+    }
+    
+    if (filters.value.minCreationDate !== null && filters.value.minCreationDate !== '') {
+      requestBody.minCreationDate = filters.value.minCreationDate + 'T00:00:00'
+    }
+    
+    if (filters.value.accessibility !== null) {
+      requestBody.accessibility = filters.value.accessibility
+    }
+    
+    if (filters.value.maxDifficulty !== null) {
+      requestBody.maxDifficulty = filters.value.maxDifficulty
+    }
+
+    console.log('Enviando requisição:', requestBody)
+
+    const response = await fetch('http://localhost:8080/pi/filtered', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(requestBody)
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('Erro da API:', response.status, errorText)
+      throw new Error(`Erro na API: ${response.status} - ${errorText}`)
+    }
+
+    const data = await response.json()
+    console.log('Pontos recebidos:', data)
+    pontosInteresse.value = data
+    
+    // Limpar marcadores anteriores
+    clearPIMarkers()
+    
+    // Adicionar novos marcadores
+    addPIMarkersToMap(data)
+
+  } catch (error) {
+    console.error('Erro ao buscar pontos de interesse:', error)
+    alert(`Erro ao carregar pontos de interesse: ${error.message}`)
+  } finally {
+    isLoadingPontos.value = false
+  }
+}
+
+// Função para limpar marcadores de PIs
+const clearPIMarkers = () => {
+  piMarkers.forEach(marker => {
+    map.removeLayer(marker)
+  })
+  piMarkers = []
+  selectedPointId.value = null
+}
+
+// Função para adicionar marcadores de PIs ao mapa
+const addPIMarkersToMap = (pontos) => {
+  pontos.forEach(ponto => {
+    const color = getMarkerColor(ponto)
+    const isSelected = selectedPointId.value === ponto.id
+
+    const marker = L.marker([ponto.latitude, ponto.longitude], {
+      icon: createColoredIcon(color, isSelected)
+    }).addTo(map)
+
+    const popupContent = `
+      <div class="pi-popup">
+        <h4>${ponto.name}</h4>
+        <p><strong>Distância:</strong> ${ponto.distanceFromUser ? ponto.distanceFromUser.toFixed(2) + ' km' : 'N/A'}</p>
+        <p><strong>Classificação:</strong> ${ponto.score && ponto.score > 0 ? ponto.score.toFixed(1) + '★' : 'Sem classificação'}</p>
+        <p><strong>Status:</strong> ${ponto.visited ? 'Visitado' : 'Não visitado'}</p>
+        <p><strong>Dificuldade:</strong> ${ponto.difficulty || 'N/A'}</p>
+        ${ponto.premium ? '<p><strong>Premium</strong> 👑</p>' : ''}
+        ${ponto.accessibility ? '<p>♿ Acessível</p>' : ''}
+        ${ponto.description ? `<p><strong>Descrição:</strong> ${ponto.description}</p>` : ''}
+      </div>
+    `
+
+    marker.bindPopup(popupContent)
+    
+    // Adicionar evento de clique no marcador
+    marker.on('click', () => {
+      selectPoint(ponto)
+    })
+    
+    piMarkers.push({ marker, ponto })
+  })
+}
+
+// Função para selecionar um ponto
+const selectPoint = (ponto) => {
+  selectedPointId.value = ponto.id
+  
+  // Atualizar todos os marcadores
+  piMarkers.forEach(({ marker, ponto: markerPonto }) => {
+    const color = getMarkerColor(markerPonto)
+    const isSelected = selectedPointId.value === markerPonto.id
+    marker.setIcon(createColoredIcon(color, isSelected))
+  })
+  
+  // Centralizar mapa no ponto
+  map.setView([ponto.latitude, ponto.longitude], 16)
+  
+  // Abrir popup do marcador
+  const selectedMarker = piMarkers.find(({ ponto: p }) => p.id === ponto.id)
+  if (selectedMarker) {
+    selectedMarker.marker.openPopup()
+  }
+}
+
+// Função para obter localização atual
+const getCurrentLocation = () => {
+  if (!navigator.geolocation) {
+    alert('Geolocalização não é suportada neste navegador.')
+    return
+  }
+  
+  isLoadingLocation.value = true
+  
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const lat = position.coords.latitude
+      const lng = position.coords.longitude
+      
+      userLocation.value = { lat, lng }
+      
+      map.setView([lat, lng], 15)
+      
+      if (userMarker) {
+        map.removeLayer(userMarker)
+      }
+      
+      userMarker = L.marker([lat, lng], {
+        icon: createColoredIcon(markerColors.user)
+      }).addTo(map)
+        .bindPopup(`<b>Sua localização</b><br>Lat: ${lat.toFixed(6)}<br>Lng: ${lng.toFixed(6)}`)
+        .openPopup()
+      
+      L.circle([lat, lng], {
+        color: markerColors.user,
+        fillColor: markerColors.user,
+        fillOpacity: 0.2,
+        radius: position.coords.accuracy || 100
+      }).addTo(map)
+      
+      isLoadingLocation.value = false
+      
+      // Buscar pontos de interesse após obter localização
+      fetchPontosInteresse()
+    },
+    (error) => {
+      console.error('Erro ao obter localização:', error)
+      let errorMessage = 'Erro ao obter localização.'
+      
+      switch(error.code) {
+        case error.PERMISSION_DENIED:
+          errorMessage = 'Permissão de localização negada.'
+          break
+        case error.POSITION_UNAVAILABLE:
+          errorMessage = 'Localização não disponível.'
+          break
+        case error.TIMEOUT:
+          errorMessage = 'Tempo limite para obter localização.'
+          break
+      }
+      
+      alert(errorMessage)
+      isLoadingLocation.value = false
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 60000
+    }
+  )
+}
+
+// Função para trocar layer do mapa
+const changeMapLayer = () => {
+  map.eachLayer((layer) => {
+    if (layer instanceof L.TileLayer) {
+      map.removeLayer(layer)
+    }
+  })
+  
+  const selectedLayerConfig = mapLayers[selectedLayer.value]
+  L.tileLayer(selectedLayerConfig.url, {
+    attribution: selectedLayerConfig.attribution,
+    maxZoom: 19
+  }).addTo(map)
+}
+
+// Funções dos modais
+const closeFiltersModal = () => {
+  showFiltersModal.value = false
+}
+
+const closeSearchModal = () => {
+  showSearchModal.value = false
+}
+
+const resetFilters = () => {
+  filters.value = {
+    maxDistance: 20.0,
+    minScore: null,
+    minCreationDate: null,
+    accessibility: null,
+    maxDifficulty: null
+  }
+}
+
+const applyFilters = () => {
+  closeFiltersModal()
+  fetchPontosInteresse()
+}
+
+// Funções de pesquisa por coordenadas
+const setSearchCoords = (lat, lng) => {
+  searchCoords.value = { lat, lng }
+}
+
+const searchByCoordinates = () => {
+  if (searchCoords.value.lat && searchCoords.value.lng) {
+    map.setView([searchCoords.value.lat, searchCoords.value.lng], 15)
+    
+    if (clickMarker) {
+      map.removeLayer(clickMarker)
+    }
+    
+    clickMarker = L.marker([searchCoords.value.lat, searchCoords.value.lng])
+      .addTo(map)
+      .bindPopup(`<b>Localização pesquisada</b><br>Lat: ${searchCoords.value.lat}<br>Lng: ${searchCoords.value.lng}`)
+      .openPopup()
+    
+    closeSearchModal()
+    searchCoords.value = { lat: null, lng: null }
+  }
+}
+
+// Lifecycle hooks
+onMounted(() => {
+  const loadLeaflet = () => {
+    return new Promise((resolve) => {
+      if (!document.querySelector('link[href*="leaflet"]')) {
+        const cssLink = document.createElement('link')
+        cssLink.rel = 'stylesheet'
+        cssLink.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
+        cssLink.integrity = 'sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY='
+        cssLink.crossOrigin = ''
+        document.head.appendChild(cssLink)
+      }
+      
+      if (!window.L) {
+        const script = document.createElement('script')
+        script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
+        script.integrity = 'sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo='
+        script.crossOrigin = ''
+        script.onload = resolve
+        document.head.appendChild(script)
+      } else {
+        resolve()
+      }
+    })
+  }
+  
+  loadLeaflet().then(() => {
+    setTimeout(() => {
+      initMap()
+      getCurrentLocation()
+    }, 100)
+  })
+})
+
+onUnmounted(() => {
+  if (map) {
+    map.remove()
+  }
+})
+
 const handleLogoClick = () => {
   if (route.path === '/') {
-    // Do something special if on homepage (e.g., scroll to top)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   } else {
     router.push('/')
@@ -35,62 +685,709 @@ const handleLogoClick = () => {
 </script>
 
 <style scoped>
-.mimi{
-  color: black;
-}
+/* Estilos base da página */
 .home-page {
   background-color: white;
   min-height: 100vh;
   color: white;
   font-family: sans-serif;
+  position: relative;
 }
 
 .navbar {
   display: flex;
-  flex-wrap: wrap;
   justify-content: space-between;
-  align-items: center;
   background-color: #427F99;
   padding: 0.75rem 1.5rem;
   color: white;
 }
 
-@media (max-width: 768px) {
-  .navbar {
-    flex-direction: column;
-    align-items: stretch;
-    text-align: center;
-    gap: 1rem;
-  }
+.nav-button {
+  background-color: white;
+  color: #6e98db;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  margin-left: 0.5rem;
+  text-decoration: none;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+}
 
-  .navbar-left,
-  .navbar-right {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
+.nav-button:hover {
+  background-color: #e0e0e0;
+}
 
-  .navbar-right .nav-button {
-    width: 60%;
-    margin: 0 auto;
-  }
-
-  .navbar-left .logo-button {
-    justify-content: center;
-  }
+.hero {
+  position: relative;
+  text-align: center;
+  z-index: 1;
 }
 
 
-.navbar-left .logo-button {
+.hero-image {
+  width: 100%;
+  max-height: 500px;
+  object-fit: cover;
+}
+
+.hero-text {
+  background-color: white;
+  color: black;
+  padding: 1rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.location-info {
+  background-color: #f8f9fa;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  border: 1px solid #e9ecef;
+}
+
+.location-text {
+  font-size: 0.9rem;
+  color: #495057;
+  font-weight: 500;
+}
+
+/* Conteúdo principal */
+.content {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Container do mapa */
+.map-container {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.map-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #e9ecef;
+  background-color: #f8f9fa;
+}
+
+.map-header h2 {
+  margin: 0 0 1rem 0;
+  color: #333;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.map-controls {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.location-btn,
+.search-btn,
+.filters-btn {
+  padding: 0.75rem 1rem;
+  border: 1px solid #427F99;
+  background-color: white;
+  color: #427F99;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
-  background: none;
-  border: none;
+  gap: 0.5rem;
+}
+
+.location-btn:hover,
+.search-btn:hover,
+.filters-btn:hover {
+  background-color: #427F99;
   color: white;
-  font-size: 1.25rem;
+}
+
+.location-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.filters-btn {
+  position: relative;
+}
+
+.filter-indicator {
+  color: #dc3545;
+  font-size: 1.2rem;
+  margin-left: 0.25rem;
+}
+
+.layer-select {
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: white;
+  color: #333;
+  font-size: 0.9rem;
   cursor: pointer;
 }
 
+/* Legenda */
+.legend {
+  display: flex;
+  gap: 1.5rem;
+  padding: 1rem 1.5rem;
+  background-color: white;
+  border-bottom: 1px solid #e9ecef;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.legend-color.green { background-color: #28a745; }
+.legend-color.yellow { background-color: #ffc107; }
+.legend-color.gray { background-color: #6c757d; }
+.legend-color.blue { background-color: #007bff; }
+
+/* Estilos da sidebar lateral */
+.map-content {
+  display: flex;
+  height: 600px;
+}
+
+.points-sidebar {
+  width: 350px;
+  border-right: 1px solid #e5e5e5;
+  background-color: #f8f9fa;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s ease;
+}
+
+.points-sidebar.collapsed {
+  width: 40px;
+}
+
+.sidebar-header {
+  padding: 1rem;
+  border-bottom: 1px solid #e5e5e5;
+  background-color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sidebar-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: #333;
+}
+
+.toggle-sidebar-btn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #666;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.toggle-sidebar-btn:hover {
+  background-color: #e9ecef;
+}
+
+.sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.points-list {
+  padding: 0.5rem;
+}
+
+.point-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem;
+  margin-bottom: 0.5rem;
+  background: white;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.point-item:hover {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transform: translateY(-1px);
+}
+
+.point-item.active {
+  border-color: #427F99;
+  background-color: #f0f8ff;
+}
+
+.point-marker {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+.point-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.point-info h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  color: #333;
+  font-weight: 600;
+}
+
+.point-type,
+.point-distance,
+.point-rating {
+  margin: 0.25rem 0;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.point-tags {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.tag {
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.tag.visited {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.tag.premium {
+  background-color: #e2e3e5;
+  color: #383d41;
+}
+
+.tag.accessible {
+  background-color: #cce5ff;
+  color: #004085;
+}
+
+.tag.difficulty {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.map-wrapper {
+  flex: 1;
+  position: relative;
+}
+
+.map-wrapper.with-sidebar {
+  border-left: 1px solid #e5e5e5;
+}
+
+/* Mapa */
+.map {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+}
+
+/* Footer do mapa */
+.map-footer {
+  padding: 1rem 1.5rem;
+  background-color: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.stats {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.stats span {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.map-info {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.map-info p {
+  margin: 0.25rem 0;
+}
+
+/* Modais */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.modal {
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.search-modal {
+  max-width: 400px;
+}
+
+.modal-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #e9ecef;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 1.25rem;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #666;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.close-btn:hover {
+  background-color: #f8f9fa;
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.filter-group,
+.search-group {
+  margin-bottom: 1.5rem;
+}
+
+.filter-group label,
+.search-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.filter-group input,
+.filter-group select,
+.search-group input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  transition: border-color 0.2s;
+}
+
+.filter-group input:focus,
+.filter-group select:focus,
+.search-group input:focus {
+  outline: none;
+  border-color: #427F99;
+  box-shadow: 0 0 0 2px rgba(66, 127, 153, 0.2);
+}
+
+.search-examples {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.search-examples p {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.example-btn {
+  padding: 0.5rem 1rem;
+  margin: 0.25rem 0.5rem 0.25rem 0;
+  border: 1px solid #ddd;
+  background-color: white;
+  color: #666;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+
+.example-btn:hover {
+  background-color: #f8f9fa;
+  border-color: #427F99;
+  color: #427F99;
+}
+
+.modal-footer {
+  padding: 1.5rem;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.reset-btn,
+.apply-btn {
+  padding: 0.75rem 1.5rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.reset-btn {
+  background-color: white;
+  color: #666;
+}
+
+.reset-btn:hover {
+  background-color: #f8f9fa;
+  border-color: #adb5bd;
+}
+
+.apply-btn {
+  background-color: #427F99;
+  color: white;
+  border-color: #427F99;
+}
+
+.apply-btn:hover {
+  background-color: #356b83;
+}
+
+.apply-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Estilos para marcadores customizados */
+:global(.custom-marker) {
+  background: none !important;
+  border: none !important;
+}
+
+:global(.custom-marker div) {
+  transition: all 0.2s ease;
+}
+
+:global(.custom-marker:hover div) {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3) !important;
+}
+
+/* Estilos para popups */
+:global(.pi-popup) {
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+:global(.pi-popup h4) {
+  margin: 0 0 0.5rem 0;
+  color: #333;
+  font-size: 1rem;
+}
+
+:global(.pi-popup p) {
+  margin: 0.25rem 0;
+  color: #666;
+}
+
+/* Responsividade */
+@media (max-width: 1200px) {
+  .content {
+    padding: 1rem;
+  }
+  
+  .points-sidebar {
+    width: 300px;
+  }
+  
+  .map-content {
+    height: 500px;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    padding: 1rem;
+  }
+  
+  .content {
+    padding: 0.5rem;
+  }
+  
+  .map-header {
+    padding: 1rem;
+  }
+  
+  .map-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .location-btn,
+  .search-btn,
+  .filters-btn,
+  .layer-select {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .legend {
+    padding: 0.75rem;
+    gap: 1rem;
+  }
+  
+  .map-content {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .points-sidebar {
+    width: 100%;
+    max-height: 200px;
+    border-right: none;
+    border-bottom: 1px solid #e5e5e5;
+  }
+
+  .points-sidebar.collapsed {
+    width: 100%;
+    max-height: 60px;
+  }
+
+  .map-wrapper {
+    height: 400px;
+  }
+
+  .map-wrapper.with-sidebar {
+    border-left: none;
+    border-top: 1px solid #e5e5e5;
+  }
+
+  .point-item {
+    padding: 0.75rem;
+  }
+
+  .point-info h4 {
+    font-size: 0.9rem;
+  }
+
+  .point-type,
+  .point-distance,
+  .point-rating {
+    font-size: 0.8rem;
+  }
+  
+  .map-footer {
+    padding: 0.75rem;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .modal {
+    width: 95%;
+    margin: 1rem;
+  }
+  
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar-right .location-info {
+    display: none;
+  }
+  
+  .legend {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .map-content {
+    height: auto;
+  }
+  
+  .map-wrapper {
+    height: 300px;
+  }
+  
+  .modal-footer {
+    flex-direction: column;
+  }
+  
+  .reset-btn,
+  .apply-btn {
+    width: 100%;
+  }
+}
 </style>

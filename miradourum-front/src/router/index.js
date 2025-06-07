@@ -42,9 +42,20 @@ const router = createRouter({
 // 🔐 Global auth guard
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('authToken')
-  if (to.meta.requiresAuth && !token) {
+  const isLoggedIn = !!token
+
+  // Redirect to /home if already logged in and trying to access public routes
+  if (isLoggedIn && (to.name === 'Home' || to.name === 'Login' || to.name === 'Register')) {
+    next('/home')
+  }
+
+  // Redirect to login if trying to access protected routes without token
+  else if (to.meta.requiresAuth && !isLoggedIn) {
     next('/login')
-  } else {
+  }
+
+  // All other cases allowed
+  else {
     next()
   }
 })
