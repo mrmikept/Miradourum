@@ -222,6 +222,62 @@
           </button>
         </div>
       </div>
+    <!-- Modal de detalhes do ponto -->
+    <div v-if="showDetailsModal" class="modal-overlay" @click="closeDetailsModal">
+      <div class="modal details-modal" @click.stop>
+        <div class="modal-header">
+          <h3>{{ selectedPointDetails?.name || 'Detalhes do Ponto' }}</h3>
+          <button @click="closeDetailsModal" class="close-btn">×</button>
+        </div>
+        
+        <div class="modal-body" v-if="selectedPointDetails">
+          <div v-if="isLoadingDetails" class="loading-content">
+            <p>Carregando detalhes...</p>
+          </div>
+          
+          <div v-else class="details-content">
+            <div class="detail-section">
+              <h4>📍 Localização</h4>
+              <p><strong>Coordenadas:</strong> {{ selectedPointDetails.latitude.toFixed(6) }}, {{ selectedPointDetails.longitude.toFixed(6) }}</p>
+              <p v-if="selectedPointDetails.distanceFromUser">
+                <strong>Distância:</strong> {{ selectedPointDetails.distanceFromUser.toFixed(2) }} km
+              </p>
+            </div>
+            
+            <div class="detail-section">
+              <h4>ℹ️ Informações Gerais</h4>
+              <p><strong>Status:</strong> {{ selectedPointDetails.state ? 'Ativo' : 'Inativo' }}</p>
+              <p><strong>Classificação:</strong> 
+                <span v-if="selectedPointDetails.score && selectedPointDetails.score > 0">
+                  {{ selectedPointDetails.score.toFixed(1) }}★
+                </span>
+                <span v-else>Sem classificação</span>
+              </p>
+              <p><strong>Dificuldade:</strong> {{ selectedPointDetails.difficulty || 'Não especificada' }}</p>
+              <p><strong>Data de Criação:</strong> {{ new Date(selectedPointDetails.creationDate).toLocaleDateString('pt-PT') }}</p>
+            </div>
+            
+            <div class="detail-section">
+              <h4>🏷️ Características</h4>
+              <div class="characteristics">
+                <span v-if="selectedPointDetails.premium" class="char-tag premium">👑 Premium</span>
+                <span v-if="selectedPointDetails.accessibility" class="char-tag accessible">♿ Acessível</span>
+                <span v-if="!selectedPointDetails.premium" class="char-tag free">🆓 Gratuito</span>
+              </div>
+            </div>
+            
+            <div class="detail-section" v-if="selectedPointDetails.description">
+              <h4>📝 Descrição</h4>
+              <div class="description-content" v-html="selectedPointDetails.description"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="modal-footer">
+          <button @click="closeDetailsModal" class="apply-btn">Fechar</button>
+        </div>
+      </div>
+    </div>
     </div>
   </div>
 </template>
@@ -243,6 +299,11 @@ const selectedLayer = ref('streets')
 const pontosInteresse = ref([])
 const isLoadingPontos = ref(false)
 const selectedPointId = ref(null)
+
+// Modal de detalhes do ponto
+const showDetailsModal = ref(false)
+const selectedPointDetails = ref(null)
+const isLoadingDetails = ref(false)
 
 // Modais (Popups)
 const showFiltersModal = ref(false)
@@ -426,7 +487,17 @@ const fetchPontosInteresse = async () => {
 
     const data = await response.json()
     console.log('Pontos recebidos:', data)
-    pontosInteresse.value = data
+    // Calcular distâncias e atualizar pontos
+    pontosInteresse.value = data.map(ponto => ({
+      ...ponto,
+      distanceFromUser: userLocation.value ? 
+        calculateDistance(
+          userLocation.value.lat, 
+          userLocation.value.lng, 
+          ponto.latitude, 
+          ponto.longitude
+        ) : null
+    }))
     
     // Limpar marcadores anteriores
     clearPIMarkers()
@@ -485,6 +556,65 @@ const addPIMarkersToMap = (pontos) => {
   })
 }
 
+// Função para calcular distância entre dois pontos em km
+const calculateDistance = (lat1, lng1, lat2, lng2) => {
+  const R = 6371 // Raio da Terra em km
+  const dLat = (lat2 - lat1) * Math.PI / 180
+  const dLng = (lng2 - lng1) * Math.PI / 180
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLng/2) * Math.sin(dLng/2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+  return R * c
+}
+
+// Função para buscar detalhes de um ponto específico
+const fetchPointDetails = async (pointId) => {
+  isLoadingDetails.value = true
+  
+  try {
+    const token = localStorage.getItem('authToken')
+    if (!token) {
+      throw new Error('Token não encontrado')
+    }
+
+    const response = await fetch(`http://localhost:8080/pi/details/${pointId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('Erro da API:', response.status, errorText)
+      throw new Error(`Erro na API: ${response.status} - ${errorText}`)
+    }
+
+    const data = await response.json()
+    console.log('Detalhes do ponto recebidos:', data)
+    
+    // Calcular distância se tivermos a localização do usuário
+    if (userLocation.value) {
+      data.distanceFromUser = calculateDistance(
+        userLocation.value.lat,
+        userLocation.value.lng,
+        data.latitude,
+        data.longitude
+      )
+    }
+    
+    selectedPointDetails.value = data
+    showDetailsModal.value = true
+
+  } catch (error) {
+    console.error('Erro ao buscar detalhes do ponto:', error)
+    alert(`Erro ao carregar detalhes: ${error.message}`)
+  } finally {
+    isLoadingDetails.value = false
+  }
+}
+
 // Função para selecionar um ponto
 const selectPoint = (ponto) => {
   selectedPointId.value = ponto.id
@@ -499,11 +629,8 @@ const selectPoint = (ponto) => {
   // Centralizar mapa no ponto
   map.setView([ponto.latitude, ponto.longitude], 16)
   
-  // Abrir popup do marcador
-  const selectedMarker = piMarkers.find(({ ponto: p }) => p.id === ponto.id)
-  if (selectedMarker) {
-    selectedMarker.marker.openPopup()
-  }
+  // Buscar detalhes do ponto e abrir modal
+  fetchPointDetails(ponto.id)
 }
 
 // Função para obter localização atual
@@ -595,6 +722,11 @@ const closeFiltersModal = () => {
 
 const closeSearchModal = () => {
   showSearchModal.value = false
+}
+
+const closeDetailsModal = () => {
+  showDetailsModal.value = false
+  selectedPointDetails.value = null
 }
 
 const resetFilters = () => {
@@ -1361,6 +1493,91 @@ const handleLogoClick = () => {
   .modal-footer {
     padding: 1rem;
   }
+}
+
+/* Modal de detalhes */
+.details-modal {
+  max-width: 600px;
+  max-height: 90vh;
+}
+
+.loading-content {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+}
+
+.details-content {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.detail-section {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.detail-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.detail-section h4 {
+  margin: 0 0 0.75rem 0;
+  color: #333;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.detail-section p {
+  margin: 0.5rem 0;
+  color: #666;
+  line-height: 1.5;
+}
+
+.characteristics {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.char-tag {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.char-tag.premium {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.char-tag.accessible {
+  background-color: #cce5ff;
+  color: #004085;
+  border: 1px solid #b3d9ff;
+}
+
+.char-tag.free {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.description-content {
+  color: #333;
+  line-height: 1.6;
+  word-wrap: break-word;
+}
+
+.description-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 0.5rem 0;
 }
 
 @media (max-width: 480px) {
