@@ -42,6 +42,10 @@
             <p><strong>{{ review.user }}</strong> - <em>{{ formatDate(review.date) }}</em></p>
             <p>{{ review.comment }}</p>
             <p>⭐ {{ review.rating }}/5</p>
+
+            <!-- Mostrar as imagens da review, se existirem -->
+            <img class="review-picture" :src="reviewImage" alt="Foto" />
+
             <hr />
           </li>
         </ul>
@@ -61,6 +65,16 @@
             <option v-for="n in 5" :key="n" :value="n">{{ n }}</option>
           </select>
         </label>
+
+        <label class="file-upload-label">
+          Adicionar imagem
+          <input type="file" accept="image/*" @change="handleReviewImageUpload" />
+        </label>
+
+        <div v-if="reviewImagePreview" class="preview">
+          <img :src="reviewImagePreview" alt="Preview da imagem" />
+        </div>
+
         <div class="modal-buttons">
           <button @click="submitComment" :disabled="loadingComment">
             {{ loadingComment ? 'A enviar...' : 'Enviar' }}
@@ -76,10 +90,16 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import LogoButton from '@/components/LogoButton.vue'
+import { S3Client } from '@aws-sdk/client-s3'
+import { Upload } from '@aws-sdk/lib-storage'
+import axios from "axios";
 
+const reviewImageFile = ref(null)
+const reviewImagePreview = ref('')
+const reviewImage = ref('/default-review.png')
 const router = useRouter()
 const route = useRoute()
-
+const pi = ref(null)
 const token = localStorage.getItem('authToken')
 
 const pointDetails = ref({})
@@ -115,9 +135,44 @@ const fetchPointDetails = async () => {
     }
     const data = await res.json()
     pointDetails.value = data
+    reviewImage.value = data.reviewImage || '/default-review.png'
   } catch (err) {
     console.error('Erro fetch detalhes:', err)
   }
+}
+
+//upload de imagens
+const handleReviewImageUpload = (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+  reviewImageFile.value = file
+  reviewImagePreview.value = URL.createObjectURL(file)
+}
+
+const s3Client = new S3Client({
+  region: 'us-east-1',
+  endpoint: 'http://localhost:9000',
+  credentials: {
+    accessKeyId: 'admin',
+    secretAccessKey: 'admin123',
+  },
+  forcePathStyle: true,
+})
+
+const uploadReviewImageToMinIO = async (file) => {
+  const fileName = `review-${Date.now()}-${file.name}`
+  const upload = new Upload({
+    client: s3Client,
+    params: {
+      Bucket: 'review-images',
+      Key: fileName,
+      Body: file,
+      ContentType: file.type,
+      ACL: 'public-read',
+    },
+  })
+  await upload.done()
+  return `http://localhost:9000/review-images/${fileName}`
 }
 
 // Fetch reviews do ponto
@@ -173,55 +228,61 @@ const closeCommentModal = () => {
 }
 
 // Submeter comentário
-const submitComment = async () => {
-  const ratingValue = Number(newRating.value)
-
-  if (!newComment.value.trim() || !ratingValue || ratingValue < 1 || ratingValue > 5) {
-    alert('Por favor preencha o comentário e uma avaliação válida entre 1 e 5')
-    return
+async function submitComment() {
+  if (!pointDetails.value || !pointId) {
+    console.error("Erro: PI ainda não carregado.");
+    return;
   }
-
-  const payload = {
-    comment: newComment.value.trim(),
-    rating: ratingValue,
-    images: []
-  }
-
-  console.log('Payload enviado:', payload)
 
   loadingComment.value = true
+
   try {
-    const res = await fetch(`http://localhost:8080/pi/${pointId}/reviews`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload)
-    })
-    if (!res.ok) {
-      const errorText = await res.text()
-      console.error('Resposta com erro:', errorText)
-      alert('Erro ao enviar comentário')
-      return
+    let imageUrls = []
+
+    if (reviewImageFile.value) {
+      const imageUrl = await uploadReviewImageToMinIO(reviewImageFile.value)
+      imageUrls.push(imageUrl)
     }
 
-    alert('Comentário enviado com sucesso!')
-    closeCommentModal()
+    const now = new Date().toISOString()
+
+    const response = await axios.post(
+        `http://localhost:8080/pi/${pointId}/reviews`,
+        {
+          rating: newRating.value,
+          comment: newComment.value,
+          images: imageUrls,
+          date: now
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+    )
+
+    console.log("Comentário enviado com sucesso", response.data)
+
+    // Recarregar reviews após envio
     await fetchReviews()
-  } catch (err) {
-    alert('Erro ao enviar comentário')
-    console.error(err)
+
+    // Fechar modal e limpar campos
+    closeCommentModal()
+    reviewImageFile.value = null
+    reviewImagePreview.value = ''
+  } catch (error) {
+    console.error("Erro ao enviar comentário", error)
   } finally {
     loadingComment.value = false
   }
 }
 
-
 const formatDate = (dateString) => {
+  if (!dateString) return 'Data não disponível'
   const d = new Date(dateString)
-  return d.toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', year: 'numeric' })
+  return isNaN(d) ? 'Data inválida' : d.toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', year: 'numeric' })
 }
+
 
 onMounted(() => {
   fetchPointDetails()
@@ -417,6 +478,23 @@ onMounted(() => {
   background-color: #7ea5b7;
   cursor: not-allowed;
 }
+
+.review-picture-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.review-picture {
+  width: 100px;
+  height: 100px;
+  border-radius: 0%;
+  object-fit: cover;
+  border: 4px solid white;
+  margin-bottom: 1rem;
+}
+
+
 
 /* Responsive */
 @media (max-width: 900px) {

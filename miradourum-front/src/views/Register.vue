@@ -177,9 +177,6 @@ const uploadImageToMinIO = async (file) => {
 }
 
 
-
-
-
 // Funções para limpar erros quando utilizador digita/interage
 const clearUsernameError = () => {
   if (usernameError.value) {
