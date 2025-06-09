@@ -671,6 +671,14 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "isAdmin",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
 				}
 			]
 		}

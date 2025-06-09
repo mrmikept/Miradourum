@@ -55,6 +55,7 @@ public interface UserService {
      */
     boolean checkPremium(Long userid);
 
+    boolean checkAdmin(Long userid);
 
     /**
      *
