@@ -8,7 +8,7 @@
       </div>
 
       <div class="navbar-right">
-        <button v-if="!isPremium" class="nav-button" @click="goPremium">Torne-se Premium</button>
+        <button v-if="!isPremiumStatus" class="nav-button" @click="goPremium">Torne-se Premium</button>
         <button class="nav-button" @click="handleLogout">Terminar Sessão ⎋</button>
       </div>
     </nav>
@@ -43,6 +43,7 @@ g
 import { useRouter } from 'vue-router'
 import { ref, onMounted } from 'vue'
 import LogoButton from '@/components/LogoButton.vue'
+import { computed } from 'vue'
 
 const router = useRouter()
 
@@ -97,6 +98,7 @@ const fetchUserProfile = async () => {
 
 // Parte do plano, premium ou não
 const isPremium = ref(false)
+const isPremiumStatus = computed(() => isPremium.value)
 
 const checkPremiumStatus = async () => {
   try {
@@ -109,7 +111,7 @@ const checkPremiumStatus = async () => {
 
     if (response.ok) {
       const result = await response.json()
-      isPremium.value = result.isPremium // ou `true` diretamente se a API retorna booleano
+      isPremium.value = result
     } else {
       console.warn('Erro ao verificar status premium.')
     }
