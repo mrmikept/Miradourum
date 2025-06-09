@@ -1,20 +1,23 @@
 <template>
   <div class="home-page">
-    <nav class="navbar">
-      <div class="navbar-left">
-        <LogoButton to="/home">
-        </LogoButton>
-      </div>
-      <div class="navbar-right">
-        <RouterLink v-if="isAdmin" to="/review" class="nav-button">Review</RouterLink>
+<!--    <nav class="navbar">-->
+<!--      <div class="navbar-left">-->
+<!--        <LogoButton to="/home">-->
+<!--        </LogoButton>-->
+<!--      </div>-->
+<!--      <div class="navbar-right">-->
+<!--        <RouterLink v-if="isAdmin" to="/review" class="nav-button">Review</RouterLink>-->
 
-        <div class="location-info" v-if="userLocation">
-          <span class="location-text">📍 {{ userLocation.lat.toFixed(4) }}, {{ userLocation.lng.toFixed(4) }}</span>
-        </div>
-        <!-- Botão de editar perfil -->
-        <button class="nav-button" @click="goToProfile">Ver Perfil</button>
-      </div>
-    </nav>
+<!--        <div class="location-info" v-if="userLocation">-->
+<!--          <span class="location-text">📍 {{ userLocation.lat.toFixed(4) }}, {{ userLocation.lng.toFixed(4) }}</span>-->
+<!--        </div>-->
+<!--        &lt;!&ndash; Botão de editar perfil &ndash;&gt;-->
+<!--        <button class="nav-button" @click="goToProfile">Ver Perfil</button>-->
+<!--      </div>-->
+<!--    </nav>-->
+
+    <TopToolBarMenu/>
+
 
     <div class="content">
       <div class="map-container">
@@ -297,6 +300,8 @@
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import LogoButton from '@/components/LogoButton.vue'
+import TopToolBarMenu from "../components/TopToolBarMenu.vue";
+import Breadcrumbs from "../components/breadcrumbs.vue";
 
 const router = useRouter()
 const route = useRoute()
@@ -917,41 +922,6 @@ const handleLogoClick = () => {
   color: white;
   font-family: sans-serif;
   position: relative;
-}
-
-.navbar {
-  border: none;
-  outline: none;
-  display: flex;
-  justify-content: space-between;
-  background-color: #427F99;
-  padding: 0.75rem 1.5rem;
-  color: white;
-}
-
-.nav-button {
-  border: none;
-  outline: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  white-space: nowrap;
-  background-color: white;
-  color: #427F99;
-  border-radius: 8px;
-  padding: 0.5rem 1rem;
-  margin-left: 0.5rem;
-  text-decoration: none;
-  font-weight: bold;
-  transition: background-color 0.2s ease;
-}
-
-
-.nav-button:hover {
-  border: none;
-  outline: none;
-  background-color: #e0e0e0;
 }
 
 .hero {

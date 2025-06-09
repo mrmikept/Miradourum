@@ -21,7 +21,7 @@ const go = () => {
   background: none;
   border: none;
   cursor: pointer;
-  padding: 0;
+  padding: 0 0 0 20px;
   display: inline-flex;
   align-items: center;
   justify-content: center;

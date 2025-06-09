@@ -1,8 +1,10 @@
 <template>
   <div id="app">
-    <router-view /> <!-- For Vue Router -->
+    <v-app>
+      <router-view /> <!-- For Vue Router -->
     <!-- OR -->
     <!-- <MyComponent /> -->
+    </v-app>
   </div>
 </template>
 
