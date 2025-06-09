@@ -4,6 +4,8 @@ import Login from '@/views/Login.vue'
 import NotFoundComponent from '@/views/NotFound.vue'
 import Register from '@/views/Register.vue'
 import HomeLogged from '@/views/HomeLogged.vue'
+import UserProfile from '@/views/EditProfile.vue'
+import BecomePremium from '@/views/BecomePremium.vue'
 
 const routes = [
   {
@@ -25,6 +27,18 @@ const routes = [
     path: '/home',
     name: 'HomeLogged',
     component: HomeLogged,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/editProfile',
+    name: 'UserProfile',
+    component: UserProfile,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/become-premium',
+    name: 'BecomePremium',
+    component: BecomePremium,
     meta: { requiresAuth: true },
   },
   {
