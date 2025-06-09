@@ -18,6 +18,7 @@ import pt.uminho.di.aa.miradourum.services.ReviewService;
 import pt.uminho.di.aa.miradourum.services.UserService;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
@@ -137,7 +138,10 @@ public class UserController {
 
     // Check if user is premium
     @GetMapping("/premium")
+
     public ResponseEntity<?> isPremium(@RequestHeader("Authorization") String authHeader) {
+        System.out.println(java.time.ZoneId.systemDefault());
+
         // Validar token
         ResponseEntity<?> tokenValidation = jwtService.validateToken(authHeader);
         if (tokenValidation != null) {
@@ -146,8 +150,10 @@ public class UserController {
 
         // Extrair userId do token válido
         Long userId = jwtService.extractUserIdFromValidToken(authHeader);
+        User user =  userService.getUserById(userId, User.class);
+        return ResponseEntity.ok(checkAndHandlePremiumExpiry(user));
 
-        return ResponseEntity.ok(userService.checkPremium(userId));
+        //return ResponseEntity.ok(userService.checkPremium(userId));
     }
 
     // Get image URLs dos pontos visitados
@@ -210,6 +216,7 @@ public class UserController {
         }
 
         // Chamar microsserviço de pagamento
+
         PaymentResponseDTO paymentResponse = callPaymentService(paymentData);
 
         if (!paymentResponse.isSuccess()) {
@@ -219,11 +226,9 @@ public class UserController {
 
         // Atualizar utilizador para role=3 e definir data de expiração
         try {
-            String isoDate = paymentResponse.getExpiryDate().replace("Z", "");
-            LocalDateTime localDateTime = LocalDateTime.parse(isoDate);
+            OffsetDateTime odt = OffsetDateTime.parse(paymentResponse.getExpiryDate());
+            Date expiryDate = Date.from(odt.toInstant());
 
-            // Converter LocalDateTime para Date se necessário
-            Date expiryDate = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
 
             user.setRole(3);
             user.setPremiumEndDate(expiryDate);
@@ -235,7 +240,6 @@ public class UserController {
                     "expiryDate", expiryDate,
                     "newRole", 3
             ));
-
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Failed to update user: " + e.getMessage());
@@ -267,4 +271,23 @@ public class UserController {
             return errorResponse;
         }
     }
+
+    public boolean checkAndHandlePremiumExpiry(User user) {
+        Date premiumEndDate = user.getPremiumEndDate();
+        if (premiumEndDate == null) {
+            return false;
+        }
+        Date now = new Date();
+        if (now.after(premiumEndDate)) {
+            // Premium expired, downgrade role back to 1 if needed
+            if (user.getRole() == 3) {
+                user.setRole(1);
+                user.setPremiumEndDate(null);  // Optional: clear expiry date
+                userService.saveUser(user);    // Persist changes
+            }
+            return false;
+        }
+        return true;  // Premium still active
+    }
+
 }

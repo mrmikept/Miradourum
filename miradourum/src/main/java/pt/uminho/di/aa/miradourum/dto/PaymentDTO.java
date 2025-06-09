@@ -1,6 +1,7 @@
 package pt.uminho.di.aa.miradourum.dto;
 
 public class PaymentDTO {
+
     private String cardNumber;
     private String cardName;
     private String ccv;

@@ -27,8 +27,10 @@ public class User {
     private Integer role;
     @Column(name = "ProfileImage")
     private String profileImage;
+    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "PremiumEndDate")
     private Date premiumEndDate;
+
 
     @JsonManagedReference
     @ManyToMany
