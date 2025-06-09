@@ -6,6 +6,7 @@ import Register from '@/views/Register.vue'
 import HomeLogged from '@/views/HomeLogged.vue'
 import UserProfile from '@/views/EditProfile.vue'
 import BecomePremium from '@/views/BecomePremium.vue'
+import UserHistory from "@/views/UserHistory.vue";
 
 const routes = [
   {
@@ -39,6 +40,12 @@ const routes = [
     path: '/become-premium',
     name: 'BecomePremium',
     component: BecomePremium,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/history',
+    name: 'History',
+    component: UserHistory,
     meta: { requiresAuth: true },
   },
   {
