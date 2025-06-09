@@ -16,7 +16,7 @@
     <!-- Conteúdo principal -->
     <div class="profile-header">
       <div class="profile-picture-wrapper">
-        <img class="profile-picture" :src="profileImage" alt="Foto de Perfil" />
+        <img class="profile-picture" :src="profileImage" alt="Foto de Perfil"/>
         <h2 class="username-display">{{ username }}</h2>
       </div>
     </div>
@@ -53,11 +53,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import {useRouter} from 'vue-router'
 import LogoButton from '@/components/LogoButton.vue'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import { ref, onMounted, watch } from 'vue'
 
 const router = useRouter()
 
@@ -82,7 +82,7 @@ const handleLogout = () => {
 const fetchUserProfile = async () => {
   try {
     const res = await fetch('http://localhost:8080/user/edit', {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: {Authorization: `Bearer ${token}`}
     })
     if (!res.ok) {
       router.push('/login')
@@ -107,18 +107,24 @@ const fetchVisitedPoints = async () => {
       return
     }
     const data = await res.json()
-    // Assumindo que cada ponto tem {name, lat, lng}
-    visitedPoints.value = data
+
+    // 💡 Mapear latitude/longitude para lat/lng
+    visitedPoints.value = data.map(ponto => ({
+      ...ponto,
+      lat: ponto.latitude,
+      lng: ponto.longitude
+    }))
   } catch (err) {
     console.error('Erro fetch pontos:', err)
   }
 }
 
+
 // Fetch galeria de imagens do utilizador
 const fetchImages = async () => {
   try {
     const res = await fetch('http://localhost:8080/user/images', {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: {Authorization: `Bearer ${token}`}
     })
     if (!res.ok) {
       console.warn('Erro a carregar imagens')
@@ -145,22 +151,34 @@ const setupMap = () => {
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map)
 
-  // Adicionar marcadores para cada ponto visitado
-  visitedPoints.value.forEach(ponto => {
-    if (ponto.lat && ponto.lng) {
-      L.marker([ponto.lat, ponto.lng])
-          .addTo(map)
-          .bindPopup(ponto.name)
-    }
+  // Ícone verde customizado
+  const greenIcon = new L.Icon({
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
   })
 
-  // Ajustar mapa para mostrar todos pontos
-  if (visitedPoints.value.length > 0) {
-    const group = new L.featureGroup(
-        visitedPoints.value.map(p => L.marker([p.lat, p.lng]))
-    )
-    map.fitBounds(group.getBounds().pad(0.5))
-  }
+  const pontosValidos = visitedPoints.value.filter(p =>
+      typeof p.lat === 'number' &&
+      typeof p.lng === 'number' &&
+      !isNaN(p.lat) &&
+      !isNaN(p.lng)
+  )
+
+  if (pontosValidos.length === 0) return
+
+  // Adiciona marcadores com ícone verde
+  const markers = pontosValidos.map(ponto =>
+      L.marker([ponto.lat, ponto.lng], { icon: greenIcon }).bindPopup(ponto.name)
+  )
+
+  markers.forEach(marker => marker.addTo(map))
+
+  const group = new L.featureGroup(markers)
+  map.fitBounds(group.getBounds().pad(0.5))
 }
 
 onMounted(async () => {
@@ -169,6 +187,14 @@ onMounted(async () => {
   await fetchImages()
   setupMap()
 })
+
+
+/*watch(visitedPoints, (newPoints) => {
+  if (newPoints.length > 0) {
+    setupMap()
+  }
+})*/
+
 </script>
 
 <style scoped>
@@ -329,6 +355,7 @@ onMounted(async () => {
   .content-container {
     flex-direction: column;
   }
+
   .recent-visits, .gallery, .map-container {
     max-height: none;
     width: 100%;
