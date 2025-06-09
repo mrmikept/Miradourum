@@ -18,6 +18,12 @@
       <div class="profile-picture-wrapper">
         <img class="profile-picture" :src="profileImage" alt="Foto de Perfil" />
         <button class="change-photo-button" @click="alterarFoto">Alterar Foto de Utilizador</button>
+
+        <!-- Pré-visualização da nova imagem -->
+        <div v-if="imagePreview" class="mini-preview">
+          <span>Pré-visualização</span>
+          <img :src="imagePreview" alt="Pré-visualização" />
+        </div>
       </div>
 
       <h2 class="username-display">{{ username }}</h2>
@@ -44,6 +50,40 @@ import { useRouter } from 'vue-router'
 import { ref, onMounted } from 'vue'
 import LogoButton from '@/components/LogoButton.vue'
 import { computed } from 'vue'
+import { S3Client } from '@aws-sdk/client-s3'
+import { Upload } from '@aws-sdk/lib-storage'
+
+const imageFile = ref(null)
+const imagePreview = ref('')
+
+// MinIO client setup (igual ao registo)
+const s3Client = new S3Client({
+  region: 'us-east-1',
+  endpoint: 'http://localhost:9000',
+  credentials: {
+    accessKeyId: 'admin',
+    secretAccessKey: 'admin123',
+  },
+  forcePathStyle: true,
+})
+
+const uploadImageToMinIO = async (file) => {
+  const fileName = `profile-${Date.now()}-${file.name}`
+
+  const upload = new Upload({
+    client: s3Client,
+    params: {
+      Bucket: 'profile-images',
+      Key: fileName,
+      Body: file,
+      ContentType: file.type,
+      ACL: 'public-read',
+    },
+  })
+
+  const result = await upload.done()
+  return `http://localhost:9000/profile-images/${fileName}`
+}
 
 const router = useRouter()
 
@@ -58,6 +98,24 @@ const handleLogout = () => {
 
 const goPremium = () => {
   router.push('/become-premium')
+}
+
+
+//alterar foto
+const alterarFoto = async () => {
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = 'image/*'
+
+  input.onchange = async (event) => {
+    const file = event.target.files[0]
+    if (!file) return
+
+    imageFile.value = file
+    imagePreview.value = URL.createObjectURL(file)
+  }
+
+  input.click()
 }
 
 
@@ -126,23 +184,41 @@ onMounted(() => {
 })
 
 // Funções para guardar alterações, alterar foto, logout etc aqui
-const guardarPerfil = () => {
-  fetch('http://localhost:8080/user/profile', {
-    method: 'PUT',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      username: username.value,
+const guardarPerfil = async () => {
+  try {
+    let uploadedUrl = profileImage.value
+
+    // Se o utilizador escolheu uma nova imagem, faz upload primeiro
+    if (imageFile.value) {
+      uploadedUrl = await uploadImageToMinIO(imageFile.value)
+    }
+
+    const response = await fetch('http://localhost:8080/user/profile', {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        username: username.value,
+        profileImage: uploadedUrl,
+      }),
     })
-  })
-      .then(res => {
-        if (res.ok) alert('Perfil guardado com sucesso!')
-        else alert('Erro ao guardar perfil.')
-      })
-      .catch(() => alert('Erro na rede.'))
+
+    if (response.ok) {
+      profileImage.value = uploadedUrl
+      imagePreview.value = ''       // limpa preview
+      imageFile.value = null        // limpa ficheiro
+      alert('Perfil guardado com sucesso!')
+    } else {
+      alert('Erro ao guardar perfil.')
+    }
+  } catch (error) {
+    console.error('Erro ao guardar perfil:', error)
+    alert('Erro na rede.')
+  }
 }
+
 </script>
 
 <style scoped>
@@ -281,6 +357,21 @@ const guardarPerfil = () => {
 
   .nav-button {
     margin: 0.5rem auto;
+  }
+  .mini-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 1rem;
+  }
+
+  .mini-preview img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px dashed white;
+    margin-top: 0.5rem;
   }
 }
 </style>
