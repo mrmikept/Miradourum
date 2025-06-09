@@ -417,8 +417,15 @@ const handleRegister = async () => {
 }
 
 .nav-button {
+  border: none;
+  outline: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  white-space: nowrap;
   background-color: white;
-  color: #6e98db;
+  color: #427F99;
   border-radius: 8px;
   padding: 0.5rem 1rem;
   margin-left: 0.5rem;
@@ -426,6 +433,14 @@ const handleRegister = async () => {
   font-weight: bold;
   transition: background-color 0.2s ease;
 }
+
+
+.nav-button:hover {
+  border: none;
+  outline: none;
+  background-color: #e0e0e0;
+}
+
 
 .nav-button:hover {
   background-color: #e0e0e0;

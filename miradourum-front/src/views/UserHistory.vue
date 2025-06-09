@@ -4,10 +4,10 @@
     <nav class="navbar">
       <div class="navbar-left">
         <LogoButton to="/" />
-        <button class="nav-button" @click="goBack">← Anterior</button>
       </div>
 
       <div class="navbar-right">
+        <button class="nav-button" @click="goBack">Voltar</button>
         <button class="nav-button" @click="goEditProfile">Editar Perfil</button>
         <button class="nav-button" @click="handleLogout">Terminar Sessão ⎋</button>
       </div>

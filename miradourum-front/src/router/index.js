@@ -9,7 +9,8 @@ import BecomePremium from '@/views/BecomePremium.vue'
 import UserHistory from "@/views/UserHistory.vue";
 import piDetails from "@/views/PiDetails.vue";
 import photoGallery from "@/views/PhotoGallery.vue"
-
+import Review from '../views/Review.vue'
+import Create from '../views/Create.vue'
 const routes = [
   {
     path: '/',
@@ -63,10 +64,22 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
+    path: '/review',
+    name: 'Review',
+    component: Review,
+    meta:{ requiresAuth:true}
+  },
+  {
+    path: '/create',
+    name: 'Create',
+    component: Create,
+    meta:{requiresAuth:true}
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'CatchAll',
     component: NotFoundComponent,
-  },
+  }
 ]
 
 const router = createRouter({

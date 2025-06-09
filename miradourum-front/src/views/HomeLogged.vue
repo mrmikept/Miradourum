@@ -43,6 +43,9 @@
               <option value="satellite">Satélite</option>
               <option value="terrain">Terreno</option>
             </select>
+              <button class="add-point-button" @click="goToCreate">
+    <span class="plus-icon">+</span>
+  </button>
           </div>
         </div>
         
@@ -374,6 +377,10 @@ const hasActiveFilters = computed(() => {
          filters.value.accessibility !== null ||
          filters.value.maxDifficulty !== null
 })
+const goToCreate = () => {
+  router.push('/create')
+}
+
 
 const checkAdmin = async () => {
   try {
@@ -531,16 +538,21 @@ const fetchPontosInteresse = async () => {
     const data = await response.json()
     console.log('Pontos recebidos:', data)
     // Calcular distâncias e atualizar pontos
-    pontosInteresse.value = data.map(ponto => ({
+   // Remove duplicates by ID
+const uniqueMap = new Map()
+data.forEach(ponto => {
+  if (!uniqueMap.has(ponto.id)) {
+    const enrichedPonto = {
       ...ponto,
-      distanceFromUser: userLocation.value ? 
-        calculateDistance(
-          userLocation.value.lat, 
-          userLocation.value.lng, 
-          ponto.latitude, 
-          ponto.longitude
-        ) : null
-    }))
+      distanceFromUser: userLocation.value
+        ? calculateDistance(userLocation.value.lat, userLocation.value.lng, ponto.latitude, ponto.longitude)
+        : null
+    }
+    uniqueMap.set(ponto.id, enrichedPonto)
+  }
+})
+pontosInteresse.value = Array.from(uniqueMap.values())
+
     
     // Limpar marcadores anteriores
     clearPIMarkers()
@@ -1731,4 +1743,33 @@ const handleLogoClick = () => {
     white-space: nowrap;
   }
 }
+
+.add-point-button {
+  background-color: #e63946; /* red */
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  margin-right: 1rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.2s ease;
+}
+
+.add-point-button:hover {
+  background-color: #c62828;
+}
+
+.plus-icon {
+  line-height: 1;
+  font-size: 1.8rem;
+  margin-top: -2px;
+}
+
 </style>

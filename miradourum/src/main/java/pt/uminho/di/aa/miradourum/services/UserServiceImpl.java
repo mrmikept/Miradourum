@@ -93,4 +93,10 @@ public class UserServiceImpl implements UserService {
         return userRepository.getPontosInteresse(userId);
     }
 
+    @Override
+    public void updatePassword(User user,String rawPassword){
+        String encoded = encodePassword(rawPassword);  // Assuming you inject PasswordEncoder
+        user.setPassword(encoded);
+        userRepository.save(user);
+    }
 }

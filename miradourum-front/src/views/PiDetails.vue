@@ -4,10 +4,11 @@
     <nav class="navbar">
       <div class="navbar-left">
         <LogoButton to="/" />
-        <button class="nav-button" @click="goBack">← Anterior</button>
       </div>
 
       <div class="navbar-right">
+        <button class="nav-button" @click="goBack">Voltar</button>
+
         <button class="nav-button" @click="handleLogout">Terminar Sessão ⎋</button>
       </div>
     </nav>
@@ -19,12 +20,34 @@
         <h2>{{ pointDetails.name || 'Carregando...' }}</h2>
 
         <div class="details-section">
-          <h3>Informações</h3>
-          <p><strong>Descrição:</strong> {{ pointDetails.description || 'Sem descrição.' }}</p>
-          <p><strong>Localização:</strong> {{ pointDetails.location || 'Não disponível' }}</p>
-          <p><strong>Categoria:</strong> {{ pointDetails.category || 'Não especificada' }}</p>
-          <!-- Podes adicionar mais campos conforme o objeto recebido -->
-        </div>
+  <h3>Informações</h3>
+  <p><strong>Descrição:</strong> {{ pointDetails.description || 'Sem descrição.' }}</p>
+  <p><strong>Localização:</strong> {{ pointDetails.location || 'Não disponível' }}</p>
+  <p><strong>Categoria:</strong> {{ pointDetails.category || 'Não especificada' }}</p>
+
+  <!-- New: Show images -->
+  <div v-if="pointDetails.images && pointDetails.images.length">
+    <h4>Imagens</h4>
+    <div class="point-images">
+      <img
+        v-for="img in pointDetails.images"
+        :key="img.id"
+        :src="img.url"
+        alt="Imagem do ponto"
+        class="point-image"
+      />
+    </div>
+  </div>
+
+  <!-- New: Other relevant info -->
+  <p><strong>Estado:</strong> {{ pointDetails.state ? 'Ativo' : 'Inativo' }}</p>
+  <p><strong>Premium:</strong> {{ pointDetails.premium ? 'Sim' : 'Não' }}</p>
+  <p><strong>Latitude:</strong> {{ pointDetails.latitude }}</p>
+  <p><strong>Longitude:</strong> {{ pointDetails.longitude }}</p>
+  <p><strong>Score:</strong> {{ pointDetails.score }}</p>
+  <p><strong>Dificuldade:</strong> {{ pointDetails.difficulty }}</p>
+</div>
+
 
         <div class="buttons">
           <!-- <button class="action-btn" @click="markAsVisited" :disabled="loadingVisit">
@@ -314,6 +337,21 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.point-images {
+  display: flex;
+  gap: 10px;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.point-image {
+  width: 120px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 2px solid #427F99;
+}
+
 .details-page {
   background-color: white;
   min-height: 100vh;

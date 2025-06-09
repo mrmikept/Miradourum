@@ -4,10 +4,10 @@
     <nav class="navbar">
       <div class="navbar-left">
         <LogoButton to="/" />
-        <button class="nav-button" @click="goBack">← Anterior</button>
       </div>
 
       <div class="navbar-right">
+        <button class="nav-button" @click="goBack">Voltar</button>
         <button v-if="!isPremiumStatus" class="nav-button" @click="goPremium">Torne-se Premium</button>
         <button class="nav-button" @click="handleLogout">Terminar Sessão ⎋</button>
       </div>
@@ -21,7 +21,6 @@
 
         <!-- Pré-visualização da nova imagem -->
         <div v-if="imagePreview" class="mini-preview">
-          <span>Pré-visualização</span>
           <img :src="imagePreview" alt="Pré-visualização" />
         </div>
       </div>
@@ -33,10 +32,32 @@
         <input v-model="username" id="username" type="text" />
       </div>
 
+      <div class="buttons">
+        <button class="save-button" @click="guardarPerfil">Guardar</button>
+      </div>
+
+<div class="form-group">
+  <label for="password">Nova Palavra Passe (opcional)</label>
+  <div class="input-wrapper" style="position: relative;">
+    <input
+      v-model="novaPassword"
+      id="password"
+      type="password"
+      placeholder="Mínimo 6 caracteres"
+      :class="{ error: passwordError }"
+      @input="clearPasswordError"
+    />
+    <FieldErrorPopup
+      :show="showPasswordError"
+      :message="passwordError"
+      @hide="() => showPasswordError = false"
+    />
+  </div>
+</div>
+
 
 
       <div class="buttons">
-        <button class="save-button" @click="guardarPerfil">Guardar</button>
         <button class="nav-button" @click="alterarPassword">Alterar Palavra Passe</button>
       </div>
 
@@ -52,6 +73,7 @@ import LogoButton from '@/components/LogoButton.vue'
 import { computed } from 'vue'
 import { S3Client } from '@aws-sdk/client-s3'
 import { Upload } from '@aws-sdk/lib-storage'
+import FieldErrorPopup from '@/components/FieldErrorPopup.vue'
 
 const imageFile = ref(null)
 const imagePreview = ref('')
@@ -66,6 +88,54 @@ const s3Client = new S3Client({
   },
   forcePathStyle: true,
 })
+const novaPassword = ref('')
+
+const alterarPassword = async () => {
+if (novaPassword.value.trim().length < 6) {
+  passwordError.value = 'A nova palavra-passe deve ter pelo menos 6 caracteres.'
+  showPasswordError.value = true
+  return
+}
+
+
+  try {
+    const response = await fetch('http://localhost:8080/user/password', {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ newPassword: novaPassword.value }),
+    });
+
+    if (response.ok) {
+  alert("Palavra-passe atualizada com sucesso!")
+  novaPassword.value = ''
+  passwordError.value = ''
+  showPasswordError.value = false
+}
+ else {
+      const err = await response.text()
+      alert("Erro ao atualizar: " + err)
+    }
+  } catch (error) {
+    console.error("Erro ao atualizar a palavra-passe:", error)
+    alert("Erro de rede.")
+  }
+}
+
+const passwordError = ref('')
+const showPasswordError = ref(false)
+
+const clearPasswordError = () => {
+  if (passwordError.value) {
+    passwordError.value = ''
+    showPasswordError.value = false
+  }
+}
+
+
+
 
 const uploadImageToMinIO = async (file) => {
   const fileName = `profile-${Date.now()}-${file.name}`
@@ -277,6 +347,10 @@ const guardarPerfil = async () => {
   flex-direction: column;
   align-items: center;
 }
+input[type="password"] {
+  font-family: sans-serif;
+  letter-spacing: 0.05em;
+}
 
 .profile-picture {
   width: 100px;
@@ -300,6 +374,14 @@ const guardarPerfil = async () => {
 .change-photo-button:hover {
   background-color: #f0f0f0;
 }
+input.error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+.input-wrapper {
+  position: relative;
+}
+
 
 .username-display {
   margin: 1rem 0;
@@ -338,7 +420,9 @@ const guardarPerfil = async () => {
   border-radius: 8px;
   font-weight: bold;
   cursor: pointer;
-}
+    margin-bottom: 1rem; /* add this line */
+
+  }
 
 .save-button:hover {
   background-color: #2e8b57;

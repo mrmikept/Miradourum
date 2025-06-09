@@ -6,9 +6,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import pt.uminho.di.aa.miradourum.auth.JwtService;
-import pt.uminho.di.aa.miradourum.dto.PaymentDTO;
-import pt.uminho.di.aa.miradourum.dto.PaymentResponseDTO;
-import pt.uminho.di.aa.miradourum.dto.UpdateUserDTO;
+import pt.uminho.di.aa.miradourum.dto.*;
 import pt.uminho.di.aa.miradourum.models.Image;
 import pt.uminho.di.aa.miradourum.models.Review;
 import pt.uminho.di.aa.miradourum.models.User;
@@ -289,5 +287,55 @@ public class UserController {
         }
         return true;  // Premium still active
     }
+    @PutMapping("/password")
+    public ResponseEntity<?> updatePassword(
+            @Valid @RequestBody UpdatePasswordDTO passwordDTO,
+            BindingResult bindingResult,
+            @RequestHeader("Authorization") String authHeader) {
 
+        // Token validation
+        ResponseEntity<?> tokenValidation = jwtService.validateToken(authHeader);
+        if (tokenValidation != null) {
+            return tokenValidation;
+        }
+
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.badRequest().body("newPassword is required.");
+        }
+
+        Long userId = jwtService.extractUserIdFromValidToken(authHeader);
+
+        User user = userService.getUserById(userId, User.class);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
+        }
+
+        userService.updatePassword(user, passwordDTO.getNewPassword());
+
+        return ResponseEntity.ok().body(Map.of("message", "Password updated successfully"));
+    }
+    @PutMapping("/resetpassword")
+    public ResponseEntity<?> resetPassword(
+            @Valid @RequestBody ResetPasswordDTO resetPasswordDTO,
+            BindingResult bindingResult) {
+
+        if (bindingResult.hasErrors()) {
+            // Collect validation errors into a string or return first error message
+            String errorMessage = bindingResult.getFieldErrors().stream()
+                    .map(err -> err.getDefaultMessage())
+                    .findFirst()
+                    .orElse("Dados inválidos");
+            return ResponseEntity.badRequest().body(Map.of("error", errorMessage));
+        }
+
+        User user = userService.getUserByEmail(resetPasswordDTO.getEmail());
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "Utilizador não encontrado."));
+        }
+
+        userService.updatePassword(user, resetPasswordDTO.getNewPassword());
+
+        return ResponseEntity.ok(Map.of("message", "Password atualizada com sucesso"));
+    }
 }

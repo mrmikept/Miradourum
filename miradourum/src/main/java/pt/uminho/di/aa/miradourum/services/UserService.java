@@ -69,4 +69,6 @@ public interface UserService {
      * @param user
      */
     void saveUser(User user);
+
+    void updatePassword(User user,String rawPassword);
 }
