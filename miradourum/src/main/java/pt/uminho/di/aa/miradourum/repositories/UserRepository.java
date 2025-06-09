@@ -32,5 +32,4 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean checkPremium(@Param("userId") Long userId);
 
     <T> T findById(Long id, Class<T> clazz);
-
 }
