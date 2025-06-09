@@ -27,14 +27,14 @@
         </div>
 
         <div class="buttons">
-          <button class="action-btn" @click="markAsVisited" :disabled="loadingVisit">
-            {{ loadingVisit ? 'A processar...' : 'Marcar como visitado' }}
-          </button>
-          <button class="action-btn" @click="openCommentModal">Adicionar comentário</button>
-        </div>
-      </div>
+          <!-- <button class="action-btn" @click="markAsVisited" :disabled="loadingVisit">
+             {{ loadingVisit ? 'A processar...' : 'Marcar como visitado' }}
+           </button> -->
+           <button class="action-btn" @click="openCommentModal">Adicionar comentário</button>
+         </div>
+       </div>
 
-      <!-- Reviews (lado direito) -->
+       <!-- Reviews (lado direito) -->
       <div class="reviews-section">
         <h3>Reviews</h3>
         <ul v-if="reviews.length > 0">
@@ -199,7 +199,7 @@ const fetchReviews = async () => {
     const data = await res.json()
     reviews.value = data
 
-    console.log('Reviews recebidas do backend:', JSON.stringify(data, null, 2))
+    //console.log('Reviews recebidas do backend:', JSON.stringify(data, null, 2))
   } catch (err) {
     console.error('Erro fetch reviews:', err)
   }
