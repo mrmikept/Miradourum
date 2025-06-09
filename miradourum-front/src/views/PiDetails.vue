@@ -39,19 +39,21 @@
         <h3>Reviews</h3>
         <ul v-if="reviews.length > 0">
           <li v-for="review in reviews" :key="review.id" class="review-item">
-            <p><strong>{{ review.user }}</strong> - <em>{{ formatDate(review.date) }}</em></p>
-            <p>{{ review.comment }}</p>
-            <p>⭐ {{ review.rating }}/5</p>
+            <p><strong>Data:</strong> {{ formatDate(review.creationDate) }}</p>
+            <p><strong>Comentário:</strong> {{ review.comment }}</p>
+            <p><strong>Avaliação:</strong> {{ review.rating }}/5 ⭐ </p>
 
-            <!-- Se a review tiver imagens -->
             <div v-if="review.images && review.images.length > 0" class="review-pictures">
-              <img
-                  v-for="(img, index) in review.images"
-                  :key="index"
-                  class="review-picture"
-                  :src="typeof img === 'string' ? img : img.url"
-                  alt="Foto da review"
-              />
+              <p><strong>Imagem{{ review.images.length > 1 ? 'ns' : '' }}:</strong></p>
+              <div class="review-picture-wrapper">
+                <img
+                    v-for="(img, index) in review.images"
+                    :key="index"
+                    class="review-picture"
+                    :src="typeof img === 'string' ? img : img.url"
+                    alt="Foto da review"
+                />
+              </div>
             </div>
 
             <hr />
@@ -59,6 +61,7 @@
         </ul>
         <p v-else>Sem reviews disponíveis.</p>
       </div>
+
     </div>
 
     <!-- Modal para adicionar comentário -->
@@ -196,7 +199,7 @@ const fetchReviews = async () => {
     const data = await res.json()
     reviews.value = data
 
-    console.log('Reviews com imagens:', data)
+    console.log('Reviews recebidas do backend:', JSON.stringify(data, null, 2))
   } catch (err) {
     console.error('Erro fetch reviews:', err)
   }
@@ -261,8 +264,7 @@ async function submitComment() {
         {
           rating: newRating.value,
           comment: newComment.value,
-          images: imageUrls,
-          date: now
+          images: imageUrls
         },
         {
           headers: {
@@ -289,9 +291,20 @@ async function submitComment() {
 
 const formatDate = (dateString) => {
   if (!dateString) return 'Data não disponível'
-  const d = new Date(dateString)
-  return isNaN(d) ? 'Data inválida' : d.toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', year: 'numeric' })
+
+  // Tenta criar a data diretamente
+  let d = new Date(dateString)
+
+  // Se inválido, tenta acrescentar T00:00:00
+  if (isNaN(d)) {
+    d = new Date(dateString + 'T00:00:00')
+  }
+
+  if (isNaN(d)) return 'Data inválida'
+
+  return d.toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', year: 'numeric' })
 }
+
 
 
 onMounted(() => {
