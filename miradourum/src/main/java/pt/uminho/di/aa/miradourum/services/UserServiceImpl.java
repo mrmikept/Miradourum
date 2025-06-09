@@ -84,6 +84,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public boolean checkAdmin(Long userid){
+        return userRepository.checkAdmin(userid);
+    }
+    @Override
     public List<PontoInteresse> getPontosInteresse(Long userId) {
         return userRepository.getPontosInteresse(userId);
     }

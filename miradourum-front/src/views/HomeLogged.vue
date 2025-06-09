@@ -6,6 +6,8 @@
         </LogoButton>
       </div>
       <div class="navbar-right">
+        <RouterLink v-if="isAdmin" to="/review" class="nav-button">Review</RouterLink>
+
         <div class="location-info" v-if="userLocation">
           <span class="location-text">📍 {{ userLocation.lat.toFixed(4) }}, {{ userLocation.lng.toFixed(4) }}</span>
         </div>
@@ -363,6 +365,9 @@ const markerColors = {
   user: '#007bff'        // Azul
 }
 
+const isAdmin = ref(false)
+
+
 // Computed
 const hasActiveFilters = computed(() => {
   return filters.value.maxDistance !== 20.0 ||
@@ -371,6 +376,32 @@ const hasActiveFilters = computed(() => {
          filters.value.accessibility !== null ||
          filters.value.maxDifficulty !== null
 })
+
+const checkAdmin = async () => {
+  try {
+    const token = localStorage.getItem('authToken') // or wherever your JWT is stored
+    if (!token) return
+
+    const res = await fetch('http://localhost:8080/admin/isadmin', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+
+    if (res.ok) {
+      const data = await res.json()
+      isAdmin.value = data === true
+    } else {
+      isAdmin.value = false
+    }
+  } catch (error) {
+    console.error('Failed to check admin status:', error)
+    isAdmin.value = false
+  }
+}
+
+
+
 
 const sortedPontos = computed(() => {
   return [...pontosInteresse.value].sort((a, b) => {
@@ -386,6 +417,9 @@ const getMarkerColor = (ponto) => {
   if (ponto.premium) return markerColors.premium
   return markerColors.notVisited
 }
+
+
+
 
 // Funções do mapa
 const initMap = () => {
@@ -850,7 +884,8 @@ onMounted(() => {
       } else {
         resolve()
       }
-    })
+    },
+    checkAdmin())
   }
   
   loadLeaflet().then(() => {
@@ -1639,6 +1674,12 @@ const handleLogoClick = () => {
   border-radius: 8px;
   margin: 0.5rem 0;
 }
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem; /* space between Review button and location info */
+}
+
 
 @media (max-width: 480px) {
   .navbar-right .location-info {
