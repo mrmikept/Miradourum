@@ -786,7 +786,7 @@ const goToDetailsPage = () => {
 
 // Função para ir para o perfil
 const goToProfile = () => {
-  router.push('/editProfile')
+  router.push('/history')
 }
 
 const resetFilters = () => {

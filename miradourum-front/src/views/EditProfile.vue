@@ -12,7 +12,7 @@
         <button class="nav-button" @click="handleLogout">Terminar Sessão ⎋</button>
       </div>
     </nav>
-g
+
     <!-- Profile Content -->
     <div class="profile-container">
       <div class="profile-picture-wrapper">
@@ -48,7 +48,7 @@ import { computed } from 'vue'
 const router = useRouter()
 
 const goBack = () => {
-  router.push('/home')
+  router.push('/history')
 }
 
 const handleLogout = () => {
