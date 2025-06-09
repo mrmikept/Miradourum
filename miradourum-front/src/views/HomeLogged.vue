@@ -9,6 +9,10 @@
         <div class="location-info" v-if="userLocation">
           <span class="location-text">📍 {{ userLocation.lat.toFixed(4) }}, {{ userLocation.lng.toFixed(4) }}</span>
         </div>
+        <!-- Botão de editar perfil -->
+        <button class="edit-profile-btn" @click="goToProfile">
+          Editar Perfil
+        </button>
       </div>
     </nav>
 
@@ -778,6 +782,11 @@ const goToDetailsPage = () => {
   if (selectedPointDetails.value && selectedPointDetails.value.id) {
     router.push(`/pi/details/${selectedPointDetails.value.id}`)
   }
+}
+
+// Função para ir para o perfil
+const goToProfile = () => {
+  router.push('/editProfile')
 }
 
 const resetFilters = () => {
@@ -1657,5 +1666,22 @@ const handleLogoClick = () => {
   .apply-btn {
     width: 100%;
   }
+
+  .edit-profile-btn {
+    margin-left: 1rem;
+    padding: 6px 12px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+  }
+
+  .edit-profile-btn:hover {
+    background-color: #0056b3;
+  }
+
 }
 </style>
