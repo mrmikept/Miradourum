@@ -8,6 +8,7 @@ import UserProfile from '@/views/EditProfile.vue'
 import BecomePremium from '@/views/BecomePremium.vue'
 import UserHistory from "@/views/UserHistory.vue";
 import piDetails from "@/views/PiDetails.vue";
+import photoGallery from "@/views/PhotoGallery.vue"
 
 const routes = [
   {
@@ -53,6 +54,12 @@ const routes = [
     path: '/pi/details/:id',
     name: 'piDetails',
     component: piDetails,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/photoGallery',
+    name: 'photoGallery',
+    component: photoGallery,
     meta: { requiresAuth: true },
   },
   {
