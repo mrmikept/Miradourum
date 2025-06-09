@@ -12,9 +12,7 @@
           <span class="location-text">📍 {{ userLocation.lat.toFixed(4) }}, {{ userLocation.lng.toFixed(4) }}</span>
         </div>
         <!-- Botão de editar perfil -->
-        <button class="edit-profile-btn" @click="goToProfile">
-          Editar Perfil
-        </button>
+        <button class="nav-button" @click="goToProfile">Ver Perfil</button>
       </div>
     </nav>
 
@@ -922,6 +920,8 @@ const handleLogoClick = () => {
 }
 
 .navbar {
+  border: none;
+  outline: none;
   display: flex;
   justify-content: space-between;
   background-color: #427F99;
@@ -930,8 +930,15 @@ const handleLogoClick = () => {
 }
 
 .nav-button {
+  border: none;
+  outline: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  white-space: nowrap;
   background-color: white;
-  color: #6e98db;
+  color: #427F99;
   border-radius: 8px;
   padding: 0.5rem 1rem;
   margin-left: 0.5rem;
@@ -940,7 +947,10 @@ const handleLogoClick = () => {
   transition: background-color 0.2s ease;
 }
 
+
 .nav-button:hover {
+  border: none;
+  outline: none;
   background-color: #e0e0e0;
 }
 
@@ -970,6 +980,7 @@ const handleLogoClick = () => {
   padding: 0.5rem 1rem;
   border-radius: 20px;
   border: 1px solid #e9ecef;
+  margin-left: 0.5rem;
 }
 
 .location-text {
@@ -1374,7 +1385,13 @@ const handleLogoClick = () => {
 
 .filter-group input:focus,
 .filter-group select:focus,
-.search-group input:focus {
+.search-group input:focus,
+.nav-button:focus,
+.location-btn:focus,
+.search-btn:focus,
+.filters-btn:focus,
+.reset-btn:focus,
+.apply-btn:focus {
   outline: none;
   border-color: #427F99;
   box-shadow: 0 0 0 2px rgba(66, 127, 153, 0.2);
@@ -1708,21 +1725,10 @@ const handleLogoClick = () => {
     width: 100%;
   }
 
-  .edit-profile-btn {
-    margin-left: 1rem;
-    padding: 6px 12px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: background-color 0.2s ease;
+  .navbar-right > * {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
   }
-
-  .edit-profile-btn:hover {
-    background-color: #0056b3;
-  }
-
 }
 </style>
