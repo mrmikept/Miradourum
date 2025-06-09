@@ -43,8 +43,16 @@
             <p>{{ review.comment }}</p>
             <p>⭐ {{ review.rating }}/5</p>
 
-            <!-- Mostrar as imagens da review, se existirem -->
-            <img class="review-picture" :src="reviewImage" alt="Foto" />
+            <!-- Se a review tiver imagens -->
+            <div v-if="review.images && review.images.length > 0" class="review-pictures">
+              <img
+                  v-for="(img, index) in review.images"
+                  :key="index"
+                  class="review-picture"
+                  :src="typeof img === 'string' ? img : img.url"
+                  alt="Foto da review"
+              />
+            </div>
 
             <hr />
           </li>
@@ -187,6 +195,8 @@ const fetchReviews = async () => {
     }
     const data = await res.json()
     reviews.value = data
+
+    console.log('Reviews com imagens:', data)
   } catch (err) {
     console.error('Erro fetch reviews:', err)
   }
