@@ -48,9 +48,10 @@ public class UserServiceImpl implements UserService {
         if(username != null){
             user.setUsername(username);
         }
-        if(password != null){
+        if (password != null && !password.isBlank()) {
             user.setPassword(encodePassword(password));
         }
+
         if(image != null){
             user.setProfileImage(image);
         }
