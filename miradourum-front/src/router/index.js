@@ -7,6 +7,7 @@ import HomeLogged from '@/views/HomeLogged.vue'
 import UserProfile from '@/views/EditProfile.vue'
 import BecomePremium from '@/views/BecomePremium.vue'
 import UserHistory from "@/views/UserHistory.vue";
+import piDetails from "@/views/PiDetails.vue";
 
 const routes = [
   {
@@ -46,6 +47,12 @@ const routes = [
     path: '/history',
     name: 'History',
     component: UserHistory,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/pi/details/:id',
+    name: 'piDetails',
+    component: piDetails,
     meta: { requiresAuth: true },
   },
   {
