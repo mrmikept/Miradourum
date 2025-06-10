@@ -88,7 +88,7 @@ public class PontoInteresseUnitTest {
     }
     @Test
     public void getByState(){
-        List<PontoInteresse> points = pontoInteresseService.getByState();
+        List<PontoInteresse> points = pontoInteresseService.getInactive();
 
         for(PontoInteresse p : points){
             Assertions.assertEquals(p.getState(),true);

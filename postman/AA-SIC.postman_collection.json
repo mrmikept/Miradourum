@@ -87,7 +87,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"henriquevaz7@hotmail.com\",\n  \"password\": \"1234567\"\n}\n",
+							"raw": "{\n  \"email\": \"vazera01@gmail.com\",\n  \"password\": \"mySecureNewPassword123\"\n}\n",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -201,7 +201,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoxLCJpZCI6NCwiUHJlbWl1bUVuZERhdGUiOiIiLCJlbWFpbCI6InRlc3RAdGVzdC5jb20iLCJ1c2VybmFtZSI6InF1aW0iLCJzdWIiOiJ0ZXN0QHRlc3QuY29tIiwiaWF0IjoxNzQ4OTcwNzA5LCJleHAiOjE3NDkwNTcxMDl9.SLu8tOOIC5VNLv9AVTaahi4a3dsqwZ_DwvGZrTbi6o0",
+									"value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoxLCJpZCI6NSwiUHJlbWl1bUVuZERhdGUiOiIiLCJlbWFpbCI6InZhemVyYTAxQGdtYWlsLmNvbSIsInVzZXJuYW1lIjoiYXNkIiwic3ViIjoidmF6ZXJhMDFAZ21haWwuY29tIiwiaWF0IjoxNzQ5NDYzMzA2LCJleHAiOjE3NDk1NDk3MDZ9.4XtHp77ibpDV1c9Ket-KAobtsJokEK9dhUa_whn7KQw",
 									"type": "string"
 								}
 							]
@@ -210,7 +210,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n        \"latitude\":12.23,\n        \"longitude\":11.23,\n        \"name\":\"Miradouro do kebab\",\n        \"description\":\"Fome de ramen\",\n        \"dificulty\":2,\n        \"accessibility\":false,\n        \"premium\":false,\n        \"creatorEmail\":\"henriquevaz7@hotmail.com\",\n        \"imageUrls\": [\"https://example.com/img1.jpg\", \"https://example.com/img2.jpg\"]\n\n}",
+							"raw": "{\n        \"latitude\":41.5598,\n        \"longitude\":-8.3970,\n        \"name\":\"Miradouro da UM\",\n        \"description\":\"Fome de ramen\",\n        \"dificulty\":2,\n        \"accessibility\":false,\n        \"premium\":false,\n        \"creatorEmail\":\"henriquevaz7@hotmail.com\",\n        \"imageUrls\": [\"https://example.com/img1.jpg\", \"https://example.com/img2.jpg\"]\n\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -596,6 +596,84 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "update password",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoxLCJpZCI6NSwiUHJlbWl1bUVuZERhdGUiOiIiLCJlbWFpbCI6InZhemVyYTAxQGdtYWlsLmNvbSIsInVzZXJuYW1lIjoidmF6Iiwic3ViIjoidmF6ZXJhMDFAZ21haWwuY29tIiwiaWF0IjoxNzQ5NTAxOTQwLCJleHAiOjE3NDk1ODgzNDB9.5Vf8hykLQWnJ2b24k38eThlIfD1W29AEf2j8SqtNMts",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"newPassword\": \"mySecureNewPassword123\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/user/password",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"user",
+								"password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "reset password",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoxLCJpZCI6NSwiUHJlbWl1bUVuZERhdGUiOiIiLCJlbWFpbCI6InZhemVyYTAxQGdtYWlsLmNvbSIsInVzZXJuYW1lIjoidmF6Iiwic3ViIjoidmF6ZXJhMDFAZ21haWwuY29tIiwiaWF0IjoxNzQ5NTAxOTQwLCJleHAiOjE3NDk1ODgzNDB9.5Vf8hykLQWnJ2b24k38eThlIfD1W29AEf2j8SqtNMts",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n   \"email\":\"henriquevaz7@hotmail.com\",\n  \"newPassword\": \"banana\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/user/resetpassword",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"user",
+								"resetpassword"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -675,8 +753,30 @@
 				{
 					"name": "isAdmin",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoxLCJpZCI6NSwiUHJlbWl1bUVuZERhdGUiOiIiLCJlbWFpbCI6InZhemVyYTAxQGdtYWlsLmNvbSIsInVzZXJuYW1lIjoiYXNkIiwic3ViIjoidmF6ZXJhMDFAZ21haWwuY29tIiwiaWF0IjoxNzQ5NDYzMzA2LCJleHAiOjE3NDk1NDk3MDZ9.4XtHp77ibpDV1c9Ket-KAobtsJokEK9dhUa_whn7KQw",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
-						"header": []
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/admin/isadmin",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"admin",
+								"isadmin"
+							]
+						}
 					},
 					"response": []
 				}

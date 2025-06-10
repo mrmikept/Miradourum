@@ -19,6 +19,11 @@
       <div class="profile-picture-wrapper">
         <img class="profile-picture" :src="profileImage" alt="Foto de Perfil" />
         <button class="change-photo-button" @click="alterarFoto">Alterar Foto de Utilizador</button>
+
+        <!-- Pré-visualização da nova imagem -->
+        <div v-if="imagePreview" class="mini-preview">
+          <img :src="imagePreview" alt="Pré-visualização" />
+        </div>
       </div>
 
       <h2 class="username-display">{{ username }}</h2>
@@ -28,10 +33,32 @@
         <input v-model="username" id="username" type="text" />
       </div>
 
+      <div class="buttons">
+        <button class="save-button" @click="guardarPerfil">Guardar</button>
+      </div>
+
+<div class="form-group">
+  <label for="password">Nova Palavra Passe (opcional)</label>
+  <div class="input-wrapper" style="position: relative;">
+    <input
+      v-model="novaPassword"
+      id="password"
+      type="password"
+      placeholder="Mínimo 6 caracteres"
+      :class="{ error: passwordError }"
+      @input="clearPasswordError"
+    />
+    <FieldErrorPopup
+      :show="showPasswordError"
+      :message="passwordError"
+      @hide="() => showPasswordError = false"
+    />
+  </div>
+</div>
+
 
 
       <div class="buttons">
-        <button class="save-button" @click="guardarPerfil">Guardar</button>
         <button class="nav-button" @click="alterarPassword">Alterar Palavra Passe</button>
       </div>
 
@@ -45,8 +72,91 @@ import { useRouter } from 'vue-router'
 import { ref, onMounted } from 'vue'
 import LogoButton from '@/components/LogoButton.vue'
 import { computed } from 'vue'
+
 import TopToolBarMenu from "../components/TopToolBarMenu.vue";
-import Breadcrumbs from "../components/breadcrumbs.vue";
+import { S3Client } from '@aws-sdk/client-s3'
+import { Upload } from '@aws-sdk/lib-storage'
+import FieldErrorPopup from '@/components/FieldErrorPopup.vue'
+
+const imageFile = ref(null)
+const imagePreview = ref('')
+
+// MinIO client setup (igual ao registo)
+const s3Client = new S3Client({
+  region: 'us-east-1',
+  endpoint: 'http://localhost:9000',
+  credentials: {
+    accessKeyId: 'admin',
+    secretAccessKey: 'admin123',
+  },
+  forcePathStyle: true,
+})
+const novaPassword = ref('')
+
+const alterarPassword = async () => {
+if (novaPassword.value.trim().length < 6) {
+  passwordError.value = 'A nova palavra-passe deve ter pelo menos 6 caracteres.'
+  showPasswordError.value = true
+  return
+}
+
+
+  try {
+    const response = await fetch('http://localhost:8080/user/password', {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ newPassword: novaPassword.value }),
+    });
+
+    if (response.ok) {
+  alert("Palavra-passe atualizada com sucesso!")
+  novaPassword.value = ''
+  passwordError.value = ''
+  showPasswordError.value = false
+}
+ else {
+      const err = await response.text()
+      alert("Erro ao atualizar: " + err)
+    }
+  } catch (error) {
+    console.error("Erro ao atualizar a palavra-passe:", error)
+    alert("Erro de rede.")
+  }
+}
+
+const passwordError = ref('')
+const showPasswordError = ref(false)
+
+const clearPasswordError = () => {
+  if (passwordError.value) {
+    passwordError.value = ''
+    showPasswordError.value = false
+  }
+}
+
+
+
+
+const uploadImageToMinIO = async (file) => {
+  const fileName = `profile-${Date.now()}-${file.name}`
+
+  const upload = new Upload({
+    client: s3Client,
+    params: {
+      Bucket: 'profile-images',
+      Key: fileName,
+      Body: file,
+      ContentType: file.type,
+      ACL: 'public-read',
+    },
+  })
+
+  const result = await upload.done()
+  return `http://localhost:9000/profile-images/${fileName}`
+}
 
 const router = useRouter()
 
@@ -61,6 +171,24 @@ const handleLogout = () => {
 
 const goPremium = () => {
   router.push('/become-premium')
+}
+
+
+//alterar foto
+const alterarFoto = async () => {
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = 'image/*'
+
+  input.onchange = async (event) => {
+    const file = event.target.files[0]
+    if (!file) return
+
+    imageFile.value = file
+    imagePreview.value = URL.createObjectURL(file)
+  }
+
+  input.click()
 }
 
 
@@ -129,23 +257,41 @@ onMounted(() => {
 })
 
 // Funções para guardar alterações, alterar foto, logout etc aqui
-const guardarPerfil = () => {
-  fetch('http://localhost:8080/user/profile', {
-    method: 'PUT',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      username: username.value,
+const guardarPerfil = async () => {
+  try {
+    let uploadedUrl = profileImage.value
+
+    // Se o utilizador escolheu uma nova imagem, faz upload primeiro
+    if (imageFile.value) {
+      uploadedUrl = await uploadImageToMinIO(imageFile.value)
+    }
+
+    const response = await fetch('http://localhost:8080/user/profile', {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        username: username.value,
+        profileImage: uploadedUrl,
+      }),
     })
-  })
-      .then(res => {
-        if (res.ok) alert('Perfil guardado com sucesso!')
-        else alert('Erro ao guardar perfil.')
-      })
-      .catch(() => alert('Erro na rede.'))
+
+    if (response.ok) {
+      profileImage.value = uploadedUrl
+      imagePreview.value = ''       // limpa preview
+      imageFile.value = null        // limpa ficheiro
+      alert('Perfil guardado com sucesso!')
+    } else {
+      alert('Erro ao guardar perfil.')
+    }
+  } catch (error) {
+    console.error('Erro ao guardar perfil:', error)
+    alert('Erro na rede.')
+  }
 }
+
 </script>
 
 <style scoped>
@@ -204,6 +350,10 @@ const guardarPerfil = () => {
   flex-direction: column;
   align-items: center;
 }
+input[type="password"] {
+  font-family: sans-serif;
+  letter-spacing: 0.05em;
+}
 
 .profile-picture {
   width: 100px;
@@ -227,6 +377,14 @@ const guardarPerfil = () => {
 .change-photo-button:hover {
   background-color: #f0f0f0;
 }
+input.error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+.input-wrapper {
+  position: relative;
+}
+
 
 .username-display {
   margin: 1rem 0;
@@ -265,7 +423,9 @@ const guardarPerfil = () => {
   border-radius: 8px;
   font-weight: bold;
   cursor: pointer;
-}
+    margin-bottom: 1rem; /* add this line */
+
+  }
 
 .save-button:hover {
   background-color: #2e8b57;
@@ -284,6 +444,21 @@ const guardarPerfil = () => {
 
   .nav-button {
     margin: 0.5rem auto;
+  }
+  .mini-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 1rem;
+  }
+
+  .mini-preview img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px dashed white;
+    margin-top: 0.5rem;
   }
 }
 </style>
