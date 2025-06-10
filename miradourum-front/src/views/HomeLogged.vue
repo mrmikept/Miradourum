@@ -391,7 +391,7 @@ const goToCreate = () => {
 
 const checkAdmin = async () => {
   try {
-    const token = localStorage.getItem('authToken') // or wherever your JWT is stored
+    const token = userStore.authToken // or wherever your JWT is stored
     if (!token) return
 
     const res = await fetch('http://localhost:8080/admin/isadmin', {
@@ -495,7 +495,7 @@ const fetchPontosInteresse = async () => {
   isLoadingPontos.value = true
   
   try {
-    const token = localStorage.getItem('authToken')
+    const token = userStore.authToken
     if (!token) {
       throw new Error('Token não encontrado')
     }
@@ -672,7 +672,7 @@ const fetchPointDetails = async (pointId) => {
   isLoadingDetails.value = true
   
   try {
-    const token = localStorage.getItem('authToken')
+    const token = userStore.authToken
     if (!token) {
       throw new Error('Token não encontrado')
     }
