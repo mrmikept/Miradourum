@@ -313,7 +313,7 @@ const userStore = UserStore()
 
 // Refs para o mapa e dados
 const mapContainer = ref(null)
-const userLocation = ref(null)
+const userLocation = ref(userStore.location)
 const clickedLocation = ref(null)
 const isLoadingLocation = ref(false)
 const selectedLayer = ref('streets')
@@ -487,7 +487,7 @@ const createColoredIcon = (color, isSelected = false) => {
 
 // Função para buscar pontos de interesse na API
 const fetchPontosInteresse = async () => {
-  if (!userLocation.value) {
+  if (!userStore.location) {
     console.log('Aguardando localização do usuário...')
     return
   }
@@ -501,8 +501,8 @@ const fetchPontosInteresse = async () => {
     }
 
     const requestBody = {
-      userLatitude: userLocation.value.lat,
-      userLongitude: userLocation.value.lng
+      userLatitude: userStore.location.lat,
+      userLongitude: userStore.location.lng,
     }
 
     if (filters.value.maxDistance !== 20.0) {
@@ -745,6 +745,11 @@ const getCurrentLocation = () => {
     (position) => {
       const lat = position.coords.latitude
       const lng = position.coords.longitude
+
+      userStore.setLocation({
+        'lng': lng,
+        'lat': lat,
+      })
       
       userLocation.value = { lat, lng }
       

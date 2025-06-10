@@ -1,17 +1,20 @@
 <script setup>
 import { computed } from 'vue'
+import {UserStore} from "@/store/userStore.js";
 
-const props = defineProps({
-  location: {
-    type: Object,
-    required: false,
-    default: () => null,
-  }
-})
+const userStore = UserStore()
+
+// const props = defineProps({
+//   location: {
+//     type: Object,
+//     required: false,
+//     default: () => null,
+//   }
+// })
 
 const formattedLocation = computed(() => {
-  if (!props.location) return 'Localização Indisponível'
-  const { lat, lng } = props.location
+  if (!userStore.location) return 'Localização Indisponível'
+  const { lat, lng } = userStore.location
   return `Lat: ${lat.toFixed(4)} Long:${lng.toFixed(4)}`
 })
 </script>

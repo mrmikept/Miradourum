@@ -38,10 +38,10 @@ export const UserStore = defineStore("userStore", () => {
         authToken.value = token;
     }
 
-    function setLocation(location) {
+    function setLocation(locationInput) {
         location.value = {
-            'longitude': location.longitude,
-            'latitude': location.latitude,
+            'lng': locationInput.lng, // Longitude
+            'lat': locationInput.lat, // Latitude
         }
     }
 
@@ -64,6 +64,7 @@ export const UserStore = defineStore("userStore", () => {
         userType,
         location,
         setToken,
+        setLocation,
         setUserData,
         clearUserStore,
     }
