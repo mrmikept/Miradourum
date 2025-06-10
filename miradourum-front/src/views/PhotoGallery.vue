@@ -1,16 +1,17 @@
 <template>
   <div class="gallery-page">
     <!-- Navbar -->
-    <nav class="navbar">
-      <div class="navbar-left">
-        <LogoButton to="/" />
-        <button class="nav-button" @click="goBack">← Anterior</button>
-      </div>
+<!--    <nav class="navbar">-->
+<!--      <div class="navbar-left">-->
+<!--        <LogoButton to="/" />-->
+<!--        <button class="nav-button" @click="goBack">← Anterior</button>-->
+<!--      </div>-->
 
-      <div class="navbar-right">
-        <button class="nav-button" @click="handleLogout">Terminar Sessão ⎋</button>
-      </div>
-    </nav>
+<!--      <div class="navbar-right">-->
+<!--        <button class="nav-button" @click="handleLogout">Terminar Sessão ⎋</button>-->
+<!--      </div>-->
+<!--    </nav>-->
+    <top-tool-bar-menu />
 
     <!-- Conteúdo da galeria -->
     <div class="gallery-container">
@@ -34,6 +35,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import LogoButton from '@/components/LogoButton.vue'
+import TopToolBarMenu from "@/components/TopToolBarMenu.vue";
 
 const router = useRouter()
 const token = localStorage.getItem('authToken')
