@@ -3,6 +3,7 @@
 import LogoButton from "./LogoButton.vue";
 import {onMounted, ref} from "vue";
 import router from "../router/index.js";
+import Location_chip from "./location_chip.vue";
 
 // defineProps({
 //   avatarUrl: {
@@ -98,107 +99,123 @@ const handleLogout = () => {
 <!--  </nav>-->
 
   <v-toolbar color="#427F99">
-    <v-divider vertical>
-      <LogoButton to="/home" />
-    </v-divider>
-    <v-divider vertical>
-      <v-navigation-drawer
-          location="right"
-          expand-on-hover
-          rail
-          permanent
-      >
-        <v-list>
-          <v-list-item
-              :prepend-avatar="actualAvatarUrl || avatarUrl"
-              :title="actualUsername || username"
-              :subtitle="actualEmail || email"
-          ></v-list-item>
-        </v-list>
+    <v-container fluid>
+      <v-row align="center" justify="space-between" no-gutters>
+        <!-- Left: Logo -->
+        <v-col cols="auto">
+          <LogoButton to="/home" />
+        </v-col>
 
-        <v-divider></v-divider>
+        <v-col class="d-flex justify-end align-center" cols="auto">
+          <location_chip />
 
-        <v-list density="compact" nav>
-          <v-list-item
-              to="/home"
-              nav
-              value="home"
-              active-color="#1976D2"
-              link
+          <v-navigation-drawer
+              location="right"
+              expand-on-hover
+              rail
+              permanent
           >
-            <template #prepend>
-              <v-icon icon="fa-solid fa-house" color="#5FB3CE" />
-            </template>
-            <v-list-item-title class="drawer-text">Página Inicial</v-list-item-title>
-          </v-list-item>
+            <v-list>
+              <v-list-item
+                  :prepend-avatar="actualAvatarUrl || avatarUrl"
+                  :title="actualUsername || username"
+                  :subtitle="actualEmail || email"
+              ></v-list-item>
+            </v-list>
 
+            <v-divider></v-divider>
 
-          <v-list-group
-              value="profile"
-              prepend-icon="fa-solid fa-user"
-              color="#5FB3CE"
-              base-color="#5FB3CE"
-              activator
-              fluid
-          >
-            <template #activator="{ props }">
-              <v-list-item v-bind="props">
-                <v-list-item-title class="drawer-text">Perfil de Utilizador</v-list-item-title>
+            <v-list density="compact" nav>
+              <v-list-item
+                  to="/home"
+                  nav
+                  value="home"
+                  active-color="#1976D2"
+                  link
+              >
+                <template #prepend>
+                  <v-icon icon="fa-solid fa-house" color="#5FB3CE" />
+                </template>
+                <v-list-item-title class="drawer-text">Página Inicial</v-list-item-title>
               </v-list-item>
-            </template>
-
-            <v-list-item to="/history" class="sub-item" link>
-              <template #prepend>
-                <v-icon icon="fa-solid fa-clock-rotate-left" color="#5FB3CE"/>
-              </template>
-              <v-list-item-title class="drawer-text">Histórico</v-list-item-title>
-            </v-list-item>
-
-            <v-list-item to="/editProfile" class="sub-item" link>
-              <template #prepend>
-                <v-icon icon="fa-solid fa-pen-to-square" color="#5FB3CE"/>
-              </template>
-              <v-list-item-title class="drawer-text">Editar Perfil</v-list-item-title>
-            </v-list-item>
 
 
-          </v-list-group>
+              <v-list-group
+                  value="profile"
+                  prepend-icon="fa-solid fa-user"
+                  color="#5FB3CE"
+                  base-color="#5FB3CE"
+                  activator
+                  fluid
+              >
+                <template #activator="{ props }">
+                  <v-list-item v-bind="props">
+                    <v-list-item-title class="drawer-text">Perfil de Utilizador</v-list-item-title>
+                  </v-list-item>
+                </template>
+
+                <v-list-item to="/history" class="sub-item" link>
+                  <template #prepend>
+                    <v-icon icon="fa-solid fa-clock-rotate-left" color="#5FB3CE"/>
+                  </template>
+                  <v-list-item-title class="drawer-text">Histórico</v-list-item-title>
+                </v-list-item>
+
+                <v-list-item to="/editProfile" class="sub-item" link>
+                  <template #prepend>
+                    <v-icon icon="fa-solid fa-pen-to-square" color="#5FB3CE"/>
+                  </template>
+                  <v-list-item-title class="drawer-text">Editar Perfil</v-list-item-title>
+                </v-list-item>
 
 
-          <v-list-item
-              to="/galery"
-              nav
-              value="profile"
-              active-color="#1976D2"
-              link
-          >
-            <template #prepend>
-              <v-icon icon="fa-solid fa-image" color="#5FB3CE" />
-            </template>
-            <v-list-item-title class="drawer-text">Minha Galeria</v-list-item-title>
-          </v-list-item>
+              </v-list-group>
 
 
-        </v-list>
+              <v-list-item
+                  to="/photoGallery"
+                  nav
+                  value="galeria"
+                  active-color="#1976D2"
+                  link
+              >
+                <template #prepend>
+                  <v-icon icon="fa-solid fa-image" color="#5FB3CE" />
+                </template>
+                <v-list-item-title class="drawer-text">Minha Galeria</v-list-item-title>
+              </v-list-item>
 
-        <v-divider></v-divider>
-        <v-list density="compact" nav>
 
-          <v-list-item
-              @click="handleLogout"
-          >
-            <template #prepend>
-              <v-icon icon="fa-solid fa-right-from-bracket" color="#D32F2F" />
-            </template>
-            <v-list-item-title class="drawer-text">Terminar Sessão</v-list-item-title>
-          </v-list-item>
+            </v-list>
 
-        </v-list>
+            <v-divider></v-divider>
+            <v-list density="compact" nav>
 
-      </v-navigation-drawer>
+              <v-list-item
+                  @click="handleLogout"
+              >
+                <template #prepend>
+                  <v-icon icon="fa-solid fa-right-from-bracket" color="#D32F2F" />
+                </template>
+                <v-list-item-title class="drawer-text">Terminar Sessão</v-list-item-title>
+              </v-list-item>
+
+            </v-list>
+
+          </v-navigation-drawer>
+
+        </v-col>
+
+
+      </v-row>
+
+    </v-container>
+
+
+
+
 
       <v-main style="height: 250px"></v-main>
-    </v-divider>
 
   </v-toolbar>
 </template>
