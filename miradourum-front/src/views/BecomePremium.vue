@@ -45,14 +45,16 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import LogoButton from '@/components/LogoButton.vue'
+import {UserStore} from "@/store/userStore.js";
 
 const router = useRouter()
 const cardName = ref('')
 const cardNumber = ref('')
 const expiry = ref('')
 const ccv = ref('')
+const userStore = UserStore()
 
-const token = localStorage.getItem('authToken')
+const token = userStore.authToken
 
 const goBack = () => {
   router.push('/editProfile')

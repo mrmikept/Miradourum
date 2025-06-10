@@ -3,18 +3,6 @@
     <!-- Navbar -->
     <top-tool-bar-menu/>
 
-    <!--    <nav class="navbar">-->
-<!--      <div class="navbar-left">-->
-<!--        <LogoButton to="/" />-->
-<!--        <button class="nav-button" @click="goBack">← Anterior</button>-->
-<!--      </div>-->
-
-<!--      <div class="navbar-right">-->
-<!--        <button class="nav-button" @click="goEditProfile">Editar Perfil</button>-->
-<!--        <button class="nav-button" @click="handleLogout">Terminar Sessão ⎋</button>-->
-<!--      </div>-->
-<!--    </nav>-->
-
     <!-- Conteúdo principal -->
     <div class="profile-header">
       <div class="profile-picture-wrapper">
@@ -61,18 +49,19 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import TopToolBarMenu from "../components/TopToolBarMenu.vue";
 import { ref, onMounted, watch } from 'vue'
-
+import {UserStore} from "@/store/userStore.js";
 
 const router = useRouter()
+const userStore = UserStore()
 
-const profileImage = ref('/default-profile.png')
-const username = ref('')
+const profileImage = ref(userStore.avatarUrl)
+const username = ref(userStore.username)
 
 // Dados do backend
 const visitedPoints = ref([]) // {name, lat, lng}
 const images = ref([]) // {id, url, ...}
 
-const token = localStorage.getItem('authToken')
+const token = userStore.authToken
 
 // Funções de navegação
 const goBack = () => router.push('/home')
@@ -80,24 +69,6 @@ const goEditProfile = () => router.push('/editProfile')
 const handleLogout = () => {
   localStorage.removeItem('authToken')
   router.push('/login')
-}
-
-// Fetch do perfil básico (foto e nome)
-const fetchUserProfile = async () => {
-  try {
-    const res = await fetch('http://localhost:8080/user/edit', {
-      headers: {Authorization: `Bearer ${token}`}
-    })
-    if (!res.ok) {
-      router.push('/login')
-      return
-    }
-    const data = await res.json()
-    username.value = data.username
-    profileImage.value = data.profileImage || '/default-profile.png'
-  } catch {
-    router.push('/login')
-  }
 }
 
 // Fetch pontos visitados
@@ -186,7 +157,6 @@ const setupMap = () => {
 }
 
 onMounted(async () => {
-  await fetchUserProfile()
   await fetchVisitedPoints()
   await fetchImages()
   setupMap()

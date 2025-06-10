@@ -304,9 +304,12 @@ import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import LogoButton from '@/components/LogoButton.vue'
 import TopToolBarMenu from "../components/TopToolBarMenu.vue";
+import {UserStore} from "@/store/userStore.js";
+
 
 const router = useRouter()
 const route = useRoute()
+const userStore = UserStore()
 
 // Refs para o mapa e dados
 const mapContainer = ref(null)

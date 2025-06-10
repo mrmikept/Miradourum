@@ -11,6 +11,7 @@ import piDetails from "@/views/PiDetails.vue";
 import photoGallery from "@/views/PhotoGallery.vue"
 import Review from '../views/Review.vue'
 import Create from '../views/Create.vue'
+import {UserStore} from "@/store/userStore.js";
 const routes = [
   {
     path: '/',
@@ -87,9 +88,16 @@ const router = createRouter({
   routes,
 })
 
+
 // 🔐 Global auth guard
 router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem('authToken')
+  // const token = localStorage.getItem('authToken')
+
+  const userStore = UserStore()
+
+  const token = userStore.authToken
+
+
   const isLoggedIn = !!token
 
   // Redirect to /home if already logged in and trying to access public routes

@@ -34,11 +34,13 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import LogoButton from '@/components/LogoButton.vue'
 import TopToolBarMenu from "@/components/TopToolBarMenu.vue";
+import {UserStore} from "@/store/userStore.js";
+
 
 const router = useRouter()
-const token = localStorage.getItem('authToken')
+const userStore = UserStore()
+const token = userStore.authToken
 const images = ref([])
 
 const goBack = () => router.push('/home')

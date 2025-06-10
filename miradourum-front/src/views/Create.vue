@@ -87,8 +87,11 @@ import { Upload } from '@aws-sdk/lib-storage'
 import LogoButton from '@/components/LogoButton.vue'
 import SuccessPopup from '@/components/SuccessPopup.vue'
 import ErrorPopup from '@/components/ErrorPopup.vue'
+import {UserStore} from "@/store/userStore.js";
 
 const router = useRouter()
+const userStore = UserStore()
+
 
 const latitude = ref(0)
 const longitude = ref(0)
@@ -181,7 +184,7 @@ const handleSubmit = async () => {
       imageUrls,
     }
 
-    const token = localStorage.getItem('authToken')
+    const token = userStore.authToken;
 
     const response = await fetch('http://localhost:8080/pi', {
       method: 'POST',
