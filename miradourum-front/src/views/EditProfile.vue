@@ -77,9 +77,12 @@ import TopToolBarMenu from "../components/TopToolBarMenu.vue";
 import { S3Client } from '@aws-sdk/client-s3'
 import { Upload } from '@aws-sdk/lib-storage'
 import FieldErrorPopup from '@/components/FieldErrorPopup.vue'
+import {UserStore} from "@/store/userStore.js";
 
 const imageFile = ref(null)
 const imagePreview = ref('')
+
+const userStore = UserStore()
 
 // MinIO client setup (igual ao registo)
 const s3Client = new S3Client({
@@ -164,10 +167,6 @@ const goBack = () => {
   router.push('/history')
 }
 
-const handleLogout = () => {
-  localStorage.removeItem('authToken')  // Remove o token de autenticação
-  router.push('/login')                  // Redireciona para a página de login
-}
 
 const goPremium = () => {
   router.push('/become-premium')
@@ -193,39 +192,39 @@ const alterarFoto = async () => {
 
 
 // Estado do perfil
-const username = ref('')
-const profileImage = ref('/default-profile.png')
+const username = ref(userStore.username)
+const profileImage = ref(userStore.avatarUrl)
 
-const token = localStorage.getItem('authToken')
+const token = userStore.authToken
 
-const fetchUserProfile = async () => {
-  if (!token) {
-    router.push('/login')
-    return
-  }
-
-  try {
-    const response = await fetch('http://localhost:8080/user/edit', {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    })
-
-    if (!response.ok) {
-      // Se token inválido ou outro erro, redireciona para login
-      router.push('/login')
-      return
-    }
-
-    const data = await response.json()
-    username.value = data.username
-    profileImage.value = data.profileImage || '/default-profile.png'
-
-  } catch (error) {
-    console.error('Erro a buscar perfil:', error)
-    router.push('/login')
-  }
-}
+// const fetchUserProfile = async () => {
+//   if (!token) {
+//     router.push('/login')
+//     return
+//   }
+//
+//   try {
+//     const response = await fetch('http://localhost:8080/user/edit', {
+//       headers: {
+//         'Authorization': `Bearer ${token}`
+//       }
+//     })
+//
+//     if (!response.ok) {
+//       // Se token inválido ou outro erro, redireciona para login
+//       router.push('/login')
+//       return
+//     }
+//
+//     const data = await response.json()
+//     username.value = data.username
+//     profileImage.value = data.profileImage || '/default-profile.png'
+//
+//   } catch (error) {
+//     console.error('Erro a buscar perfil:', error)
+//     router.push('/login')
+//   }
+// }
 
 // Parte do plano, premium ou não
 const isPremium = ref(false)
@@ -252,7 +251,7 @@ const checkPremiumStatus = async () => {
 }
 
 onMounted(() => {
-  fetchUserProfile()
+  // fetchUserProfile()
   checkPremiumStatus()
 })
 
@@ -282,6 +281,14 @@ const guardarPerfil = async () => {
       profileImage.value = uploadedUrl
       imagePreview.value = ''       // limpa preview
       imageFile.value = null        // limpa ficheiro
+
+      const userData = {
+        'username': username.value,
+        'avatarUrl': uploadedUrl,
+      }
+
+      userStore.setUserData(userData)
+
       alert('Perfil guardado com sucesso!')
     } else {
       alert('Erro ao guardar perfil.')

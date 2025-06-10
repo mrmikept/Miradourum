@@ -108,12 +108,16 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import {ref} from 'vue'
+import {useRouter} from 'vue-router'
 import LogoButton from '@/components/LogoButton.vue'
 import ErrorPopup from '@/components/ErrorPopup.vue'
 import SuccessPopup from '@/components/SuccessPopup.vue'
-import FieldErrorPopup from '@/components/FieldErrorPopup.vue' 
+import FieldErrorPopup from '@/components/FieldErrorPopup.vue'
+import {UserStore} from '@/store/userStore'
+
+const userStore = UserStore()
+
 const showResetForm = ref(false)
 const resetEmail = ref('')
 const resetPassword = ref('')
@@ -345,8 +349,14 @@ const handleLogin = async () => {
 
     // Login bem-sucedido!
     const token = await response.text()
-    localStorage.setItem('authToken', token)
-    
+    // localStorage.setItem('authToken', token)
+
+    userStore.setToken(token)
+
+    const userData = await fetchUserProfile()
+    console.log(userData)
+    userStore.setUserData(userData)
+
     // Mostrar mensagem de sucesso
     showSuccess('Login realizado com sucesso! A redirecionar...')
     
@@ -360,6 +370,42 @@ const handleLogin = async () => {
     console.error(error)
   }
 }
+
+const fetchUserProfile = async () => {
+  if (!userStore.authToken) {
+    router.push('/login')
+    return
+  }
+
+  try {
+    const response = await fetch('http://localhost:8080/user/edit', {
+      headers: {
+        'Authorization': `Bearer ${userStore.authToken}`
+      }
+    })
+
+    if (!response.ok) {
+      // Se token inválido ou outro erro, redireciona para login
+      router.push('/login')
+      return
+    }
+
+    const data = await response.json()
+
+    return {
+      'username': data.username,
+      'avatarUrl': data.profileImage || '/default-profile.png',
+      'email': data.email,
+      'userType': data.userType,
+    }
+
+  } catch (error) {
+    console.error('Erro a buscar perfil:', error)
+    router.push('/login')
+  }
+}
+
+
 </script>
 
 <style scoped>

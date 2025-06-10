@@ -127,6 +127,7 @@ import LogoButton from '@/components/LogoButton.vue'
 import { S3Client } from '@aws-sdk/client-s3'
 import { Upload } from '@aws-sdk/lib-storage'
 import axios from "axios";
+import {UserStore} from "@/store/userStore.js";
 
 const reviewImageFile = ref(null)
 const reviewImagePreview = ref('')
@@ -134,7 +135,9 @@ const reviewImage = ref('/default-review.png')
 const router = useRouter()
 const route = useRoute()
 const pi = ref(null)
-const token = localStorage.getItem('authToken')
+const userStore = UserStore()
+
+const token = userStore.authToken;
 
 const pointDetails = ref({})
 const reviews = ref([])

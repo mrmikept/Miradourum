@@ -53,10 +53,14 @@ import LogoButton from '@/components/LogoButton.vue'
 import ErrorPopup from '@/components/ErrorPopup.vue'
 import SuccessPopup from '@/components/SuccessPopup.vue'
 import { useRouter } from 'vue-router'
+import {UserStore} from "@/store/userStore.js";
+
+
 const pontos = ref([])
 const loading = ref(true)
 const errorMessage = ref('')
 const successMessage = ref('')
+const userStore = UserStore()
 
 const formatDate = (dateString) => {
   if (!dateString) return 'Desconhecida'
@@ -70,7 +74,7 @@ const formatDate = (dateString) => {
 const fetchPontos = async () => {
   loading.value = true
   try {
-    const token = localStorage.getItem('authToken')
+    const token = userStore.authToken
     const response = await fetch('http://localhost:8080/admin/pi', {
       method: 'GET',
       headers: {
@@ -108,7 +112,7 @@ const goBack = () => {
 
 const handleDecision = async (id, accepted, comment = '') => {
   try {
-    const token = localStorage.getItem('authToken')
+    const token = userStore.authToken
     const response = await fetch(`http://localhost:8080/admin/pi/${id}`, {
       method: 'PUT',
       headers: {

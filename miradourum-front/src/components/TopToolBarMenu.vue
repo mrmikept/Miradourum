@@ -4,21 +4,7 @@ import LogoButton from "./LogoButton.vue";
 import {onMounted, ref} from "vue";
 import router from "../router/index.js";
 import Location_chip from "./location_chip.vue";
-
-// defineProps({
-//   avatarUrl: {
-//     type: String,
-//     default: 'https://randomuser.me/api/portraits/women/85.jpg',
-//   },
-//   username: {
-//     type: String,
-//     default: 'Sandra Adams',
-//   },
-//   email: {
-//     type: String,
-//     default: 'sandra_a88@gmail.com',
-//   },
-// })
+import {UserStore} from "@/store/userStore.js";
 
 defineProps({
   avatarUrl: String,
@@ -29,75 +15,19 @@ defineProps({
 const actualUsername = ref('')
 const actualAvatarUrl = ref('')
 const actualEmail = ref('')
+const userStore = UserStore();
 
-
-// Estado do perfil
-const username = ref('')
-const avatarUrl = ref('/default-profile.png')
-const email = ref('')
-
-const token = localStorage.getItem('authToken')
-
-
-const fetchUserProfile = async () => {
-  if (!token) {
-    router.push('/login')
-    return
-  }
-
-  try {
-    const response = await fetch('http://localhost:8080/user/edit', {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    })
-
-    if (!response.ok) {
-      // Se token inválido ou outro erro, redireciona para login
-      router.push('/login')
-      return
-    }
-
-    const data = await response.json()
-    username.value = data.username
-    avatarUrl.value = data.profileImage || '/default-profile.png'
-    email.value = data.email
-
-  } catch (error) {
-    console.error('Erro a buscar perfil:', error)
-    router.push('/login')
-  }
-}
-
-onMounted(() => {
-  fetchUserProfile()
-})
-
+const token = userStore.authToken
 
 const handleLogout = () => {
-  localStorage.removeItem('authToken')  // Remove o token de autenticação
+  userStore.clearUserStore()
+  // localStorage.removeItem('authToken')  // Remove o token de autenticação
   router.push('/login')                  // Redireciona para a página de login
 }
 
 </script>
 
 <template>
-<!--  <nav class="navbar">-->
-<!--    <div class="navbar-left">-->
-<!--      <LogoButton to="/home">-->
-<!--      </LogoButton>-->
-<!--    </div>-->
-<!--    <div class="navbar-right">-->
-<!--      <RouterLink v-if="isAdmin" to="/review" class="nav-button">Review</RouterLink>-->
-
-<!--      <div class="location-info" v-if="userLocation">-->
-<!--        <span class="location-text">📍 {{ userLocation.lat.toFixed(4) }}, {{ userLocation.lng.toFixed(4) }}</span>-->
-<!--      </div>-->
-<!--      &lt;!&ndash; Botão de editar perfil &ndash;&gt;-->
-<!--      <button class="nav-button" @click="goToProfile">Ver Perfil</button>-->
-<!--    </div>-->
-<!--  </nav>-->
-
   <v-toolbar color="#427F99">
     <v-container fluid>
       <v-row align="center" justify="space-between" no-gutters>
@@ -117,9 +47,9 @@ const handleLogout = () => {
           >
             <v-list>
               <v-list-item
-                  :prepend-avatar="actualAvatarUrl || avatarUrl"
-                  :title="actualUsername || username"
-                  :subtitle="actualEmail || email"
+                  :prepend-avatar="actualAvatarUrl || userStore.avatarUrl"
+                  :title="actualUsername || userStore.username"
+                  :subtitle="actualEmail || userStore.email"
               ></v-list-item>
             </v-list>
 

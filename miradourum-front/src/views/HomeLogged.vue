@@ -305,9 +305,12 @@ import { useRoute, useRouter } from 'vue-router'
 import LogoButton from '@/components/LogoButton.vue'
 import TopToolBarMenu from "../components/TopToolBarMenu.vue";
 import Breadcrumbs from "../components/breadcrumbs.vue";
+import {UserStore} from "@/store/userStore.js";
+
 
 const router = useRouter()
 const route = useRoute()
+const userStore = UserStore()
 
 // Refs para o mapa e dados
 const mapContainer = ref(null)
@@ -389,7 +392,8 @@ const goToCreate = () => {
 
 const checkAdmin = async () => {
   try {
-    const token = localStorage.getItem('authToken') // or wherever your JWT is stored
+    // const token = localStorage.getItem('authToken') // or wherever your JWT is stored
+    const token = userStore.authToken
     if (!token) return
 
     const res = await fetch('http://localhost:8080/admin/isadmin', {
@@ -493,7 +497,8 @@ const fetchPontosInteresse = async () => {
   isLoadingPontos.value = true
   
   try {
-    const token = localStorage.getItem('authToken')
+    const token = userStore.authToken;
+    // const token = localStorage.getItem('authToken')
     if (!token) {
       throw new Error('Token não encontrado')
     }
@@ -670,7 +675,8 @@ const fetchPointDetails = async (pointId) => {
   isLoadingDetails.value = true
   
   try {
-    const token = localStorage.getItem('authToken')
+    // const token = localStorage.getItem('authToken')
+    const token = userStore.authToken;
     if (!token) {
       throw new Error('Token não encontrado')
     }
