@@ -298,8 +298,11 @@ async function submitComment() {
 
     console.log("Comentário enviado com sucesso", response.data)
 
-    // Recarregar reviews após envio
-    await fetchReviews()
+    // Atualizar os dados do ponto (incluindo o score)
+    await fetchPointDetails();
+
+    // Recarregar as reviews
+    await fetchReviews();
 
     // Fechar modal e limpar campos
     closeCommentModal()
