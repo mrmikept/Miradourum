@@ -1,17 +1,19 @@
 <template>
   <div class="history-page">
     <!-- Navbar -->
-    <nav class="navbar">
-      <div class="navbar-left">
-        <LogoButton to="/" />
-      </div>
+    <top-tool-bar-menu/>
 
-      <div class="navbar-right">
-        <button class="nav-button" @click="goBack">Voltar</button>
-        <button class="nav-button" @click="goEditProfile">Editar Perfil</button>
-        <button class="nav-button" @click="handleLogout">Terminar Sessão ⎋</button>
-      </div>
-    </nav>
+    <!--    <nav class="navbar">-->
+<!--      <div class="navbar-left">-->
+<!--        <LogoButton to="/" />-->
+<!--        <button class="nav-button" @click="goBack">← Anterior</button>-->
+<!--      </div>-->
+
+<!--      <div class="navbar-right">-->
+<!--        <button class="nav-button" @click="goEditProfile">Editar Perfil</button>-->
+<!--        <button class="nav-button" @click="handleLogout">Terminar Sessão ⎋</button>-->
+<!--      </div>-->
+<!--    </nav>-->
 
     <!-- Conteúdo principal -->
     <div class="profile-header">
@@ -57,7 +59,9 @@ import {useRouter} from 'vue-router'
 import LogoButton from '@/components/LogoButton.vue'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import TopToolBarMenu from "../components/TopToolBarMenu.vue";
 import { ref, onMounted, watch } from 'vue'
+
 
 const router = useRouter()
 

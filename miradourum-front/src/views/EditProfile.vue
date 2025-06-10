@@ -1,17 +1,18 @@
 <template>
   <div class="home-page">
     <!-- Navbar -->
-    <nav class="navbar">
-      <div class="navbar-left">
-        <LogoButton to="/" />
-      </div>
+<!--    <nav class="navbar">-->
+<!--      <div class="navbar-left">-->
+<!--        <LogoButton to="/" />-->
+<!--        <button class="nav-button" @click="goBack">← Anterior</button>-->
+<!--      </div>-->
 
-      <div class="navbar-right">
-        <button class="nav-button" @click="goBack">Voltar</button>
-        <button v-if="!isPremiumStatus" class="nav-button" @click="goPremium">Torne-se Premium</button>
-        <button class="nav-button" @click="handleLogout">Terminar Sessão ⎋</button>
-      </div>
-    </nav>
+<!--      <div class="navbar-right">-->
+<!--        <button v-if="!isPremiumStatus" class="nav-button" @click="goPremium">Torne-se Premium</button>-->
+<!--        <button class="nav-button" @click="handleLogout">Terminar Sessão ⎋</button>-->
+<!--      </div>-->
+<!--    </nav>-->
+    <top-tool-bar-menu/>
 
     <!-- Profile Content -->
     <div class="profile-container">
@@ -71,6 +72,8 @@ import { useRouter } from 'vue-router'
 import { ref, onMounted } from 'vue'
 import LogoButton from '@/components/LogoButton.vue'
 import { computed } from 'vue'
+
+import TopToolBarMenu from "../components/TopToolBarMenu.vue";
 import { S3Client } from '@aws-sdk/client-s3'
 import { Upload } from '@aws-sdk/lib-storage'
 import FieldErrorPopup from '@/components/FieldErrorPopup.vue'
