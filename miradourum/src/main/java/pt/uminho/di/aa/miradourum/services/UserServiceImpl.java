@@ -14,11 +14,14 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserRepository userRepository;
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    // Make this final and initialize once
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     public UserServiceImpl(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.bCryptPasswordEncoder = new BCryptPasswordEncoder();
+        // Use consistent strength (10 is default)
+        this.bCryptPasswordEncoder = new BCryptPasswordEncoder(10);
     }
 
     @Override
@@ -42,16 +45,23 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void saveAndUpdateUser(Long id,String username,String password,String image) {
-        User user = userRepository.findById(id,User.class);
+    public void saveAndUpdateUser(Long id, String username, String password, String image) {
+        User user = userRepository.findById(id, User.class);
 
-        if(username != null){
+        if (user == null) {
+            throw new RuntimeException("User not found with id: " + id);
+        }
+
+        if (username != null && !username.trim().isEmpty()) {
             user.setUsername(username);
         }
-        if(password != null){
+
+        // Only encode if password is actually being changed
+        if (password != null && !password.trim().isEmpty()) {
             user.setPassword(encodePassword(password));
         }
-        if(image != null){
+
+        if (image != null) {
             user.setProfileImage(image);
         }
 
@@ -59,13 +69,35 @@ public class UserServiceImpl implements UserService {
     }
 
     private String encodePassword(String password) {
+        if (password == null || password.trim().isEmpty()) {
+            throw new IllegalArgumentException("Password cannot be null or empty");
+        }
         return bCryptPasswordEncoder.encode(password);
     }
 
     @Override
-    public void saveUser(User user){
-        user.setPassword(encodePassword(user.getPassword()));
+    public void saveUser(User user) {
+        if (user.getPassword() == null || user.getPassword().trim().isEmpty()) {
+            throw new IllegalArgumentException("Password cannot be null or empty");
+        }
+
+        // Only encode if password is not already encoded
+        if (!isPasswordEncoded(user.getPassword())) {
+            user.setPassword(encodePassword(user.getPassword()));
+        }
+
         userRepository.save(user);
+    }
+
+    // Add a method that doesn't touch the password at all
+    @Override
+    public void saveUserWithoutPasswordEncoding(User user) {
+        userRepository.save(user);
+    }
+
+    // Helper method to check if password is already BCrypt encoded
+    private boolean isPasswordEncoded(String password) {
+        return password != null && password.startsWith("$2a$") && password.length() == 60;
     }
 
     @Override
@@ -75,7 +107,17 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean checkPassword(String password, String encodedPassword) {
-        return bCryptPasswordEncoder.matches(password, encodedPassword);
+        if (password == null || encodedPassword == null) {
+            return false;
+        }
+
+        try {
+            return bCryptPasswordEncoder.matches(password, encodedPassword);
+        } catch (Exception e) {
+            // Log the error in production
+            System.err.println("Error checking password: " + e.getMessage());
+            return false;
+        }
     }
 
     @Override
@@ -87,5 +129,4 @@ public class UserServiceImpl implements UserService {
     public List<PontoInteresse> getPontosInteresse(Long userId) {
         return userRepository.getPontosInteresse(userId);
     }
-
 }

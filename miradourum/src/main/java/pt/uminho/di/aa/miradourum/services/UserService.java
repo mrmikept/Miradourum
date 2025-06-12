@@ -68,4 +68,5 @@ public interface UserService {
      * @param user
      */
     void saveUser(User user);
+    void saveUserWithoutPasswordEncoding(User user);
 }

@@ -200,7 +200,7 @@ public class PontoInteresseController {
         User user = userService.getUserById(userId);
         if (!user.getPontoInteresse().contains(point)) {
             user.getPontoInteresse().add(point);
-            userService.saveUser(user);
+            userService.saveUserWithoutPasswordEncoding(user);
         }
 
         return ResponseEntity.ok(point);

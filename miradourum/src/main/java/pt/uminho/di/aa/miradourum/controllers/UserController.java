@@ -227,7 +227,7 @@ public class UserController {
 
             user.setRole(3);
             user.setPremiumEndDate(expiryDate);
-            userService.saveUser(user);
+            userService.saveUserWithoutPasswordEncoding(user);
 
             return ResponseEntity.ok().body(Map.of(
                     "success", true,
