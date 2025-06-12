@@ -4,7 +4,14 @@ import Login from '@/views/Login.vue'
 import NotFoundComponent from '@/views/NotFound.vue'
 import Register from '@/views/Register.vue'
 import HomeLogged from '@/views/HomeLogged.vue'
-
+import UserProfile from '@/views/EditProfile.vue'
+import BecomePremium from '@/views/BecomePremium.vue'
+import UserHistory from "@/views/UserHistory.vue";
+import piDetails from "@/views/PiDetails.vue";
+import photoGallery from "@/views/PhotoGallery.vue"
+import Review from '../views/Review.vue'
+import Create from '../views/Create.vue'
+import {UserStore} from "@/store/userStore.js";
 const routes = [
   {
     path: '/',
@@ -28,10 +35,52 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
+    path: '/editProfile',
+    name: 'UserProfile',
+    component: UserProfile,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/become-premium',
+    name: 'BecomePremium',
+    component: BecomePremium,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/history',
+    name: 'History',
+    component: UserHistory,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/pi/details/:id',
+    name: 'piDetails',
+    component: piDetails,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/photoGallery',
+    name: 'photoGallery',
+    component: photoGallery,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/review',
+    name: 'Review',
+    component: Review,
+    meta:{ requiresAuth:true}
+  },
+  {
+    path: '/create',
+    name: 'Create',
+    component: Create,
+    meta:{requiresAuth:true}
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'CatchAll',
     component: NotFoundComponent,
-  },
+  }
 ]
 
 const router = createRouter({
@@ -39,9 +88,16 @@ const router = createRouter({
   routes,
 })
 
+
 // 🔐 Global auth guard
 router.beforeEach((to, from, next) => {
-  const token = localStorage.getItem('authToken')
+  // const token = localStorage.getItem('authToken')
+
+  const userStore = UserStore()
+
+  const token = userStore.authToken
+
+
   const isLoggedIn = !!token
 
   // Redirect to /home if already logged in and trying to access public routes

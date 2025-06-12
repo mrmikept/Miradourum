@@ -74,6 +74,12 @@ app.post("/api/pay", (req, res) => {
     const now = new Date();
     now.setMonth(now.getMonth() + 1);
     const expiryDate = now.toISOString(); // To ISO String to be parsed in the app backend into a date Object
+    
+    //Generate expiry date (now + 1 minute)
+    //const now = new Date();
+    //now.setMinutes(now.getMinutes() + 1);
+    //const expiryDate = now.toISOString(); // ISO string for backend parsing
+
 
     let message = "Fake payment processed successfully!"
     console.log(message);

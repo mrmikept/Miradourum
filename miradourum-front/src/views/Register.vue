@@ -109,6 +109,8 @@ import LogoButton from '@/components/LogoButton.vue'
 import ErrorPopup from '@/components/ErrorPopup.vue'
 import SuccessPopup from '@/components/SuccessPopup.vue'
 import FieldErrorPopup from '@/components/FieldErrorPopup.vue'
+import { S3Client } from '@aws-sdk/client-s3'
+import { Upload } from '@aws-sdk/lib-storage'
 
 const email = ref('')
 const password = ref('')
@@ -131,6 +133,49 @@ const showPasswordError = ref(false)
 const showImageError = ref(false)
 
 const router = useRouter()
+
+
+const handleImageUpload = (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+  
+  // Limpar erro de imagem quando utilizador seleciona uma
+  clearImageError()
+  
+  imageFile.value = file
+  imagePreview.value = URL.createObjectURL(file)
+}
+
+
+
+// MinIO client setup
+const s3Client = new S3Client({
+  region: 'us-east-1', // Can be anything
+  endpoint: 'http://localhost:9000',
+  credentials: {
+    accessKeyId: 'admin',
+    secretAccessKey: 'admin123',
+  },
+  forcePathStyle: true, // Required for MinIO
+})
+const uploadImageToMinIO = async (file) => {
+  const fileName = `profile-${Date.now()}-${file.name}`
+
+  const upload = new Upload({
+    client: s3Client,
+    params: {
+      Bucket: 'profile-images',
+      Key: fileName,
+      Body: file,
+      ContentType: file.type,
+      ACL: 'public-read',
+    },
+  })
+
+  const result = await upload.done()
+  return `http://localhost:9000/profile-images/${fileName}` // Public URL
+}
+
 
 // Funções para limpar erros quando utilizador digita/interage
 const clearUsernameError = () => {
@@ -241,17 +286,6 @@ const validateForm = () => {
   return isValid
 }
 
-const handleImageUpload = (event) => {
-  const file = event.target.files[0]
-  if (!file) return
-  
-  // Limpar erro de imagem quando utilizador seleciona uma
-  clearImageError()
-  
-  imageFile.value = file
-  imagePreview.value = URL.createObjectURL(file)
-}
-
 function showError(msg) {
   errorMessage.value = msg
   successMessage.value = ''
@@ -269,23 +303,21 @@ function showSuccess(msg) {
 }
 
 const handleRegister = async () => {
-  // Limpar mensagens globais
   errorMessage.value = ''
   successMessage.value = ''
-  
-  // Validar formulário
-  if (!validateForm()) {
-    return
-  }
+
+  if (!validateForm()) return
 
   try {
-    const mockImageUrl = 'https://mock-url.com/image.png' // Replace with actual uploaded image URL later
+    // 1. Upload image to MinIO
+    const uploadedImageUrl = await uploadImageToMinIO(imageFile.value)
 
+    // 2. Prepare payload for backend
     const payload = {
       email: email.value,
       password: password.value,
       username: username.value,
-      profileimage: mockImageUrl,
+      profileimage: uploadedImageUrl, // <- URL to MinIO
     }
 
     const response = await fetch('http://localhost:8080/auth/register', {
@@ -295,39 +327,21 @@ const handleRegister = async () => {
     })
 
     if (!response.ok) {
-      // Tentar ler a mensagem de erro do backend (texto simples)
-      let errorMessage;
-      try {
-        errorMessage = await response.text();
-      } catch (e) {
-        errorMessage = 'Erro desconhecido';
-      }
-
-      // Verificar se é erro de email já registado
-      if (response.status === 401 && errorMessage.includes('Email already exists')) {
-        showError('O email indicado já se encontra registado.');
-      } else if (response.status === 400) {
-        // Erros de validação do backend
-        showError(errorMessage);
-      } else {
-        // Para outros erros
-        showError(errorMessage || 'Erro ao criar conta. Tente novamente.');
-      }
+      const errorText = await response.text()
+      showError(errorText || 'Erro ao criar conta')
       return
     }
 
-    // Sucesso - mostrar mensagem e redirecionar
     showSuccess('Conta criada com sucesso! A redirecionar para o login...')
-    
     setTimeout(() => {
       router.push('/login')
     }, 1000)
-
   } catch (err) {
-    showError('Erro de rede. Tente novamente.')
-    console.error(err)
+    console.error('Erro:', err)
+    showError('Erro ao carregar imagem ou criar conta.')
   }
 }
+
 </script>
 
 <style scoped>
@@ -403,8 +417,15 @@ const handleRegister = async () => {
 }
 
 .nav-button {
+  border: none;
+  outline: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  white-space: nowrap;
   background-color: white;
-  color: #6e98db;
+  color: #427F99;
   border-radius: 8px;
   padding: 0.5rem 1rem;
   margin-left: 0.5rem;
@@ -412,6 +433,14 @@ const handleRegister = async () => {
   font-weight: bold;
   transition: background-color 0.2s ease;
 }
+
+
+.nav-button:hover {
+  border: none;
+  outline: none;
+  background-color: #e0e0e0;
+}
+
 
 .nav-button:hover {
   background-color: #e0e0e0;

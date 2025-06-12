@@ -31,6 +31,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT COUNT(u) > 0 FROM User u WHERE u.id = :userId AND u.role = 3")
     boolean checkPremium(@Param("userId") Long userId);
 
-    <T> T findById(Long id, Class<T> clazz);
+    @Query("SELECT COUNT(u) > 0 FROM User u WHERE u.id = :userId AND u.role = 2")
+    boolean checkAdmin(@Param("userId") Long userId);
 
+    <T> T findById(Long id, Class<T> clazz);
 }

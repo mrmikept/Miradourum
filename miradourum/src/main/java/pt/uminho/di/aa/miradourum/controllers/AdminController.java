@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import pt.uminho.di.aa.miradourum.auth.JwtService;
 import pt.uminho.di.aa.miradourum.dto.ActivatePontoInteresseDTO;
 import pt.uminho.di.aa.miradourum.models.PontoInteresse;
+import pt.uminho.di.aa.miradourum.models.User;
 import pt.uminho.di.aa.miradourum.services.PontoInteresseService;
 import pt.uminho.di.aa.miradourum.services.UserService;
 import pt.uminho.di.aa.miradourum.utils.EmailService;
@@ -119,5 +120,23 @@ public class AdminController {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error");
         }
+    }
+
+    @GetMapping("/isadmin")
+    public ResponseEntity<?> isAdmin(@RequestHeader("Authorization") String authHeader) {
+        System.out.println(java.time.ZoneId.systemDefault());
+
+        // Validar token
+        ResponseEntity<?> tokenValidation = jwtService.validateToken(authHeader);
+        if (tokenValidation != null) {
+            return (ResponseEntity<Object>) tokenValidation;
+        }
+
+        // Extrair userId do token válido
+        Long userId = jwtService.extractUserIdFromValidToken(authHeader);
+
+        return ResponseEntity.ok(userService.checkAdmin(userId));
+
+        //return ResponseEntity.ok(userService.checkPremium(userId));
     }
 }

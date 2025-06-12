@@ -56,12 +56,14 @@ public class UserServiceImpl implements UserService {
             user.setUsername(username);
         }
 
+
         // Only encode if password is actually being changed
         if (password != null && !password.trim().isEmpty()) {
             user.setPassword(encodePassword(password));
         }
 
         if (image != null) {
+
             user.setProfileImage(image);
         }
 
@@ -126,7 +128,19 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public boolean checkAdmin(Long userid){
+        return userRepository.checkAdmin(userid);
+    }
+    @Override
     public List<PontoInteresse> getPontosInteresse(Long userId) {
         return userRepository.getPontosInteresse(userId);
     }
+
+    @Override
+    public void updatePassword(User user,String rawPassword){
+        String encoded = encodePassword(rawPassword);  // Assuming you inject PasswordEncoder
+        user.setPassword(encoded);
+        userRepository.save(user);
+    }
+
 }

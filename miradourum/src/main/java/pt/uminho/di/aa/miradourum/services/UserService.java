@@ -55,6 +55,7 @@ public interface UserService {
      */
     boolean checkPremium(Long userid);
 
+    boolean checkAdmin(Long userid);
 
     /**
      *
@@ -68,5 +69,8 @@ public interface UserService {
      * @param user
      */
     void saveUser(User user);
+  
     void saveUserWithoutPasswordEncoding(User user);
+
+    void updatePassword(User user,String rawPassword);
 }

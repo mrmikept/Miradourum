@@ -1,16 +1,23 @@
 <template>
   <div class="home-page">
-    <nav class="navbar">
-      <div class="navbar-left">
-        <LogoButton to="/home">
-        </LogoButton>
-      </div>
-      <div class="navbar-right">
-        <div class="location-info" v-if="userLocation">
-          <span class="location-text">📍 {{ userLocation.lat.toFixed(4) }}, {{ userLocation.lng.toFixed(4) }}</span>
-        </div>
-      </div>
-    </nav>
+<!--    <nav class="navbar">-->
+<!--      <div class="navbar-left">-->
+<!--        <LogoButton to="/home">-->
+<!--        </LogoButton>-->
+<!--      </div>-->
+<!--      <div class="navbar-right">-->
+<!--        <RouterLink v-if="isAdmin" to="/review" class="nav-button">Review</RouterLink>-->
+
+<!--        <div class="location-info" v-if="userLocation">-->
+<!--          <span class="location-text">📍 {{ userLocation.lat.toFixed(4) }}, {{ userLocation.lng.toFixed(4) }}</span>-->
+<!--        </div>-->
+<!--        &lt;!&ndash; Botão de editar perfil &ndash;&gt;-->
+<!--        <button class="nav-button" @click="goToProfile">Ver Perfil</button>-->
+<!--      </div>-->
+<!--    </nav>-->
+
+    <TopToolBarMenu/>
+
 
     <div class="content">
       <div class="map-container">
@@ -39,6 +46,9 @@
               <option value="satellite">Satélite</option>
               <option value="terrain">Terreno</option>
             </select>
+              <button class="add-point-button" @click="goToCreate">
+    <span class="plus-icon">+</span>
+  </button>
           </div>
         </div>
         
@@ -293,13 +303,17 @@
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import LogoButton from '@/components/LogoButton.vue'
+import TopToolBarMenu from "../components/TopToolBarMenu.vue";
+import {UserStore} from "@/store/userStore.js";
+
 
 const router = useRouter()
 const route = useRoute()
+const userStore = UserStore()
 
 // Refs para o mapa e dados
 const mapContainer = ref(null)
-const userLocation = ref(null)
+const userLocation = ref(userStore.location)
 const clickedLocation = ref(null)
 const isLoadingLocation = ref(false)
 const selectedLayer = ref('streets')
@@ -359,6 +373,9 @@ const markerColors = {
   user: '#007bff'        // Azul
 }
 
+const isAdmin = ref(false)
+
+
 // Computed
 const hasActiveFilters = computed(() => {
   return filters.value.maxDistance !== 20.0 ||
@@ -367,6 +384,36 @@ const hasActiveFilters = computed(() => {
          filters.value.accessibility !== null ||
          filters.value.maxDifficulty !== null
 })
+const goToCreate = () => {
+  router.push('/create')
+}
+
+
+const checkAdmin = async () => {
+  try {
+    const token = userStore.authToken // or wherever your JWT is stored
+    if (!token) return
+
+    const res = await fetch('http://localhost:8080/admin/isadmin', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+
+    if (res.ok) {
+      const data = await res.json()
+      isAdmin.value = data === true
+    } else {
+      isAdmin.value = false
+    }
+  } catch (error) {
+    console.error('Failed to check admin status:', error)
+    isAdmin.value = false
+  }
+}
+
+
+
 
 const sortedPontos = computed(() => {
   return [...pontosInteresse.value].sort((a, b) => {
@@ -382,6 +429,9 @@ const getMarkerColor = (ponto) => {
   if (ponto.premium) return markerColors.premium
   return markerColors.notVisited
 }
+
+
+
 
 // Funções do mapa
 const initMap = () => {
@@ -437,7 +487,7 @@ const createColoredIcon = (color, isSelected = false) => {
 
 // Função para buscar pontos de interesse na API
 const fetchPontosInteresse = async () => {
-  if (!userLocation.value) {
+  if (!userStore.location) {
     console.log('Aguardando localização do usuário...')
     return
   }
@@ -445,14 +495,14 @@ const fetchPontosInteresse = async () => {
   isLoadingPontos.value = true
   
   try {
-    const token = localStorage.getItem('authToken')
+    const token = userStore.authToken
     if (!token) {
       throw new Error('Token não encontrado')
     }
 
     const requestBody = {
-      userLatitude: userLocation.value.lat,
-      userLongitude: userLocation.value.lng
+      userLatitude: userStore.location.lat,
+      userLongitude: userStore.location.lng,
     }
 
     if (filters.value.maxDistance !== 20.0) {
@@ -495,16 +545,21 @@ const fetchPontosInteresse = async () => {
     const data = await response.json()
     console.log('Pontos recebidos:', data)
     // Calcular distâncias e atualizar pontos
-    pontosInteresse.value = data.map(ponto => ({
+   // Remove duplicates by ID
+const uniqueMap = new Map()
+data.forEach(ponto => {
+  if (!uniqueMap.has(ponto.id)) {
+    const enrichedPonto = {
       ...ponto,
-      distanceFromUser: userLocation.value ? 
-        calculateDistance(
-          userLocation.value.lat, 
-          userLocation.value.lng, 
-          ponto.latitude, 
-          ponto.longitude
-        ) : null
-    }))
+      distanceFromUser: userLocation.value
+        ? calculateDistance(userLocation.value.lat, userLocation.value.lng, ponto.latitude, ponto.longitude)
+        : null
+    }
+    uniqueMap.set(ponto.id, enrichedPonto)
+  }
+})
+pontosInteresse.value = Array.from(uniqueMap.values())
+
     
     // Limpar marcadores anteriores
     clearPIMarkers()
@@ -617,7 +672,7 @@ const fetchPointDetails = async (pointId) => {
   isLoadingDetails.value = true
   
   try {
-    const token = localStorage.getItem('authToken')
+    const token = userStore.authToken
     if (!token) {
       throw new Error('Token não encontrado')
     }
@@ -690,6 +745,11 @@ const getCurrentLocation = () => {
     (position) => {
       const lat = position.coords.latitude
       const lng = position.coords.longitude
+
+      userStore.setLocation({
+        'lng': lng,
+        'lat': lat,
+      })
       
       userLocation.value = { lat, lng }
       
@@ -780,6 +840,11 @@ const goToDetailsPage = () => {
   }
 }
 
+// Função para ir para o perfil
+const goToProfile = () => {
+  router.push('/history')
+}
+
 const resetFilters = () => {
   filters.value = {
     maxDistance: 20.0,
@@ -841,7 +906,8 @@ onMounted(() => {
       } else {
         resolve()
       }
-    })
+    },
+    checkAdmin())
   }
   
   loadLeaflet().then(() => {
@@ -877,29 +943,6 @@ const handleLogoClick = () => {
   position: relative;
 }
 
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  background-color: #427F99;
-  padding: 0.75rem 1.5rem;
-  color: white;
-}
-
-.nav-button {
-  background-color: white;
-  color: #6e98db;
-  border-radius: 8px;
-  padding: 0.5rem 1rem;
-  margin-left: 0.5rem;
-  text-decoration: none;
-  font-weight: bold;
-  transition: background-color 0.2s ease;
-}
-
-.nav-button:hover {
-  background-color: #e0e0e0;
-}
-
 .hero {
   position: relative;
   text-align: center;
@@ -926,6 +969,7 @@ const handleLogoClick = () => {
   padding: 0.5rem 1rem;
   border-radius: 20px;
   border: 1px solid #e9ecef;
+  margin-left: 0.5rem;
 }
 
 .location-text {
@@ -1330,7 +1374,13 @@ const handleLogoClick = () => {
 
 .filter-group input:focus,
 .filter-group select:focus,
-.search-group input:focus {
+.search-group input:focus,
+.nav-button:focus,
+.location-btn:focus,
+.search-btn:focus,
+.filters-btn:focus,
+.reset-btn:focus,
+.apply-btn:focus {
   outline: none;
   border-color: #427F99;
   box-shadow: 0 0 0 2px rgba(66, 127, 153, 0.2);
@@ -1630,6 +1680,12 @@ const handleLogoClick = () => {
   border-radius: 8px;
   margin: 0.5rem 0;
 }
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem; /* space between Review button and location info */
+}
+
 
 @media (max-width: 480px) {
   .navbar-right .location-info {
@@ -1657,5 +1713,40 @@ const handleLogoClick = () => {
   .apply-btn {
     width: 100%;
   }
+
+  .navbar-right > * {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+  }
 }
+
+.add-point-button {
+  background-color: #e63946; /* red */
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  margin-right: 1rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.2s ease;
+}
+
+.add-point-button:hover {
+  background-color: #c62828;
+}
+
+.plus-icon {
+  line-height: 1;
+  font-size: 1.8rem;
+  margin-top: -2px;
+}
+
 </style>

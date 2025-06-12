@@ -67,9 +67,37 @@
           <RouterLink to="/register">Registe-se</RouterLink>
         </p>
         
-        <p class="forgot-password">
-          <RouterLink to="/reset-password">Esqueceu a palavra-passe?</RouterLink>
-        </p>
+       <p class="forgot-password" @click="showResetForm = !showResetForm" style="cursor:pointer; text-decoration: underline; color: #ffffff;">
+  Esqueceu a palavra-passe?
+</p>
+
+<div v-if="showResetForm" class="reset-password-form" style="margin-top: 1rem; text-align: left;">
+  <h3>Redefinir Password</h3>
+  <div class="input-group">
+    <input 
+      type="email" 
+      v-model="resetEmail" 
+      placeholder="Email" 
+      :class="{ 'error': resetEmailError }" 
+      @input="resetEmailError = ''"
+    />
+    <small v-if="resetEmailError" style="color: #ef4444;">{{ resetEmailError }}</small>
+  </div>
+  <div class="input-group">
+    <input 
+      type="password" 
+      v-model="resetPassword" 
+      placeholder="Nova Password" 
+      :class="{ 'error': resetPasswordError }" 
+      @input="resetPasswordError = ''"
+    />
+    <small v-if="resetPasswordError" style="color: #ef4444;">{{ resetPasswordError }}</small>
+  </div>
+  <button @click="handlePasswordReset" style="width: 100%; padding: 0.75rem; border-radius: 8px; font-weight: bold; cursor: pointer; background-color: white; color: #427F99; border: none;">
+    Redefinir Password
+  </button>
+</div>
+
       </div>
 
       <img class="corner-image" src="@/assets/hand.png" alt="Decoration" />
@@ -80,12 +108,98 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import {ref} from 'vue'
+import {useRouter} from 'vue-router'
 import LogoButton from '@/components/LogoButton.vue'
 import ErrorPopup from '@/components/ErrorPopup.vue'
 import SuccessPopup from '@/components/SuccessPopup.vue'
-import FieldErrorPopup from '@/components/FieldErrorPopup.vue' 
+import FieldErrorPopup from '@/components/FieldErrorPopup.vue'
+import {UserStore} from '@/store/userStore'
+
+const userStore = UserStore()
+
+const showResetForm = ref(false)
+const resetEmail = ref('')
+const resetPassword = ref('')
+const resetEmailError = ref('')
+const resetPasswordError = ref('')
+const clearResetErrors = () => {
+  resetEmailError.value = ''
+  resetPasswordError.value = ''
+}
+
+const validateResetForm = () => {
+  resetEmailError.value = ''
+  resetPasswordError.value = ''
+
+  let valid = true
+
+  if (!resetEmail.value.trim()) {
+    resetEmailError.value = 'Email é obrigatório'
+    valid = false
+  } else if (!isValidEmail(resetEmail.value)) {
+    resetEmailError.value = 'Email deve ser válido'
+    valid = false
+  }
+
+  if (!resetPassword.value.trim()) {
+    resetPasswordError.value = 'Password é obrigatória'
+    valid = false
+  } else if (resetPassword.value.length < 6) {
+    resetPasswordError.value = 'Password deve ter pelo menos 6 caracteres'
+    valid = false
+  }
+
+  return valid
+}
+
+const handlePasswordReset = async () => {
+  clearResetErrors()
+  if (!validateResetForm()) return
+
+  try {
+    const response = await fetch('http://localhost:8080/user/resetpassword', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: resetEmail.value,
+        newPassword: resetPassword.value,
+      }),
+    })
+
+    if (!response.ok) {
+      // Try to get error message from backend
+      const contentType = response.headers.get('content-type')
+      let errorMsg = 'Erro ao tentar redefinir a password.'
+
+      if (contentType && contentType.includes('application/json')) {
+        const errorData = await response.json()
+        errorMsg = errorData.message || errorData.error || errorMsg
+      } else {
+        const errorText = await response.text()
+        if (errorText) {
+          errorMsg = errorText
+        }
+      }
+
+      showError(errorMsg)
+      return
+    }
+
+    // Success
+    showSuccess('Password redefinida com sucesso! Pode agora iniciar sessão.')
+    showResetForm.value = false
+    resetEmail.value = ''
+    resetPassword.value = ''
+
+  } catch (error) {
+    showError('Erro de rede. Tente novamente.')
+    console.error(error)
+  }
+}
+
 
 const router = useRouter()
 
@@ -235,8 +349,14 @@ const handleLogin = async () => {
 
     // Login bem-sucedido!
     const token = await response.text()
-    localStorage.setItem('authToken', token)
-    
+    // localStorage.setItem('authToken', token)
+
+    userStore.setToken(token)
+
+    const userData = await fetchUserProfile()
+    console.log(userData)
+    userStore.setUserData(userData)
+
     // Mostrar mensagem de sucesso
     showSuccess('Login realizado com sucesso! A redirecionar...')
     
@@ -250,6 +370,42 @@ const handleLogin = async () => {
     console.error(error)
   }
 }
+
+const fetchUserProfile = async () => {
+  if (!userStore.authToken) {
+    router.push('/login')
+    return
+  }
+
+  try {
+    const response = await fetch('http://localhost:8080/user/edit', {
+      headers: {
+        'Authorization': `Bearer ${userStore.authToken}`
+      }
+    })
+
+    if (!response.ok) {
+      // Se token inválido ou outro erro, redireciona para login
+      router.push('/login')
+      return
+    }
+
+    const data = await response.json()
+
+    return {
+      'username': data.username,
+      'avatarUrl': data.profileImage || '/default-profile.png',
+      'email': data.email,
+      'userType': data.userType,
+    }
+
+  } catch (error) {
+    console.error('Erro a buscar perfil:', error)
+    router.push('/login')
+  }
+}
+
+
 </script>
 
 <style scoped>
