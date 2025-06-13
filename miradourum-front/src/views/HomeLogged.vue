@@ -29,7 +29,7 @@
             <button @click="getCurrentLocation" :disabled="isLoadingLocation" class="location-btn">
               <span v-if="isLoadingLocation">🔄</span>
               <span v-else>📍</span>
-              {{ isLoadingLocation ? 'Obtendo localização...' : 'Minha Localização' }}
+              {{ isLoadingLocation ? 'Obtendo localização...' : ' Localização' }}
             </button>
             <!-- Botão para pesquisar coordenadas-->
             <button @click="showSearchModal = true" class="search-btn">
@@ -991,6 +991,7 @@ const handleLogoClick = () => {
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  z-index: 0;
 }
 
 .map-header {

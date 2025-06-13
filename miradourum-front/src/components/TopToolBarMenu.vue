@@ -190,9 +190,7 @@ const showBackButton = computed(() => route.path !== '/home');
   padding: 0.75rem 1.5rem;
   color: white;
 }
-.trips {
-  z-index: 150;
-}
+
 .nav-button {
   background-color: white;
   color: #6e98db; /* same as your login button */

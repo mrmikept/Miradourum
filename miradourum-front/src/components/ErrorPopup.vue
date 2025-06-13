@@ -17,7 +17,7 @@ defineProps({
 .error-popup {
   position: fixed;
   top: 20px;
-  right: 20px;
+  right: 70px;
   background-color: #ff4d4f;
   color: white;
   padding: 1rem 1.5rem;
