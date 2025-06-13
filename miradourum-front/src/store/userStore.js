@@ -1,8 +1,8 @@
 import { defineStore } from "pinia";
 import { ref } from 'vue';
 
-
 export const UserStore = defineStore("userStore", () => {
+    const id = ref("");
     const username = ref("");
     const authToken = ref("");
     const avatarUrl = ref("");
@@ -11,27 +11,25 @@ export const UserStore = defineStore("userStore", () => {
     const location = ref(null);
 
     function setUserData(data) {
-
-        if (data.username)
-        {
-            username.value = data.username
+        if (data.id) {
+            id.value = data.id;
         }
 
-        if (data.avatarUrl)
-        {
-            avatarUrl.value = data.avatarUrl || '/default-profile.png'
+        if (data.username) {
+            username.value = data.username;
         }
 
-        if (data.email)
-        {
-            email.value = data.email
+        if (data.avatarUrl) {
+            avatarUrl.value = data.avatarUrl || '/default-profile.png';
         }
 
-        if (data.userType)
-        {
+        if (data.email) {
+            email.value = data.email;
+        }
+
+        if (data.userType) {
             userType.value = data.userType;
         }
-
     }
 
     function setToken(token) {
@@ -40,23 +38,23 @@ export const UserStore = defineStore("userStore", () => {
 
     function setLocation(locationInput) {
         location.value = {
-            'lng': locationInput.lng, // Longitude
-            'lat': locationInput.lat, // Latitude
+            'lng': locationInput.lng,
+            'lat': locationInput.lat,
         }
     }
 
-
     function clearUserStore() {
-        username.value = ''
-        avatarUrl.value = '/default-profile.png'
-        authToken.value = ''
-        email.value = ''
-        userType.value = ''
-        location.value = null
+        id.value = "";
+        username.value = "";
+        avatarUrl.value = "/default-profile.png";
+        authToken.value = "";
+        email.value = "";
+        userType.value = "";
+        location.value = null;
     }
 
-
     return {
+        id,
         username,
         authToken,
         avatarUrl,
@@ -67,14 +65,12 @@ export const UserStore = defineStore("userStore", () => {
         setLocation,
         setUserData,
         clearUserStore,
-    }
-
-},{
+    };
+}, {
     // Enable persistence
     persist: {
         key: 'userStore',
-            storage: localStorage,
-            // Optional: only persist specific fields
-            paths: ['username', 'authToken', 'email', 'userType', 'avatarUrl', 'location']
+        storage: localStorage,
+        paths: ['id', 'username', 'authToken', 'email', 'userType', 'avatarUrl', 'location']
     }
-})
+});

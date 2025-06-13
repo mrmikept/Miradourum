@@ -23,7 +23,7 @@
             class="gallery-item"
         >
           <img :src="img.url" :alt="'Foto ' + img.id" class="gallery-image" />
-          <p class="photo-caption">{{ img.pontoNome || 'Miradouro desconhecido' }}</p>
+          <p class="photo-caption">{{ img.pontoInteresseName || 'Miradouro desconhecido' }}</p>
         </div>
         <p v-if="images.length === 0">Sem imagens disponíveis.</p>
       </div>

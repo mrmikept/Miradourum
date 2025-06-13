@@ -1,17 +1,7 @@
 <template>
   <div class="details-page">
-    <!-- Navbar -->
-    <nav class="navbar">
-      <div class="navbar-left">
-        <LogoButton to="/" />
-      </div>
-
-      <div class="navbar-right">
-        <button class="nav-button" @click="goBack">Voltar</button>
-
-        <button class="nav-button" @click="handleLogout">Terminar Sessão ⎋</button>
-      </div>
-    </nav>
+  <TopToolBarMenu/>
+   
 
     <!-- Conteúdo principal -->
     <div class="content-container">
@@ -62,25 +52,32 @@
         <h3>Reviews</h3>
         <ul v-if="reviews.length > 0">
           <li v-for="review in reviews" :key="review.id" class="review-item">
-            <p><strong>Data:</strong> {{ formatDate(review.creationDate) }}</p>
-            <p><strong>Comentário:</strong> {{ review.comment }}</p>
-            <p><strong>Avaliação:</strong> {{ review.rating }}/5 ⭐ </p>
+  <p><strong>Data:</strong> {{ formatDate(review.creationDate) }}</p>
+  <p><strong>Comentário:</strong> {{ review.comment }}</p>
+  <p><strong>Avaliação:</strong> {{ review.rating }}/5 ⭐ </p>
 
-            <div v-if="review.images && review.images.length > 0" class="review-pictures">
-              <p><strong>Imagem{{ review.images.length > 1 ? 'ns' : '' }}:</strong></p>
-              <div class="review-picture-wrapper">
-                <img
-                    v-for="(img, index) in review.images"
-                    :key="index"
-                    class="review-picture"
-                    :src="typeof img === 'string' ? img : img.url"
-                    alt="Foto da review"
-                />
-              </div>
-            </div>
+  <!-- Show images if any -->
+  <div v-if="review.images && review.images.length > 0" class="review-pictures">
+    <p><strong>Imagem{{ review.images.length > 1 ? 'ns' : '' }}:</strong></p>
+    <div class="review-picture-wrapper">
+      <img
+        v-for="(img, index) in review.images"
+        :key="index"
+        class="review-picture"
+        :src="typeof img === 'string' ? img : img.url"
+        alt="Foto da review"
+      />
+    </div>
+  </div>
+  
+<div v-if="parseInt(review.userid) === parseInt(userStore.id)" class="review-actions">
+    <button class="edit-btn" @click="editReview(review)">Editar</button>
+    <button class="delete-btn" @click="deleteReview(review.id)">Apagar</button>
+  </div>
 
-            <hr />
-          </li>
+  <hr />
+</li>
+
         </ul>
         <p v-else>Sem reviews disponíveis.</p>
       </div>
@@ -128,7 +125,9 @@ import { S3Client } from '@aws-sdk/client-s3'
 import { Upload } from '@aws-sdk/lib-storage'
 import axios from "axios";
 import {UserStore} from "@/store/userStore.js";
+import TopToolBarMenu from "../components/TopToolBarMenu.vue";
 
+const editingReviewId = ref(null)
 const reviewImageFile = ref(null)
 const reviewImagePreview = ref('')
 const reviewImage = ref('/default-review.png')
@@ -177,6 +176,47 @@ const fetchPointDetails = async () => {
     console.error('Erro fetch detalhes:', err)
   }
 }
+
+
+
+
+
+
+
+const editReview = (review) => {
+  newComment.value = review.comment
+  newRating.value = review.rating
+  editingReviewId.value = review.id
+  showCommentModal.value = true
+}
+
+
+const deleteReview = async (reviewId) => {
+  if (!confirm("Tens a certeza que queres apagar esta review?")) return
+
+  try {
+    const res = await axios.delete(`http://localhost:8080/reviews/${reviewId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+
+    if (res.status === 200) {
+      alert("Review apagada com sucesso.")
+      await fetchReviews()
+      await fetchPointDetails()
+    } else {
+      alert("Erro ao apagar review.")
+    }
+  } catch (err) {
+    console.error("Erro ao apagar review", err)
+    alert("Erro inesperado.")
+  }
+}
+
+
+
+
+
+
 
 //upload de imagens
 const handleReviewImageUpload = (event) => {
@@ -264,6 +304,7 @@ const openCommentModal = () => {
 }
 const closeCommentModal = () => {
   showCommentModal.value = false
+  editingReviewId.value = null
 }
 
 // Submeter comentário
@@ -283,40 +324,44 @@ async function submitComment() {
       imageUrls.push(imageUrl)
     }
 
-    const now = new Date().toISOString()
+    const payload = {
+      rating: newRating.value,
+      comment: newComment.value,
+      images: imageUrls
+    }
 
-    const response = await axios.post(
+    let response
+    if (editingReviewId.value) {
+      // EDIT mode
+      response = await axios.put(
+        `http://localhost:8080/reviews/${editingReviewId.value}`,
+        payload,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+    } else {
+      // CREATE mode
+      response = await axios.post(
         `http://localhost:8080/pi/${pointId}/reviews`,
-        {
-          rating: newRating.value,
-          comment: newComment.value,
-          images: imageUrls
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-    )
+        payload,
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+    }
 
-    console.log("Comentário enviado com sucesso", response.data)
+    console.log("Comentário enviado/editado com sucesso", response.data)
 
-    // Atualizar os dados do ponto (incluindo o score)
-    await fetchPointDetails();
-
-    // Recarregar as reviews
-    await fetchReviews();
-
-    // Fechar modal e limpar campos
+    await fetchPointDetails()
+    await fetchReviews()
     closeCommentModal()
     reviewImageFile.value = null
     reviewImagePreview.value = ''
+    editingReviewId.value = null // reset after submit
   } catch (error) {
     console.error("Erro ao enviar comentário", error)
   } finally {
     loadingComment.value = false
   }
 }
+
 
 const formatDate = (dateString) => {
   if (!dateString) return 'Data não disponível'
@@ -406,6 +451,40 @@ onMounted(() => {
   gap: 2rem;
   padding: 0 1rem;
   color: black;
+}
+.review-actions {
+  margin-top: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.review-actions button {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.9rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.review-actions .edit-btn {
+  background-color: #ffd966; /* Light yellow */
+  color: #333;
+}
+
+.review-actions .edit-btn:hover {
+  background-color: #ffcf33;
+}
+
+.review-actions .delete-btn {
+  background-color: #e06666; /* Soft red */
+  color: white;
+}
+
+.review-actions .delete-btn:hover {
+  background-color: #d43f3f;
 }
 
 /* Lado esquerdo - detalhes */
@@ -508,6 +587,8 @@ onMounted(() => {
   margin-bottom: 1rem;
   padding: 0.5rem;
   font-size: 1rem;
+  border: 1px solid black;
+  border-radius: 6px;
 }
 
 .modal-content select {
@@ -515,8 +596,50 @@ onMounted(() => {
   padding: 0.5rem;
   margin-bottom: 1rem;
   font-size: 1rem;
+  border: 1px solid black;
+  border-radius: 6px;
 }
 
+.modal-content .preview {
+  display: flex;
+  justify-content: center;
+  margin: 1rem 0;
+}
+
+.modal-content .preview img {
+  max-width: 120px;
+  max-height: 120px;
+  width: auto;
+  height: auto;
+  border-radius: 8px;
+  border: 2px solid #427F99;
+  object-fit: cover;
+}
+
+/* File upload label styling for modal */
+.modal-content .file-upload-label {
+  display: block;
+  margin: 1rem 0;
+  background-color: #f8f9fa;
+  color: #427F99;
+  padding: 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  text-align: center;
+  border: 2px solid #427F99;
+  transition: all 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.modal-content .file-upload-label:hover {
+  background-color: #e9ecef;
+}
+
+.modal-content .file-upload-label input {
+  display: none;
+}
 .modal-buttons {
   display: flex;
   justify-content: flex-end;
