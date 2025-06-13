@@ -1,13 +1,7 @@
 <template>
+     <top-tool-bar-menu/>
   <div class="home-page">
-    <nav class="navbar">
-      <div class="navbar-left">
-        <LogoButton to="/" />
-      </div>
-      <div class="navbar-right">
-        <button class="nav-button" @click="goBack">Voltar</button>
-      </div>
-    </nav>
+
 
     <div class="review-container">
       <h1>Revisão de Pontos de Interesse</h1>
@@ -48,6 +42,7 @@
 </template>
 
 <script setup>
+import TopToolBarMenu from "../components/TopToolBarMenu.vue";
 import { ref, onMounted } from 'vue'
 import LogoButton from '@/components/LogoButton.vue'
 import ErrorPopup from '@/components/ErrorPopup.vue'

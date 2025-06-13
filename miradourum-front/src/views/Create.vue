@@ -59,11 +59,6 @@
 </div>
 
 
-  <label>
-    Email do Criador:
-    <input v-model="creatorEmail" type="email" required placeholder="exemplo@dominio.com" />
-  </label>
-
   <label>Imagens:
     <input type="file" multiple accept="image/*" @change="handleImageUpload" />
   </label>
@@ -100,7 +95,6 @@ const description = ref('')
 const dificulty = ref(1)
 const accessibility = ref(false)
 const premium = ref(false)
-const creatorEmail = ref('')
 
 const imageFiles = ref([])
 const imagePreviews = ref([])
@@ -156,18 +150,22 @@ const handleSubmit = async () => {
   successMessage.value = ''
 
   // Validation
-  if (
-    !latitude.value ||
-    !longitude.value ||
-    !name.value.trim() ||
-    !description.value.trim() ||
-    !creatorEmail.value.trim() ||
-    !dificulty.value ||
-    imageFiles.value.length === 0
-  ) {
-    errorMessage.value = 'Todos os campos são obrigatórios e devem estar corretamente preenchidos.'
-    return
-  }
+const missingFields = []
+const email = userStore.email
+
+if (!latitude.value) missingFields.push('Latitude')
+if (!longitude.value) missingFields.push('Longitude')
+if (!name.value.trim()) missingFields.push('Nome')
+if (!description.value.trim()) missingFields.push('Descrição')
+if (!email) missingFields.push('Email do utilizador')
+if (!dificulty.value) missingFields.push('Dificuldade')
+if (imageFiles.value.length === 0) missingFields.push('Imagens')
+
+if (missingFields.length > 0) {
+  errorMessage.value = `Por favor preencha os seguintes campos: ${missingFields.join(', ')}.`
+  return
+}
+
 
   try {
     const imageUrls = await uploadImagesToMinIO(imageFiles.value)
@@ -180,7 +178,7 @@ const handleSubmit = async () => {
       dificulty: dificulty.value,
       accessibility: accessibility.value,
       premium: premium.value,
-      creatorEmail: creatorEmail.value.trim(),
+      creatorEmail: email,
       imageUrls,
     }
 

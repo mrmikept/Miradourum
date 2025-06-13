@@ -358,8 +358,13 @@ const guardarPerfil = async () => {
   align-items: center;
 }
 input[type="password"] {
+  background-color: white; /* White background for password input */
+  color: #333;
   font-family: sans-serif;
   letter-spacing: 0.05em;
+  border-radius: 8px;
+  border: none;
+  padding: 0.6rem;
 }
 
 .profile-picture {
@@ -409,11 +414,14 @@ input.error {
 }
 
 .form-group input {
-  width: 100%;
-  padding: 0.6rem;
-  border-radius: 8px;
+  background-color: white; /* Make the background white */
+  color: #333; /* Optional: change text color for contrast */
   border: none;
+  border-radius: 8px;
+  padding: 0.6rem;
   font-size: 1rem;
+  width: 100%;
+  box-sizing: border-box; /* prevent width issues */
 }
 
 .buttons {

@@ -378,7 +378,7 @@ const fetchUserProfile = async () => {
   }
 
   try {
-    const response = await fetch('http://localhost:8080/user/edit', {
+    const response = await fetch('http://localhost:8080/user', {
       headers: {
         'Authorization': `Bearer ${userStore.authToken}`
       }
@@ -391,12 +391,12 @@ const fetchUserProfile = async () => {
     }
 
     const data = await response.json()
-
+    console.log(data.email)
     return {
       'username': data.username,
       'avatarUrl': data.profileImage || '/default-profile.png',
       'email': data.email,
-      'userType': data.userType,
+      'userType': data.role,
     }
 
   } catch (error) {
@@ -499,7 +499,10 @@ const fetchUserProfile = async () => {
   border: none;
   border-radius: 8px;
   font-size: 1rem;
+  background-color: white; /* Add this */
+  color: black;            /* Ensures text inside is visible */
 }
+
 
 .login-popup button {
   width: 100%;
