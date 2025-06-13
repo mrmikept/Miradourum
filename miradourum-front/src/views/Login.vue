@@ -397,6 +397,7 @@ const fetchUserProfile = async () => {
       'avatarUrl': data.profileImage || '/default-profile.png',
       'email': data.email,
       'userType': data.role,
+      'id' : data.id
     }
 
   } catch (error) {

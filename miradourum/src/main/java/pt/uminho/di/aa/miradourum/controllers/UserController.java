@@ -169,10 +169,20 @@ public class UserController {
 
         List<Review> reviews = reviewService.getAllReviewsUser(userId);
         List<Image> images = new ArrayList<Image>();
+        List<ImageWithPontoInteresseDTO> response = new ArrayList<>();
+
         for (Review review : reviews) {
-            images.addAll(review.getImages());
+            for (Image image : review.getImages()) {
+                String name = null;
+                if (review.getPontoInteresse() != null) {
+                    name = review.getPontoInteresse().getName();
+                }
+                response.add(new ImageWithPontoInteresseDTO(image.getUrl(), name));
+            }
         }
-        return ResponseEntity.ok(images);
+
+
+        return ResponseEntity.ok(response);
     }
 
     // Get pontos do utilizador

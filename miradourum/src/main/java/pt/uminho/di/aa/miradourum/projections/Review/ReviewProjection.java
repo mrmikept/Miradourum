@@ -12,5 +12,4 @@ public interface ReviewProjection {
     Date getCreationDate();
     Long getUserid();
     List<Image> getImages();
-
 }
