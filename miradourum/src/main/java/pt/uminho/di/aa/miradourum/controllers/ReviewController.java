@@ -74,6 +74,7 @@ public class ReviewController {
         review.setCreationDate(new Date());
 
         reviewService.updateReview(review);
+        reviewService.updateAverageScore(review.getPontoInteresse());
 
         // Tratar imagens (se fornecidas)
         if (reviewDTO.getImages() != null && !reviewDTO.getImages().isEmpty()) {
