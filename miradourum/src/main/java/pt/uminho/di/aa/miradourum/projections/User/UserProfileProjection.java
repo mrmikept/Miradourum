@@ -9,4 +9,5 @@ public interface UserProfileProjection {
     String getProfileImage();
     List<PIMapProjection> getPontoInteresse();
     Integer getRole();
+    String getEmail();
 }

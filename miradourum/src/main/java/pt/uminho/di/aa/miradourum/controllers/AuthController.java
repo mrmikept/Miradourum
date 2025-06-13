@@ -71,7 +71,7 @@ public class AuthController {
                     registerDTO.getEmail(),
                     registerDTO.getUsername(),
                     registerDTO.getPassword(),
-                    1, // Role padrão
+                    2, // Role padrão
                     registerDTO.getProfileimage()
             );
 

@@ -5,6 +5,8 @@ import {onMounted, ref} from "vue";
 import router from "../router/index.js";
 import Location_chip from "./location_chip.vue";
 import {UserStore} from "@/store/userStore.js";
+import { useRoute } from 'vue-router';
+import { computed } from 'vue';
 
 defineProps({
   avatarUrl: String,
@@ -24,20 +26,33 @@ const handleLogout = () => {
   // localStorage.removeItem('authToken')  // Remove o token de autenticação
   router.push('/login')                  // Redireciona para a página de login
 }
-
+const route = useRoute(); 
+const showBackButton = computed(() => route.path !== '/home');
 </script>
 
 <template>
   <v-toolbar color="#427F99">
     <v-container fluid>
       <v-row align="center" justify="space-between" no-gutters>
-        <!-- Left: Logo -->
-        <v-col cols="auto">
-          <LogoButton to="/home" />
-        </v-col>
+        
 
         <v-col class="d-flex justify-end align-center" cols="auto">
-          <location_chip />
+          <!-- Left Side: Back Button + Logo + Location Chip -->
+<v-col class="d-flex align-center" cols="auto">
+  <LogoButton to="/home" class="mr-16" />
+  <location_chip class="mr-12" />
+  
+  <button
+    v-if="showBackButton"
+    @click="router.back()"
+    class="nav-button"
+  >
+    Voltar
+  </button>
+</v-col>
+
+
+
 
           <v-navigation-drawer
               location="right"
@@ -117,6 +132,20 @@ const handleLogout = () => {
 
 
             </v-list>
+            <v-list-item
+                v-if="userStore.userType === 2"
+                to="/review"
+                nav
+                value="special"
+                active-color="#1976D2"
+                link
+              >
+                <template #prepend>
+                  <v-icon icon="fa-solid fa-list-check" color="#5FB3CE" />
+                </template>
+                <v-list-item-title class="drawer-text">Review Pontos</v-list-item-title>
+              </v-list-item>
+
 
             <v-divider></v-divider>
             <v-list density="compact" nav>
@@ -163,29 +192,25 @@ const handleLogout = () => {
 }
 
 .nav-button {
-  border: none;
-  outline: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  white-space: nowrap;
   background-color: white;
-  color: #427F99;
+  color: #6e98db; /* same as your login button */
   border-radius: 8px;
   padding: 0.5rem 1rem;
   margin-left: 0.5rem;
-  text-decoration: none;
   font-weight: bold;
+  border: none;
+  cursor: pointer;
   transition: background-color 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
-
 
 .nav-button:hover {
-  border: none;
-  outline: none;
   background-color: #e0e0e0;
 }
+
 
 .drawer-text {
   color: #427F99;

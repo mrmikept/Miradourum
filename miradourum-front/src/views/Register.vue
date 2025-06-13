@@ -495,7 +495,10 @@ const handleRegister = async () => {
   box-sizing: border-box;
   border: 2px solid transparent;
   transition: all 0.2s ease;
+  background-color: white; 
+  color: black;             
 }
+
 
 .login-popup input.error {
   border-color: #ef4444;
