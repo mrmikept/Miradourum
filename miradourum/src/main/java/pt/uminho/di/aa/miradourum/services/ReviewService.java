@@ -15,4 +15,5 @@ public interface ReviewService {
     public void updateReview(Review review);
     public void deleteReviewById(Review review);
     public List<Review> getAllReviewsUser(Long userId);
+    public void updateAverageScore(PontoInteresse pontoInteresse);
 }

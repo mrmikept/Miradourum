@@ -196,6 +196,8 @@ public class PontoInteresseController {
         // 6. Atualizar relacionamentos
         point.addReview(rev);
         pontoInteresseService.savePontoInteresse(point);
+        reviewService.updateAverageScore(point);
+
 
         User user = userService.getUserById(userId);
         if (!user.getPontoInteresse().contains(point)) {

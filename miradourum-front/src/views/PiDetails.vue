@@ -34,7 +34,7 @@
   <p><strong>Premium:</strong> {{ pointDetails.premium ? 'Sim' : 'Não' }}</p>
   <p><strong>Latitude:</strong> {{ pointDetails.latitude }}</p>
   <p><strong>Longitude:</strong> {{ pointDetails.longitude }}</p>
-  <p><strong>Score:</strong> {{ pointDetails.score }}</p>
+  <p><strong>Score:</strong> {{ pointDetails.score?.toFixed(1) }}</p>
   <p><strong>Dificuldade:</strong> {{ pointDetails.difficulty }}</p>
 </div>
 
@@ -114,6 +114,7 @@
         </div>
       </div>
     </div>
+  <ErrorPopup v-if="showError" :text="errorText" />
   </div>
 </template>
 
@@ -126,7 +127,7 @@ import { Upload } from '@aws-sdk/lib-storage'
 import axios from "axios";
 import {UserStore} from "@/store/userStore.js";
 import TopToolBarMenu from "../components/TopToolBarMenu.vue";
-
+import ErrorPopup from "../components/ErrorPopup.vue"
 const editingReviewId = ref(null)
 const reviewImageFile = ref(null)
 const reviewImagePreview = ref('')
@@ -135,7 +136,8 @@ const router = useRouter()
 const route = useRoute()
 const pi = ref(null)
 const userStore = UserStore()
-
+const showError = ref(false)
+const errorText = ref('')
 const token = userStore.authToken;
 
 const pointDetails = ref({})
@@ -155,6 +157,15 @@ const handleLogout = () => {
   localStorage.removeItem('authToken')
   router.push('/login')
 }
+
+function displayError(msg) {
+  errorText.value = msg
+  showError.value = true
+  setTimeout(() => {
+    showError.value = false
+  }, 3000) // popup desaparece após 3 segundos
+}
+
 
 // Pega o id do ponto da rota
 const pointId = route.params.id
@@ -313,7 +324,19 @@ async function submitComment() {
     console.error("Erro: PI ainda não carregado.");
     return;
   }
-
+if (!newComment.value.trim()) {
+    displayError('O campo comentário é obrigatório.')
+    return
+  }
+  if (!newRating.value) {
+    displayError('Por favor, selecione uma avaliação.')
+    return
+  }
+  
+  if (!pointDetails.value || !pointId) {
+    console.error("Erro: PI ainda não carregado.");
+    return;
+  }
   loadingComment.value = true
 
   try {
@@ -568,7 +591,7 @@ onMounted(() => {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: 100;
 }
 
 .modal-content {

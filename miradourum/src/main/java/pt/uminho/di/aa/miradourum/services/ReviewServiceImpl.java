@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import pt.uminho.di.aa.miradourum.models.Image;
 import pt.uminho.di.aa.miradourum.models.PontoInteresse;
 import pt.uminho.di.aa.miradourum.models.Review;
+import pt.uminho.di.aa.miradourum.repositories.PontoInteresseRepository;
 import pt.uminho.di.aa.miradourum.repositories.ReviewRepository;
 
 import java.util.Date;
@@ -19,6 +20,8 @@ public class ReviewServiceImpl implements ReviewService {
 
     @Autowired
     ImageService imageService;
+    @Autowired
+    private PontoInteresseRepository pontoInteresseRepository;
 
     @Override
     public Review saveReview(Integer rating, String comment, Date creationDateConverted, Long userId, PontoInteresse point){
@@ -61,7 +64,22 @@ public class ReviewServiceImpl implements ReviewService {
         return reviewRepository.findAllByUserid(userId);
     }
 
+    @Override
+    public void updateAverageScore(PontoInteresse pontoInteresse) {
+        List<Review> reviews = pontoInteresse.getReviews();
 
+        if (reviews.isEmpty()) {
+            pontoInteresse.setScore(0.0);
+        } else {
+            double avg = reviews.stream()
+                    .mapToDouble(Review::getRating)
+                    .average()
+                    .orElse(0.0);
+            pontoInteresse.setScore(avg);
+        }
+
+        pontoInteresseRepository.save(pontoInteresse); // Or however you persist PontoInteresse
+    }
 
 
 }

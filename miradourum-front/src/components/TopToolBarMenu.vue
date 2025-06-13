@@ -31,7 +31,7 @@ const showBackButton = computed(() => route.path !== '/home');
 </script>
 
 <template>
-  <v-toolbar color="#427F99">
+  <v-toolbar color="#427F99" class="trips">
     <v-container fluid>
       <v-row align="center" justify="space-between" no-gutters>
         
@@ -190,7 +190,9 @@ const showBackButton = computed(() => route.path !== '/home');
   padding: 0.75rem 1.5rem;
   color: white;
 }
-
+.trips {
+  z-index: 150;
+}
 .nav-button {
   background-color: white;
   color: #6e98db; /* same as your login button */
