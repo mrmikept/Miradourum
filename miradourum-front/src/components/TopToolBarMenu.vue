@@ -79,6 +79,7 @@ const showBackButton = computed(() => route.path !== '/home');
 
               <v-list-group
                   value="profile"
+                  to="/profile"
                   prepend-icon="fa-solid fa-user"
                   color="#5FB3CE"
                   base-color="#5FB3CE"
@@ -122,21 +123,22 @@ const showBackButton = computed(() => route.path !== '/home');
                 <v-list-item-title class="drawer-text">Minha Galeria</v-list-item-title>
               </v-list-item>
 
-
-            </v-list>
-            <v-list-item
-                v-if="userStore.userType === 2"
-                to="/review"
-                nav
-                value="special"
-                color="#1976D2"
-                link
+              <v-list-item
+                  v-if="userStore.userType === 2"
+                  to="/review"
+                  nav
+                  value="special"
+                  color="#1976D2"
+                  link
               >
                 <template #prepend>
                   <v-icon icon="fa-solid fa-list-check" color="#5FB3CE" />
                 </template>
                 <v-list-item-title class="drawer-text">Review Pontos</v-list-item-title>
               </v-list-item>
+
+            </v-list>
+
 
 
             <v-divider></v-divider>

@@ -8,6 +8,7 @@
       <div class="profile-picture-wrapper">
         <img class="profile-picture" :src="profileImage" alt="Foto de Perfil"/>
         <h2 class="username-display">{{ username }}</h2>
+        <v-btn v-if="userStore.id === userId" color="#427F99" rounded="lg" variant="outlined" to="/editProfile">Editar Perfil</v-btn>
       </div>
     </div>
 
