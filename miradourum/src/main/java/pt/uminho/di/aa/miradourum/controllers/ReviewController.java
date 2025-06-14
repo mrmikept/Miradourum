@@ -65,7 +65,7 @@ public class ReviewController {
         Review review = optionalReview.get();
 
         // Verificar autorização - utilizador só pode editar as suas próprias reviews
-        if (!review.getUser().getId().equals(userId)) {
+        if (!review.getUserid().equals(userId)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not authorized to edit this review");
         }
 
@@ -118,7 +118,7 @@ public class ReviewController {
         Review review = optionalReview.get();
 
         // Verificar autorização - utilizador pode apagar as suas reviews OU admin pode apagar qualquer review
-        if (!review.getUser().getId().equals(userId) && role != 2) {
+        if (!review.getUserid().equals(userId) && role != 2) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not authorized to delete this review");
         }
 

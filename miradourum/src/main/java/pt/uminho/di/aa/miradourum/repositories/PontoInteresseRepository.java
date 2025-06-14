@@ -44,11 +44,6 @@ public interface PontoInteresseRepository extends JpaRepository<PontoInteresse, 
     @Query("SELECT r FROM Review r WHERE r.pontoInteresse = :pontoInteresse")
     List<Review> findReviews(@Param("pontoInteresse") PontoInteresse pontoInteresse);
 
-    @Query("SELECT pi FROM PontoInteresse pi " +
-            "LEFT JOIN FETCH pi.reviews r " +
-            "LEFT JOIN FETCH r.user u " +
-            "LEFT JOIN FETCH pi.images " +
-            "WHERE pi.id = :id")
     <T> Optional<T> findById(Long id, Class<T> type);
 
     @Query("""
@@ -58,7 +53,7 @@ public interface PontoInteresseRepository extends JpaRepository<PontoInteresse, 
            p.creationDate as creationDate, p.state as state,
            CASE WHEN r.id IS NOT NULL THEN true ELSE false END as visited
     FROM PontoInteresse p 
-    LEFT JOIN p.reviews r ON r.user.id = :userId
+    LEFT JOIN p.reviews r ON r.userid = :userId
     WHERE p.state = true
     AND (:minScore IS NULL OR p.score >= :minScore)
     AND (:minCreationDate IS NULL OR p.creationDate >= :minCreationDate)

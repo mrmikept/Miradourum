@@ -27,9 +27,8 @@ public class Review {
     @Column(name = "CreationDate")
     private LocalDateTime creationDate;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "UserID") // Manter o mesmo nome da coluna
-    private User user;
+    @Column(name = "UserID")
+    private Long userid;
 
 
     @OneToMany(mappedBy = "review")
@@ -43,11 +42,11 @@ public class Review {
     private PontoInteresse pontoInteresse;
 
 
-    public Review(Integer rating, String comment, LocalDateTime creationDate, User userid, PontoInteresse pontoInteresse) {
+    public Review(Integer rating, String comment, LocalDateTime creationDate, Long userid, PontoInteresse pontoInteresse) {
         this.rating = rating;
         this.comment = comment;
         this.creationDate = creationDate;
-        this.user = userid;
+        this.userid = userid;
         this.pontoInteresse = pontoInteresse;
     }
 
@@ -94,12 +93,12 @@ public class Review {
         this.pontoInteresse = pontoInteresse;
     }
 
-    public User getUser() {
-        return user;
+    public Long getUserid() {
+        return userid;
     }
 
-    public void setUserid(User userid) {
-        this.user = userid;
+    public void setUserid(Long userid) {
+        this.userid = userid;
     }
 
 

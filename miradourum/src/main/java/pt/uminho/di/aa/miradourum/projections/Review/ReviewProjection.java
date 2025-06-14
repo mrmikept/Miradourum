@@ -1,6 +1,5 @@
 package pt.uminho.di.aa.miradourum.projections.Review;
 
-import org.springframework.beans.factory.annotation.Value;
 import pt.uminho.di.aa.miradourum.models.Image;
 
 import java.time.LocalDateTime;
@@ -12,7 +11,6 @@ public interface ReviewProjection {
     String getComment();
     Integer getRating();
     LocalDateTime getCreationDate();
-    @Value("#{target.user.username}")
-    String getUsername();
+    Long getUserid();
     List<Image> getImages();
 }
