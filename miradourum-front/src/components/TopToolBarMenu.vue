@@ -1,7 +1,7 @@
 <script setup>
 
 import LogoButton from "./LogoButton.vue";
-import {onMounted, ref} from "vue";
+import {ref} from "vue";
 import router from "../router/index.js";
 import Location_chip from "./location_chip.vue";
 import {UserStore} from "@/store/userStore.js";
@@ -9,17 +9,13 @@ import { useRoute } from 'vue-router';
 import { computed } from 'vue';
 
 defineProps({
+  userId: String,
   avatarUrl: String,
   username: String,
   email: String
 })
 
-const actualUsername = ref('')
-const actualAvatarUrl = ref('')
-const actualEmail = ref('')
 const userStore = UserStore();
-
-const token = userStore.authToken
 
 const handleLogout = () => {
   userStore.clearUserStore()
@@ -50,10 +46,6 @@ const showBackButton = computed(() => route.path !== '/home');
     Voltar
   </button>
 </v-col>
-
-
-
-
           <v-navigation-drawer
               location="right"
               expand-on-hover
@@ -62,9 +54,9 @@ const showBackButton = computed(() => route.path !== '/home');
           >
             <v-list>
               <v-list-item
-                  :prepend-avatar="actualAvatarUrl || userStore.avatarUrl"
-                  :title="actualUsername || userStore.username"
-                  :subtitle="actualEmail || userStore.email"
+                  :prepend-avatar="userStore.avatarUrl"
+                  :title="userStore.username"
+                  :subtitle="userStore.email"
               ></v-list-item>
             </v-list>
 
@@ -75,7 +67,7 @@ const showBackButton = computed(() => route.path !== '/home');
                   to="/home"
                   nav
                   value="home"
-                  active-color="#1976D2"
+                  color="#1976D2"
                   link
               >
                 <template #prepend>
@@ -99,7 +91,7 @@ const showBackButton = computed(() => route.path !== '/home');
                   </v-list-item>
                 </template>
 
-                <v-list-item to="/history" class="sub-item" link>
+                <v-list-item :to="`/profile/${userStore.id}`" class="sub-item" link>
                   <template #prepend>
                     <v-icon icon="fa-solid fa-clock-rotate-left" color="#5FB3CE"/>
                   </template>
@@ -121,7 +113,7 @@ const showBackButton = computed(() => route.path !== '/home');
                   to="/photoGallery"
                   nav
                   value="galeria"
-                  active-color="#1976D2"
+                  color="#1976D2"
                   link
               >
                 <template #prepend>
@@ -137,7 +129,7 @@ const showBackButton = computed(() => route.path !== '/home');
                 to="/review"
                 nav
                 value="special"
-                active-color="#1976D2"
+                color="#1976D2"
                 link
               >
                 <template #prepend>

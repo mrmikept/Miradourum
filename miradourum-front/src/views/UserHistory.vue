@@ -43,8 +43,7 @@
 </template>
 
 <script setup>
-import {useRouter} from 'vue-router'
-import LogoButton from '@/components/LogoButton.vue'
+import {useRoute, useRouter} from 'vue-router'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import TopToolBarMenu from "../components/TopToolBarMenu.vue";
@@ -52,30 +51,53 @@ import { ref, onMounted, watch } from 'vue'
 import {UserStore} from "@/store/userStore.js";
 
 const router = useRouter()
-const userStore = UserStore()
+const route = useRoute()
+const userId = ref(route.params.id)
 
-const profileImage = ref(userStore.avatarUrl)
+const userStore = UserStore()
+const token = userStore.authToken
+
+const profileImage = ref('')
 const username = ref(userStore.username)
 
 // Dados do backend
 const visitedPoints = ref([]) // {name, lat, lng}
 const images = ref([]) // {id, url, ...}
+
+
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
-const token = userStore.authToken
 
-// Funções de navegação
-const goBack = () => router.push('/home')
-const goEditProfile = () => router.push('/editProfile')
-const handleLogout = () => {
-  localStorage.removeItem('authToken')
-  router.push('/login')
+const fetchUserData = async () => {
+
+  if (userId.value === userStore.id) {
+    console.log("Using user data")
+    profileImage.value = userStore.avatarUrl
+    username.value = userStore.username
+  } else {
+    console.log("Fetching user data")
+    const res = await fetch(`${API_BASE_URL}/user/${userId.value}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+
+    if (!res.ok) {
+      console.warn("Informações do utilizador não encontradas")
+      return
+    }
+
+    const data = await res.json()
+    console.log(data)
+    profileImage.value = data.profileImage
+    username.value = data.username
+  }
 }
 
 // Fetch pontos visitados
 const fetchVisitedPoints = async () => {
   try {
-    const res = await fetch(`${API_BASE_URL}/user/pontos`, {
+    const res = await fetch(`${API_BASE_URL}/user/pontos/${userId.value}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
     if (!res.ok) {
@@ -99,7 +121,7 @@ const fetchVisitedPoints = async () => {
 // Fetch galeria de imagens do utilizador
 const fetchImages = async () => {
   try {
-    const res = await fetch(`${API_BASE_URL}/user/images`, {
+    const res = await fetch(`${API_BASE_URL}/user/images/${userId.value}`, {
       headers: {Authorization: `Bearer ${token}`}
     })
     if (!res.ok) {
@@ -158,17 +180,11 @@ const setupMap = () => {
 }
 
 onMounted(async () => {
+  await fetchUserData()
   await fetchVisitedPoints()
   await fetchImages()
   setupMap()
 })
-
-
-/*watch(visitedPoints, (newPoints) => {
-  if (newPoints.length > 0) {
-    setupMap()
-  }
-})*/
 
 </script>
 

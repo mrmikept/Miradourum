@@ -4,9 +4,9 @@ import Login from '@/views/Login.vue'
 import NotFoundComponent from '@/views/NotFound.vue'
 import Register from '@/views/Register.vue'
 import HomeLogged from '@/views/HomeLogged.vue'
-import UserProfile from '@/views/EditProfile.vue'
+import UserEditProfile from '@/views/EditProfile.vue'
 import BecomePremium from '@/views/BecomePremium.vue'
-import UserHistory from "@/views/UserHistory.vue";
+import UserProfile from "@/views/UserHistory.vue";
 import piDetails from "@/views/PiDetails.vue";
 import photoGallery from "@/views/PhotoGallery.vue"
 import Review from '../views/Review.vue'
@@ -37,7 +37,7 @@ const routes = [
   {
     path: '/editProfile',
     name: 'UserProfile',
-    component: UserProfile,
+    component: UserEditProfile,
     meta: { requiresAuth: true },
   },
   {
@@ -47,9 +47,15 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
+    path: '/profile/:id',
+    name: 'User Profile',
+    component: UserProfile,
+    meta: { requiresAuth: true },
+  },
+  {
     path: '/history',
     name: 'History',
-    component: UserHistory,
+    component: UserProfile,
     meta: { requiresAuth: true },
   },
   {
