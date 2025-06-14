@@ -22,6 +22,7 @@ public class ReviewDTO {
         this.creationDate = review.getCreationDate();
         this.username = username;
         this.images = review.getImages();
+        this.userId = review.getUserid();
     }
 
     public Long getId() {
