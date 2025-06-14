@@ -155,8 +155,10 @@ public class UserController {
     }
 
     // Get image URLs dos pontos visitados
-    @GetMapping("/images")
-    public ResponseEntity<?> getImageUrls(@RequestHeader("Authorization") String authHeader) {
+    @GetMapping("/images/{id}")
+    public ResponseEntity<?> getImageUrls(
+        @PathVariable(required = false) Long id,
+        @RequestHeader("Authorization") String authHeader) {
 
         // Validar token
         ResponseEntity<?> tokenValidation = jwtService.validateToken(authHeader);
@@ -164,10 +166,16 @@ public class UserController {
             return tokenValidation;
         }
 
-        // Extrair userId do token válido
-        Long userId = jwtService.extractUserIdFromValidToken(authHeader);
+        Long targetUserId;
 
-        List<Review> reviews = reviewService.getAllReviewsUser(userId);
+        // Se não foi fornecido ID, usa o do token (próprio perfil)
+        if (id == null) {
+            targetUserId = jwtService.extractUserIdFromValidToken(authHeader);
+        } else {
+            targetUserId = id;
+        }
+
+        List<Review> reviews = reviewService.getAllReviewsUser(targetUserId);
         List<Image> images = new ArrayList<Image>();
         List<ImageWithPontoInteresseDTO> response = new ArrayList<>();
 
@@ -186,8 +194,10 @@ public class UserController {
     }
 
     // Get pontos do utilizador
-    @GetMapping("/pontos")
-    public ResponseEntity<?> getPontos(@RequestHeader("Authorization") String authHeader) {
+    @GetMapping("/pontos/{id}")
+    public ResponseEntity<?> getPontos(
+        @PathVariable(required = false) Long id,
+        @RequestHeader("Authorization") String authHeader) {
 
         // Validar token
         ResponseEntity<?> tokenValidation = jwtService.validateToken(authHeader);
@@ -195,10 +205,15 @@ public class UserController {
             return tokenValidation;
         }
 
-        // Extrair userId do token válido
-        Long userId = jwtService.extractUserIdFromValidToken(authHeader);
+        Long targetUserId;
+        // Se não foi fornecido ID, usa o do token
+        if (id == null) {
+            targetUserId = jwtService.extractUserIdFromValidToken(authHeader);
+        } else {
+            targetUserId = id;
+        }
 
-        User u = userService.getUserById(userId, User.class);
+        User u = userService.getUserById(targetUserId, User.class);
         return ResponseEntity.ok(u.getPontoInteresse());
     }
 
