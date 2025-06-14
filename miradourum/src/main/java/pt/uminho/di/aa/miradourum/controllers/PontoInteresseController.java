@@ -6,9 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import pt.uminho.di.aa.miradourum.auth.JwtService;
-import pt.uminho.di.aa.miradourum.dto.CreatePontoInteresseDTO;
-import pt.uminho.di.aa.miradourum.dto.CreateReviewDTO;
-import pt.uminho.di.aa.miradourum.dto.PIFilterDTO;
+import pt.uminho.di.aa.miradourum.dto.*;
 import pt.uminho.di.aa.miradourum.models.*;
 import pt.uminho.di.aa.miradourum.projections.PontoInteresse.PIDetailsFullProjection;
 import pt.uminho.di.aa.miradourum.projections.PontoInteresse.PIDetailsShortProjection;
@@ -21,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/pi")
@@ -267,8 +266,6 @@ public class PontoInteresseController {
             return tokenValidation;
         }
 
-        Long userId = jwtService.extractUserIdFromValidToken(authHeader);
-
         PIDetailsFullProjection ponto = pontoInteresseService.getById(Long.valueOf(id), PIDetailsFullProjection.class);
         if (ponto == null)
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("PI not found");
@@ -277,7 +274,19 @@ public class PontoInteresseController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Ponto is inactive.");
         }
 
-        return ResponseEntity.ok(ponto);
+        // Converter para DTO e substituir userIds por usernames
+        PIDetailsFullDTO dto = new PIDetailsFullDTO(ponto);
+
+        List<ReviewDTO> reviewsWithUsername = ponto.getReviews().stream()
+                .map(review -> {
+                    String username = userService.getUsernameById(review.getUserid());
+                    return new ReviewDTO(review, username);
+                })
+                .collect(Collectors.toList());
+
+        dto.setReviews(reviewsWithUsername);
+
+        return ResponseEntity.ok(dto);
     }
 
 }

@@ -55,6 +55,7 @@
         <h3>Reviews</h3>
         <ul v-if="reviews.length > 0">
           <li v-for="review in sortedReviews" :key="review.creationDate" class="review-item">
+            <p><strong>Autor:</strong> {{ review.username }}</p>
             <p><strong>Data:</strong> {{ formatDate(review.creationDate) }}</p>
             <p><strong>Comentário:</strong> {{ review.comment }}</p>
             <p><strong>Avaliação:</strong> {{ review.rating }}/5 ⭐ </p>
@@ -205,12 +206,15 @@ const fetchPointDetails = async () => {
     const res = await fetch(`http://localhost:8080/pi/details/${pointId}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
+    
     if (!res.ok) {
       console.warn('Erro ao carregar detalhes do ponto')
       return
     }
+    
     const data = await res.json()
     const { lat, lng } = userStore.location
+    
     const enrichedPonto = {
       ...data,
       distanceFromUser: lat && lng
@@ -218,8 +222,12 @@ const fetchPointDetails = async () => {
         : null
     }
 
+    // Atribuir tanto os detalhes do ponto como as reviews
     pointDetails.value = enrichedPonto
+    reviews.value = data.reviews || [] // Extrair as reviews dos detalhes
+    
     console.log('Detalhes do ponto recebidos:', JSON.stringify(enrichedPonto, null, 2))
+    console.log('Reviews extraídas:', JSON.stringify(data.reviews, null, 2))
     
     reviewImage.value = data.reviewImage || '/default-review.png'
   } catch (err) {
@@ -255,7 +263,6 @@ const deleteReview = async (reviewId) => {
 
     if (res.status === 200) {
       displaySuccess('Review apagada com sucesso!')
-      await fetchReviews()
       await fetchPointDetails()
     } else {
       displayError("Erro ao apagar review.")
@@ -306,24 +313,6 @@ const uploadReviewImageToMinIO = async (file) => {
   return `http://localhost:9000/review-images/${fileName}`
 }
 
-// Fetch reviews do ponto
-const fetchReviews = async () => {
-  try {
-    const res = await fetch(`http://localhost:8080/pi/${pointId}/reviews`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    if (!res.ok) {
-      console.warn('Erro ao carregar reviews')
-      return
-    }
-    const data = await res.json()
-    reviews.value = data
-
-    //console.log('Reviews recebidas do backend:', JSON.stringify(data, null, 2))
-  } catch (err) {
-    console.error('Erro fetch reviews:', err)
-  }
-}
 
 // Marcar como visitado
 const markAsVisited = async () => {
@@ -416,7 +405,6 @@ if (!newComment.value.trim()) {
     console.log("Comentário enviado/editado com sucesso", response.data)
 
     await fetchPointDetails()
-    await fetchReviews()
     displaySuccess(editingReviewId.value ? 'Review atualizada com sucesso!' : 'Review adicionada com sucesso!')
     closeCommentModal()
     reviewImageFile.value = null
@@ -471,7 +459,6 @@ const formatDateSemHoras = (dateString) => {
 
 onMounted(() => {
   fetchPointDetails()
-  fetchReviews()
 })
 </script>
 
