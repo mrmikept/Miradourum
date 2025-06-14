@@ -76,7 +76,7 @@
             </div>
 
             <!-- Ações da review -->
-            <div v-if="parseInt(review.userid) === parseInt(userStore.id)" class="review-actions">
+            <div v-if="parseInt(review.userId) === parseInt(userStore.id)" class="review-actions">
               <button class="edit-btn" @click="editReview(review)">Editar</button>
               <button class="delete-btn" @click="deleteReview(review.id)">Apagar</button>
             </div>
@@ -153,7 +153,8 @@ const showError = ref(false)
 const errorText = ref('')
 const showSuccess = ref(false)
 const successText = ref('')
-
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+const Minio_URL = import.meta.env.VITE_MINIO_URL;
 
 const token = userStore.authToken;
 
@@ -203,7 +204,7 @@ const pointId = route.params.id
 // Fetch detalhes do ponto
 const fetchPointDetails = async () => {
   try {
-    const res = await fetch(`http://localhost:8080/pi/details/${pointId}`, {
+    const res = await fetch(`${API_BASE_URL}/pi/details/${pointId}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
     
@@ -257,7 +258,7 @@ const deleteReview = async (reviewId) => {
   if (!confirm("Tens a certeza que queres apagar esta review?")) return
 
   try {
-    const res = await axios.delete(`http://localhost:8080/reviews/${reviewId}`, {
+    const res = await axios.delete(`${API_BASE_URL}/reviews/${reviewId}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
 
@@ -289,7 +290,7 @@ const handleReviewImageUpload = (event) => {
 
 const s3Client = new S3Client({
   region: 'us-east-1',
-  endpoint: 'http://localhost:9000',
+  endpoint: `${Minio_URL}`,
   credentials: {
     accessKeyId: 'admin',
     secretAccessKey: 'admin123',
@@ -310,7 +311,7 @@ const uploadReviewImageToMinIO = async (file) => {
     },
   })
   await upload.done()
-  return `http://localhost:9000/review-images/${fileName}`
+  return `${Minio_URL}/review-images/${fileName}`
 }
 
 
@@ -318,7 +319,7 @@ const uploadReviewImageToMinIO = async (file) => {
 const markAsVisited = async () => {
   loadingVisit.value = true
   try {
-    const res = await fetch(`http://localhost:8080/pi/${pointId}/visit`, {
+    const res = await fetch(`${API_BASE_URL}/pi/${pointId}/visit`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -389,14 +390,14 @@ if (!newComment.value.trim()) {
     if (editingReviewId.value) {
       // EDIT mode
       response = await axios.put(
-        `http://localhost:8080/reviews/${editingReviewId.value}`,
+        `${API_BASE_URL}/reviews/${editingReviewId.value}`,
         payload,
         { headers: { Authorization: `Bearer ${token}` } }
       )
     } else {
       // CREATE mode
       response = await axios.post(
-        `http://localhost:8080/pi/${pointId}/reviews`,
+        `${API_BASE_URL}/pi/${pointId}/reviews`,
         payload,
         { headers: { Authorization: `Bearer ${token}` } }
       )

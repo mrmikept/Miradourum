@@ -49,6 +49,7 @@ import ErrorPopup from '@/components/ErrorPopup.vue'
 import SuccessPopup from '@/components/SuccessPopup.vue'
 import { useRouter } from 'vue-router'
 import {UserStore} from "@/store/userStore.js";
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 
 const pontos = ref([])
@@ -70,7 +71,7 @@ const fetchPontos = async () => {
   loading.value = true
   try {
     const token = userStore.authToken
-    const response = await fetch('http://localhost:8080/admin/pi', {
+    const response = await fetch(`${API_BASE_URL}/admin/pi`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -108,7 +109,7 @@ const goBack = () => {
 const handleDecision = async (id, accepted, comment = '') => {
   try {
     const token = userStore.authToken
-    const response = await fetch(`http://localhost:8080/admin/pi/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/admin/pi/${id}`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`,

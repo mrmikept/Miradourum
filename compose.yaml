@@ -46,14 +46,34 @@ services:
       - MYSQL_PASSWORD=mypassword
     volumes:
       - mysql-data:/var/lib/mysql
-      - ./sql/schema.sql:/docker-entrypoint-initdb.d/init.sql:ro  # This line mounts the SQL file
+      - ./miradourum/sql/schema.sql:/docker-entrypoint-initdb.d/init.sql:ro  # This line mounts the SQL file
 
   payment_service:
-    build: ../payment_service
+    build: ./payment_service
     container_name: payment_service
     restart: always
     ports:
       - "3000:3000"
+
+
+  backend:
+    build: ./miradourum
+    container_name: backend
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+      - minio
+
+  frontend:
+    build: ./miradourum-front
+    container_name: frontend
+    restart: always
+    ports:
+      - "5173:5173"
+
+
 
 volumes:
   minio-data:

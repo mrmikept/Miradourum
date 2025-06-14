@@ -341,6 +341,7 @@ const searchCoords = ref({
   lat: null,
   lng: null
 })
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 // Filtros
 const filters = ref({
@@ -409,7 +410,7 @@ const checkAdmin = async () => {
     const token = userStore.authToken // or wherever your JWT is stored
     if (!token) return
 
-    const res = await fetch('http://localhost:8080/admin/isadmin', {
+    const res = await fetch(`${API_BASE_URL}/admin/isadmin`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -542,7 +543,7 @@ const fetchPontosInteresse = async () => {
 
     console.log('Enviando requisição:', requestBody)
 
-    const response = await fetch('http://localhost:8080/pi/filtered', {
+    const response = await fetch(`${API_BASE_URL}/pi/filtered`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -680,7 +681,7 @@ const fetchPointDetails = async (pointId) => {
       throw new Error('Token não encontrado')
     }
 
-    const response = await fetch(`http://localhost:8080/pi/shortdetails/${pointId}`, {
+    const response = await fetch(`${API_BASE_URL}/pi/shortdetails/${pointId}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`

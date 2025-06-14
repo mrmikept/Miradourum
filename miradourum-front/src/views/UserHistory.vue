@@ -60,6 +60,7 @@ const username = ref(userStore.username)
 // Dados do backend
 const visitedPoints = ref([]) // {name, lat, lng}
 const images = ref([]) // {id, url, ...}
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const token = userStore.authToken
 
@@ -74,7 +75,7 @@ const handleLogout = () => {
 // Fetch pontos visitados
 const fetchVisitedPoints = async () => {
   try {
-    const res = await fetch('http://localhost:8080/user/pontos', {
+    const res = await fetch(`${API_BASE_URL}/user/pontos`, {
       headers: { Authorization: `Bearer ${token}` }
     })
     if (!res.ok) {
@@ -98,7 +99,7 @@ const fetchVisitedPoints = async () => {
 // Fetch galeria de imagens do utilizador
 const fetchImages = async () => {
   try {
-    const res = await fetch('http://localhost:8080/user/images', {
+    const res = await fetch(`${API_BASE_URL}/user/images`, {
       headers: {Authorization: `Bearer ${token}`}
     })
     if (!res.ok) {

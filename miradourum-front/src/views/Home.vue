@@ -35,6 +35,7 @@ import LogoButton from '@/components/LogoButton.vue'
 
 const router = useRouter()
 const route = useRoute()
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const handleLogoClick = () => {
   if (route.path === '/') {

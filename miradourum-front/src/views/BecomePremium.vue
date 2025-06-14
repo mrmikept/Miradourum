@@ -46,6 +46,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import LogoButton from '@/components/LogoButton.vue'
 import {UserStore} from "@/store/userStore.js";
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const router = useRouter()
 const cardName = ref('')
@@ -67,7 +68,7 @@ const handleLogout = () => {
 
 const confirmarUpgrade = async () => {
   try {
-    const response = await fetch('http://localhost:8080/user/upgrade-premium', {
+    const response = await fetch(`${API_BASE_URL}/user/upgrade-premium`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,

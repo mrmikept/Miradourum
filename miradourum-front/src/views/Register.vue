@@ -131,7 +131,8 @@ const showUsernameError = ref(false)
 const showEmailError = ref(false)
 const showPasswordError = ref(false)
 const showImageError = ref(false)
-
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+const Minio_URL = import.meta.env.VITE_MINIO_URL;
 const router = useRouter()
 
 
@@ -151,7 +152,7 @@ const handleImageUpload = (event) => {
 // MinIO client setup
 const s3Client = new S3Client({
   region: 'us-east-1', // Can be anything
-  endpoint: 'http://localhost:9000',
+  endpoint: `${Minio_URL}`,
   credentials: {
     accessKeyId: 'admin',
     secretAccessKey: 'admin123',
@@ -173,7 +174,7 @@ const uploadImageToMinIO = async (file) => {
   })
 
   const result = await upload.done()
-  return `http://localhost:9000/profile-images/${fileName}` // Public URL
+  return `${Minio_URL}/profile-images/${fileName}` // Public URL
 }
 
 
@@ -320,7 +321,7 @@ const handleRegister = async () => {
       profileimage: uploadedImageUrl, // <- URL to MinIO
     }
 
-    const response = await fetch('http://localhost:8080/auth/register', {
+    const response = await fetch(`${API_BASE_URL}/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),

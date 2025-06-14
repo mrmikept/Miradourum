@@ -42,6 +42,7 @@ const router = useRouter()
 const userStore = UserStore()
 const token = userStore.authToken
 const images = ref([])
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const goBack = () => router.push('/home')
 const handleLogout = () => {
@@ -51,7 +52,7 @@ const handleLogout = () => {
 
 const fetchImages = async () => {
   try {
-    const res = await fetch('http://localhost:8080/user/images', {
+    const res = await fetch(`${API_BASE_URL}/user/images`, {
       headers: { Authorization: `Bearer ${token}` }
     })
 
@@ -67,7 +68,7 @@ const fetchImages = async () => {
         rawImages.map(async (img) => {
           try {
             // Passo 1: buscar review
-            const reviewRes = await fetch(`http://localhost:8080/review/${img.reviewId}`, {
+            const reviewRes = await fetch(`${API_BASE_URL}/review/${img.reviewId}`, {
               headers: { Authorization: `Bearer ${token}` }
             })
 
@@ -76,7 +77,7 @@ const fetchImages = async () => {
             const pontoId = reviewData.pontoId
 
             // Passo 2: buscar nome do miradouro
-            const pontoRes = await fetch(`http://localhost:8080/pi/${pontoId}`, {
+            const pontoRes = await fetch(`${API_BASE_URL}/pi/${pontoId}`, {
               headers: { Authorization: `Bearer ${token}` }
             })
 
