@@ -12,6 +12,7 @@ import pt.uminho.di.aa.miradourum.models.Review;
 import pt.uminho.di.aa.miradourum.services.ImageService;
 import pt.uminho.di.aa.miradourum.services.ReviewService;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -71,7 +72,6 @@ public class ReviewController {
         // Atualizar review
         review.setComment(reviewDTO.getComment());
         review.setRating(reviewDTO.getRating());
-        review.setCreationDate(new Date());
 
         reviewService.updateReview(review);
         reviewService.updateAverageScore(review.getPontoInteresse());

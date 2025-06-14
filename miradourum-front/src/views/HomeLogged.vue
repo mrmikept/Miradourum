@@ -295,7 +295,7 @@
         </div>
       </div>
     </div>
-
+    <SuccessPopup v-if="showSuccessPopup" :text="successMessage" />
   </div>
 </template>
 
@@ -305,6 +305,12 @@ import { useRoute, useRouter } from 'vue-router'
 import LogoButton from '@/components/LogoButton.vue'
 import TopToolBarMenu from "../components/TopToolBarMenu.vue";
 import {UserStore} from "@/store/userStore.js";
+import { calculateDistance } from '../utils/distance.js'
+import SuccessPopup from '@/components/SuccessPopup.vue'
+
+
+const showSuccessPopup = ref(false)
+const successMessage = ref('')
 
 
 const router = useRouter()
@@ -387,6 +393,15 @@ const hasActiveFilters = computed(() => {
 const goToCreate = () => {
   router.push('/create')
 }
+
+const triggerSuccessPopup = (message) => {
+  successMessage.value = message
+  showSuccessPopup.value = true
+  setTimeout(() => {
+    showSuccessPopup.value = false
+  }, 3000)
+}
+
 
 
 const checkAdmin = async () => {
@@ -546,19 +561,19 @@ const fetchPontosInteresse = async () => {
     console.log('Pontos recebidos:', data)
     // Calcular distâncias e atualizar pontos
    // Remove duplicates by ID
-const uniqueMap = new Map()
-data.forEach(ponto => {
-  if (!uniqueMap.has(ponto.id)) {
-    const enrichedPonto = {
-      ...ponto,
-      distanceFromUser: userLocation.value
-        ? calculateDistance(userLocation.value.lat, userLocation.value.lng, ponto.latitude, ponto.longitude)
-        : null
-    }
-    uniqueMap.set(ponto.id, enrichedPonto)
-  }
-})
-pontosInteresse.value = Array.from(uniqueMap.values())
+    const uniqueMap = new Map()
+    data.forEach(ponto => {
+      if (!uniqueMap.has(ponto.id)) {
+        const enrichedPonto = {
+          ...ponto,
+          distanceFromUser: userLocation.value
+            ? calculateDistance(userLocation.value.lat, userLocation.value.lng, ponto.latitude, ponto.longitude)
+            : null
+        }
+        uniqueMap.set(ponto.id, enrichedPonto)
+      }
+    })
+    pontosInteresse.value = Array.from(uniqueMap.values())
 
     
     // Limpar marcadores anteriores
@@ -653,18 +668,6 @@ const addPIMarkersToMap = (pontos) => {
     
     piMarkers.push({ marker, ponto })
   })
-}
-
-// Função para calcular distância entre dois pontos em km
-const calculateDistance = (lat1, lng1, lat2, lng2) => {
-  const R = 6371 // Raio da Terra em km
-  const dLat = (lat2 - lat1) * Math.PI / 180
-  const dLng = (lng2 - lng1) * Math.PI / 180
-  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-            Math.sin(dLng/2) * Math.sin(dLng/2)
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
-  return R * c
 }
 
 // Função para buscar detalhes de um ponto específico
@@ -853,11 +856,13 @@ const resetFilters = () => {
     accessibility: null,
     maxDifficulty: null
   }
+  triggerSuccessPopup('Filtros limpos!')
 }
 
 const applyFilters = () => {
   closeFiltersModal()
   fetchPontosInteresse()
+  triggerSuccessPopup('Filtros aplicados com sucesso!')
 }
 
 // Funções de pesquisa por coordenadas

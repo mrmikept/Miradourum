@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -24,8 +25,7 @@ public class Review {
     private Integer rating;
 
     @Column(name = "CreationDate")
-    @Temporal(TemporalType.DATE)
-    private Date creationDate;
+    private LocalDateTime creationDate;
 
     @Column(name = "UserID")
     private Long userid;
@@ -42,7 +42,7 @@ public class Review {
     private PontoInteresse pontoInteresse;
 
 
-    public Review(Integer rating, String comment, Date creationDate, Long userid, PontoInteresse pontoInteresse) {
+    public Review(Integer rating, String comment, LocalDateTime creationDate, Long userid, PontoInteresse pontoInteresse) {
         this.rating = rating;
         this.comment = comment;
         this.creationDate = creationDate;
@@ -77,11 +77,11 @@ public class Review {
         this.rating = rating;
     }
 
-    public Date getCreationDate() {
+    public LocalDateTime getCreationDate() {
         return creationDate;
     }
 
-    public void setCreationDate(Date creationDate) {
+    public void setCreationDate(LocalDateTime creationDate) {
         this.creationDate = creationDate;
     }
 

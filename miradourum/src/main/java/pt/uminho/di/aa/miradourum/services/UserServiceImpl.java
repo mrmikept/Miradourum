@@ -143,4 +143,9 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
     }
 
+    @Override
+    public String getUsernameById(Long userId) {
+        return userRepository.findUsernameById(userId);
+    }
+
 }

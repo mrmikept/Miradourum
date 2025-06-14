@@ -9,6 +9,7 @@ import pt.uminho.di.aa.miradourum.models.Review;
 import pt.uminho.di.aa.miradourum.repositories.PontoInteresseRepository;
 import pt.uminho.di.aa.miradourum.repositories.ReviewRepository;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -24,7 +25,7 @@ public class ReviewServiceImpl implements ReviewService {
     private PontoInteresseRepository pontoInteresseRepository;
 
     @Override
-    public Review saveReview(Integer rating, String comment, Date creationDateConverted, Long userId, PontoInteresse point){
+    public Review saveReview(Integer rating, String comment, LocalDateTime creationDateConverted, Long userId, PontoInteresse point){
         Review review = new Review(rating,comment,creationDateConverted,userId,point);
         reviewRepository.save(review);
         return review;

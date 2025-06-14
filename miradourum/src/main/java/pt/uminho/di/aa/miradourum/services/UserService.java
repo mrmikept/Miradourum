@@ -73,4 +73,6 @@ public interface UserService {
     void saveUserWithoutPasswordEncoding(User user);
 
     void updatePassword(User user,String rawPassword);
+
+    String getUsernameById(Long userId);
 }

@@ -23,7 +23,7 @@ defineProps({
   padding: 1rem 1.5rem;
   border-radius: 8px;
   font-weight: bold;
-  z-index: 999;
+  z-index: 9999;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   animation: fadeInSlide 0.3s ease-out;
 }

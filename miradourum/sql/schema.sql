@@ -1,6 +1,6 @@
 CREATE TABLE `User` (ID int(10) NOT NULL AUTO_INCREMENT, Email varchar(255), Username varchar(255), Password varchar(255), Role int(10),  ProfileImage varchar(255), PremiumEndDate datetime, PRIMARY KEY (ID));
 CREATE TABLE PontoInteresse (ID int(10) NOT NULL AUTO_INCREMENT, Latitude double,Longitude double, Name varchar(255), Description varchar(255), Dificulty int(10), Accessibility bit(1), State bit(1),Premium bit(1), Score double, CreationDate DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (ID),CreatorEmail varchar(255));
-CREATE TABLE Review (ID int(10) NOT NULL AUTO_INCREMENT, Comment varchar(255), Rating int(10), CreationDate date, UserID int(10) NOT NULL, PontoInteresseID int(10) NOT NULL, PRIMARY KEY (ID));
+CREATE TABLE Review (ID int(10) NOT NULL AUTO_INCREMENT, Comment varchar(255), Rating int(10), CreationDate DATETIME, UserID int(10) NOT NULL, PontoInteresseID int(10) NOT NULL, PRIMARY KEY (ID));
 CREATE TABLE Image (ID int(10) NOT NULL AUTO_INCREMENT, Url varchar(255), ReviewID int(10) NOT NULL, PRIMARY KEY (ID));
 CREATE TABLE PontoInteresse_User (PontoInteresseID int(10) NOT NULL, UserID int(10) NOT NULL, PRIMARY KEY (PontoInteresseID, UserID));
 CREATE TABLE ImagePontoInteresse (ID int(10) NOT NULL AUTO_INCREMENT,Url varchar(255) NOT NULL,PontoInteresseID int(10) NOT NULL,PRIMARY KEY (ID));
