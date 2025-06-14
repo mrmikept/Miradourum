@@ -158,7 +158,7 @@ const handlePasswordReset = async () => {
   if (!validateResetForm()) return
 
   try {
-    const response = await fetch('http://localhost:8080/user/resetpassword', {
+    const response = await fetch(`${API_BASE_URL}/user/resetpassword`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -215,6 +215,7 @@ const passwordError = ref('')
 // Estados para controlar a visibilidade dos popups de erro
 const showEmailError = ref(false)
 const showPasswordError = ref(false)
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 // Funções para limpar os erros quando o utilizador começa a digitar, deixando de mostrar os
 const clearEmailError = () => {
@@ -310,7 +311,7 @@ const handleLogin = async () => {
   }
   
   try {
-    const response = await fetch('http://localhost:8080/auth/login', {
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -378,7 +379,7 @@ const fetchUserProfile = async () => {
   }
 
   try {
-    const response = await fetch('http://localhost:8080/user', {
+    const response = await fetch(`${API_BASE_URL}/user`, {
       headers: {
         'Authorization': `Bearer ${userStore.authToken}`
       }

@@ -78,16 +78,17 @@ import { S3Client } from '@aws-sdk/client-s3'
 import { Upload } from '@aws-sdk/lib-storage'
 import FieldErrorPopup from '@/components/FieldErrorPopup.vue'
 import {UserStore} from "@/store/userStore.js";
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const imageFile = ref(null)
 const imagePreview = ref('')
 
 const userStore = UserStore()
-
+const Minio_URL = import.meta.env.VITE_MINIO_URL;
 // MinIO client setup (igual ao registo)
 const s3Client = new S3Client({
   region: 'us-east-1',
-  endpoint: 'http://localhost:9000',
+  endpoint: `${Minio_URL}`,
   credentials: {
     accessKeyId: 'admin',
     secretAccessKey: 'admin123',
@@ -105,7 +106,7 @@ if (novaPassword.value.trim().length < 6) {
 
 
   try {
-    const response = await fetch('http://localhost:8080/user/password', {
+    const response = await fetch(`${API_BASE_URL}/user/password`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -158,7 +159,7 @@ const uploadImageToMinIO = async (file) => {
   })
 
   const result = await upload.done()
-  return `http://localhost:9000/profile-images/${fileName}`
+  return `${Minio_URL}/profile-images/${fileName}`
 }
 
 const router = useRouter()
@@ -197,34 +198,6 @@ const profileImage = ref(userStore.avatarUrl)
 
 const token = userStore.authToken
 
-// const fetchUserProfile = async () => {
-//   if (!token) {
-//     router.push('/login')
-//     return
-//   }
-//
-//   try {
-//     const response = await fetch('http://localhost:8080/user/edit', {
-//       headers: {
-//         'Authorization': `Bearer ${token}`
-//       }
-//     })
-//
-//     if (!response.ok) {
-//       // Se token inválido ou outro erro, redireciona para login
-//       router.push('/login')
-//       return
-//     }
-//
-//     const data = await response.json()
-//     username.value = data.username
-//     profileImage.value = data.profileImage || '/default-profile.png'
-//
-//   } catch (error) {
-//     console.error('Erro a buscar perfil:', error)
-//     router.push('/login')
-//   }
-// }
 
 // Parte do plano, premium ou não
 const isPremium = ref(false)
@@ -232,7 +205,7 @@ const isPremiumStatus = computed(() => isPremium.value)
 
 const checkPremiumStatus = async () => {
   try {
-    const response = await fetch('http://localhost:8080/user/premium', {
+    const response = await fetch(`${API_BASE_URL}/user/premium`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`
@@ -265,7 +238,7 @@ const guardarPerfil = async () => {
       uploadedUrl = await uploadImageToMinIO(imageFile.value)
     }
 
-    const response = await fetch('http://localhost:8080/user/profile', {
+    const response = await fetch(`${API_BASE_URL}/user/profile`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`,

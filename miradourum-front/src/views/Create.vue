@@ -83,7 +83,8 @@ import LogoButton from '@/components/LogoButton.vue'
 import SuccessPopup from '@/components/SuccessPopup.vue'
 import ErrorPopup from '@/components/ErrorPopup.vue'
 import {UserStore} from "@/store/userStore.js";
-
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+const Minio_URL = import.meta.env.VITE_MINIO_URL;
 const router = useRouter()
 const userStore = UserStore()
 
@@ -104,7 +105,7 @@ const successMessage = ref('')
 // MinIO config
 const s3Client = new S3Client({
   region: 'us-east-1',
-  endpoint: 'http://localhost:9000',
+  endpoint: `${Minio_URL}`,
   credentials: {
     accessKeyId: 'admin',
     secretAccessKey: 'admin123',
@@ -131,7 +132,7 @@ const uploadImagesToMinIO = async (files) => {
     })
 
     await upload.done()
-    urls.push(`http://localhost:9000/poi-images/${fileName}`)
+    urls.push(`${Minio_URL}/poi-images/${fileName}`)
   }
 
   return urls
@@ -184,7 +185,7 @@ if (missingFields.length > 0) {
 
     const token = userStore.authToken;
 
-    const response = await fetch('http://localhost:8080/pi', {
+    const response = await fetch(`${API_BASE_URL}/pi`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

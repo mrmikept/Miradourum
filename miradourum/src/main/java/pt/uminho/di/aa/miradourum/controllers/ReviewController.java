@@ -123,6 +123,7 @@ public class ReviewController {
         }
 
         reviewService.deleteReviewById(review);
+        reviewService.updateAverageScore(review.getPontoInteresse());
 
         return ResponseEntity.ok("Review deleted successfully");
     }
