@@ -174,12 +174,11 @@ public class PontoInteresseController {
 
         // 4. Criar Review
         LocalDateTime creationDate = LocalDateTime.now();
-        Date creationDateConverted = Date.from(creationDate.atZone(ZoneId.systemDefault()).toInstant());
 
         Review rev = reviewService.saveReview(
                 reviewDTO.getRating(),
                 reviewDTO.getComment(),
-                creationDateConverted,
+                creationDate,
                 userId,
                 point
         );

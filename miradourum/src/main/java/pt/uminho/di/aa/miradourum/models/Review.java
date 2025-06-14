@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -24,11 +25,11 @@ public class Review {
     private Integer rating;
 
     @Column(name = "CreationDate")
-    @Temporal(TemporalType.DATE)
-    private Date creationDate;
+    private LocalDateTime creationDate;
 
-    @Column(name = "UserID")
-    private Long userid;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "UserID") // Manter o mesmo nome da coluna
+    private User user;
 
 
     @OneToMany(mappedBy = "review")
@@ -42,11 +43,11 @@ public class Review {
     private PontoInteresse pontoInteresse;
 
 
-    public Review(Integer rating, String comment, Date creationDate, Long userid, PontoInteresse pontoInteresse) {
+    public Review(Integer rating, String comment, LocalDateTime creationDate, User userid, PontoInteresse pontoInteresse) {
         this.rating = rating;
         this.comment = comment;
         this.creationDate = creationDate;
-        this.userid = userid;
+        this.user = userid;
         this.pontoInteresse = pontoInteresse;
     }
 
@@ -77,11 +78,11 @@ public class Review {
         this.rating = rating;
     }
 
-    public Date getCreationDate() {
+    public LocalDateTime getCreationDate() {
         return creationDate;
     }
 
-    public void setCreationDate(Date creationDate) {
+    public void setCreationDate(LocalDateTime creationDate) {
         this.creationDate = creationDate;
     }
 
@@ -93,12 +94,12 @@ public class Review {
         this.pontoInteresse = pontoInteresse;
     }
 
-    public Long getUserid() {
-        return userid;
+    public User getUser() {
+        return user;
     }
 
-    public void setUserid(Long userid) {
-        this.userid = userid;
+    public void setUserid(User userid) {
+        this.user = userid;
     }
 
 

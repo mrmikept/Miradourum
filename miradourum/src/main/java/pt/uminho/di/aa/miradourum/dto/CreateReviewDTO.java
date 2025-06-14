@@ -13,7 +13,6 @@ public class CreateReviewDTO {
     @Size(max = 1000, message = "Comment must not exceed 1000 characters")
     private String comment;
 
-    @NotEmpty(message = "At least one image is required")
     private List<String> images;
 
     // Getters e Setters

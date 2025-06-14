@@ -1,7 +1,6 @@
 <template>
   <div class="details-page">
-  <TopToolBarMenu/>
-   
+    <TopToolBarMenu />
 
     <!-- Conteúdo principal -->
     <div class="content-container">
@@ -10,79 +9,83 @@
         <h2>{{ pointDetails.name || 'Carregando...' }}</h2>
 
         <div class="details-section">
-  <h3>Informações</h3>
-  <p><strong>Descrição:</strong> {{ pointDetails.description || 'Sem descrição.' }}</p>
-  <p><strong>Localização:</strong> {{ pointDetails.location || 'Não disponível' }}</p>
-  <p><strong>Categoria:</strong> {{ pointDetails.category || 'Não especificada' }}</p>
+          <h3>Informações</h3>
+          <p><strong>Data de Criação:</strong> {{ formatDateSemHoras(pointDetails.creationDate) }}</p>
+          <p><strong>Descrição:</strong> {{ pointDetails.description || 'Sem descrição.' }}</p>
 
-  <!-- New: Show images -->
-  <div v-if="pointDetails.images && pointDetails.images.length">
-    <h4>Imagens</h4>
-    <div class="point-images">
-      <img
-        v-for="img in pointDetails.images"
-        :key="img.id"
-        :src="img.url"
-        alt="Imagem do ponto"
-        class="point-image"
-      />
-    </div>
-  </div>
+          <!-- Imagens do ponto -->
+          <div v-if="pointDetails.images && pointDetails.images.length">
+            <h4>Imagens</h4>
+            <div class="point-images">
+              <img
+                v-for="img in pointDetails.images"
+                :key="img.id"
+                :src="img.url"
+                alt="Imagem do ponto"
+                class="point-image"
+                @click="openImage(img.url)"
+              />
+            </div>
+          </div>
 
-  <!-- New: Other relevant info -->
-  <p><strong>Estado:</strong> {{ pointDetails.state ? 'Ativo' : 'Inativo' }}</p>
-  <p><strong>Premium:</strong> {{ pointDetails.premium ? 'Sim' : 'Não' }}</p>
-  <p><strong>Latitude:</strong> {{ pointDetails.latitude }}</p>
-  <p><strong>Longitude:</strong> {{ pointDetails.longitude }}</p>
-  <p><strong>Score:</strong> {{ pointDetails.score?.toFixed(1) }}</p>
-  <p><strong>Dificuldade:</strong> {{ pointDetails.difficulty }}</p>
-</div>
+          <!-- Modal da imagem -->
+          <div v-if="enlargedImage" class="modal" @click="enlargedImage = null">
+            <img :src="enlargedImage" alt="Imagem ampliada" class="modal-image" />
+          </div>
 
+          <!-- Outras informações -->
+          <p><strong>Premium:</strong> {{ pointDetails.premium ? 'Sim' : 'Não' }}</p>
+          <p><strong>Latitude:</strong> {{ pointDetails.latitude }}</p>
+          <p><strong>Longitude:</strong> {{ pointDetails.longitude }}</p>
+          <p><strong>Distância:</strong> {{ pointDetails.distanceFromUser ? pointDetails.distanceFromUser.toFixed(2) + ' km' : 'N/A' }}</p>
+          <p><strong>Score:</strong> {{ pointDetails.score?.toFixed(1) }}</p>
+          <p><strong>Dificuldade:</strong> {{ pointDetails.difficulty }}</p>
+        </div>
 
         <div class="buttons">
           <!-- <button class="action-btn" @click="markAsVisited" :disabled="loadingVisit">
-             {{ loadingVisit ? 'A processar...' : 'Marcar como visitado' }}
-           </button> -->
-           <button class="action-btn" @click="openCommentModal">Adicionar comentário</button>
-         </div>
-       </div>
+            {{ loadingVisit ? 'A processar...' : 'Marcar como visitado' }}
+          </button> -->
+          <button class="action-btn" @click="openCommentModal">Adicionar comentário</button>
+        </div>
+      </div> <!-- fecha .point-details -->
 
-       <!-- Reviews (lado direito) -->
+      <!-- Reviews (lado direito) -->
       <div class="reviews-section">
         <h3>Reviews</h3>
         <ul v-if="reviews.length > 0">
-          <li v-for="review in reviews" :key="review.id" class="review-item">
-  <p><strong>Data:</strong> {{ formatDate(review.creationDate) }}</p>
-  <p><strong>Comentário:</strong> {{ review.comment }}</p>
-  <p><strong>Avaliação:</strong> {{ review.rating }}/5 ⭐ </p>
+          <li v-for="review in sortedReviews" :key="review.creationDate" class="review-item">
+            <p><strong>Data:</strong> {{ formatDate(review.creationDate) }}</p>
+            <p><strong>Comentário:</strong> {{ review.comment }}</p>
+            <p><strong>Avaliação:</strong> {{ review.rating }}/5 ⭐ </p>
 
-  <!-- Show images if any -->
-  <div v-if="review.images && review.images.length > 0" class="review-pictures">
-    <p><strong>Imagem{{ review.images.length > 1 ? 'ns' : '' }}:</strong></p>
-    <div class="review-picture-wrapper">
-      <img
-        v-for="(img, index) in review.images"
-        :key="index"
-        class="review-picture"
-        :src="typeof img === 'string' ? img : img.url"
-        alt="Foto da review"
-      />
-    </div>
-  </div>
-  
-<div v-if="parseInt(review.userid) === parseInt(userStore.id)" class="review-actions">
-    <button class="edit-btn" @click="editReview(review)">Editar</button>
-    <button class="delete-btn" @click="deleteReview(review.id)">Apagar</button>
-  </div>
+            <!-- Imagens da review -->
+            <div v-if="review.images && review.images.length > 0" class="review-pictures">
+              <p><strong>Image{{ review.images.length > 1 ? 'ns' : 'm' }}:</strong></p>
+              <div class="point-images">
+                <img
+                  v-for="(img, index) in review.images"
+                  :key="index"
+                  class="point-image"
+                  :src="typeof img === 'string' ? img : img.url"
+                  alt="Foto da review"
+                  @click="openImage(img.url)"
+                />
+              </div>
+            </div>
 
-  <hr />
-</li>
+            <!-- Ações da review -->
+            <div v-if="parseInt(review.userid) === parseInt(userStore.id)" class="review-actions">
+              <button class="edit-btn" @click="editReview(review)">Editar</button>
+              <button class="delete-btn" @click="deleteReview(review.id)">Apagar</button>
+            </div>
 
+            <hr />
+          </li>
         </ul>
         <p v-else>Sem reviews disponíveis.</p>
-      </div>
-
-    </div>
+      </div> <!-- fecha .reviews-section -->
+    </div> <!-- fecha .content-container -->
 
     <!-- Modal para adicionar comentário -->
     <div v-if="showCommentModal" class="modal-overlay" @click.self="closeCommentModal">
@@ -114,12 +117,18 @@
         </div>
       </div>
     </div>
-  <ErrorPopup v-if="showError" :text="errorText" />
+
+    <!-- Popup de erro -->
+    <ErrorPopup v-if="showError" :text="errorText" />
+    <SuccessPopup v-if="showSuccess" :text="successText" />
+
   </div>
 </template>
 
+
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
+import { calculateDistance } from '@/utils/distance.js'
 import { useRouter, useRoute } from 'vue-router'
 import LogoButton from '@/components/LogoButton.vue'
 import { S3Client } from '@aws-sdk/client-s3'
@@ -128,6 +137,8 @@ import axios from "axios";
 import {UserStore} from "@/store/userStore.js";
 import TopToolBarMenu from "../components/TopToolBarMenu.vue";
 import ErrorPopup from "../components/ErrorPopup.vue"
+import SuccessPopup from "../components/SuccessPopup.vue"
+
 const editingReviewId = ref(null)
 const reviewImageFile = ref(null)
 const reviewImagePreview = ref('')
@@ -136,8 +147,13 @@ const router = useRouter()
 const route = useRoute()
 const pi = ref(null)
 const userStore = UserStore()
+
 const showError = ref(false)
 const errorText = ref('')
+const showSuccess = ref(false)
+const successText = ref('')
+
+
 const token = userStore.authToken;
 
 const pointDetails = ref({})
@@ -166,6 +182,19 @@ function displayError(msg) {
   }, 3000) // popup desaparece após 3 segundos
 }
 
+function displaySuccess(msg) {
+  successText.value = msg
+  showSuccess.value = true
+  setTimeout(() => {
+    showSuccess.value = false
+  }, 3000) // desaparece após 3 segundos
+}
+
+
+const sortedReviews = computed(() => {
+  return reviews.value.slice().sort((a, b) => new Date(b.creationDate) - new Date(a.creationDate))
+})
+
 
 // Pega o id do ponto da rota
 const pointId = route.params.id
@@ -181,14 +210,28 @@ const fetchPointDetails = async () => {
       return
     }
     const data = await res.json()
-    pointDetails.value = data
+    const { lat, lng } = userStore.location
+    const enrichedPonto = {
+      ...data,
+      distanceFromUser: lat && lng
+        ? calculateDistance(lat, lng, data.latitude, data.longitude)
+        : null
+    }
+
+    pointDetails.value = enrichedPonto
+    console.log('Detalhes do ponto recebidos:', JSON.stringify(enrichedPonto, null, 2))
+    
     reviewImage.value = data.reviewImage || '/default-review.png'
   } catch (err) {
     console.error('Erro fetch detalhes:', err)
   }
 }
 
+const enlargedImage = ref(null)
 
+function openImage(url) {
+  enlargedImage.value = url
+}
 
 
 
@@ -211,11 +254,11 @@ const deleteReview = async (reviewId) => {
     })
 
     if (res.status === 200) {
-      alert("Review apagada com sucesso.")
+      displaySuccess('Review apagada com sucesso!')
       await fetchReviews()
       await fetchPointDetails()
     } else {
-      alert("Erro ao apagar review.")
+      displayError("Erro ao apagar review.")
     }
   } catch (err) {
     console.error("Erro ao apagar review", err)
@@ -374,6 +417,7 @@ if (!newComment.value.trim()) {
 
     await fetchPointDetails()
     await fetchReviews()
+    displaySuccess(editingReviewId.value ? 'Review atualizada com sucesso!' : 'Review adicionada com sucesso!')
     closeCommentModal()
     reviewImageFile.value = null
     reviewImagePreview.value = ''
@@ -389,6 +433,26 @@ if (!newComment.value.trim()) {
 const formatDate = (dateString) => {
   if (!dateString) return 'Data não disponível'
 
+  let d = new Date(dateString)
+
+  if (isNaN(d)) {
+    d = new Date(dateString + 'T00:00:00')
+  }
+
+  if (isNaN(d)) return 'Data inválida'
+
+  return d.toLocaleString('pt-PT', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+const formatDateSemHoras = (dateString) => {
+  if (!dateString) return 'Data não disponível'
+
   // Tenta criar a data diretamente
   let d = new Date(dateString)
 
@@ -401,6 +465,7 @@ const formatDate = (dateString) => {
 
   return d.toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', year: 'numeric' })
 }
+
 
 
 
@@ -705,6 +770,30 @@ onMounted(() => {
   object-fit: cover;
   border: 4px solid white;
   margin-bottom: 1rem;
+}
+
+
+.point-image:hover {
+  transform: scale(1.05);
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.modal-image {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: 8px;
 }
 
 

@@ -199,8 +199,8 @@ if (missingFields.length > 0) {
       return
     }
 
-    successMessage.value = 'Ponto criado com sucesso!'
-    setTimeout(() => router.push('/home'), 1500)
+    successMessage.value = 'Criação de Ponto enviada com sucesso! À espera de aprovação do Revisor.'
+    setTimeout(() => router.push('/home'), 2500)
   } catch (err) {
     console.error(err)
     errorMessage.value = 'Erro ao criar ponto. Verifique os dados e tente novamente.'

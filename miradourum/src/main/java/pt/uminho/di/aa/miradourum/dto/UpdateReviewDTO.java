@@ -4,6 +4,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Max;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class UpdateReviewDTO {
@@ -16,6 +18,8 @@ public class UpdateReviewDTO {
     private String comment;
 
     private List<String> images; // Opcional
+
+    private LocalDateTime creationDate;
 
     // Getters e Setters
     public Integer getRating() {
@@ -41,4 +45,8 @@ public class UpdateReviewDTO {
     public void setImages(List<String> images) {
         this.images = images;
     }
+
+    public LocalDateTime getCreationDate() {return  creationDate;}
+
+    public void setCreationDate(LocalDateTime creationDate) {this.creationDate = creationDate;}
 }
