@@ -6,7 +6,11 @@
     <div class="content-container">
       <!-- Detalhes do ponto (lado esquerdo) -->
       <div class="point-details">
+        <div class="point-details-header">
         <h2>{{ pointDetails.name || 'Carregando...' }}</h2>
+        <button class="action-butn" @click="openInGoogleMaps">Ver no Google Maps</button>
+      </div>
+
 
         <div class="details-section">
           <h3>Informações</h3>
@@ -454,7 +458,18 @@ const formatDateSemHoras = (dateString) => {
   return d.toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
+const openInGoogleMaps = () => {
+  const lat = pointDetails.value.latitude
+  const lng = pointDetails.value.longitude
 
+  if (!lat || !lng) {
+    displayError('Coordenadas indisponíveis.')
+    return
+  }
+
+  const url = `https://www.google.com/maps?q=${lat},${lng}`
+  window.open(url, '_blank')
+}
 
 
 onMounted(() => {
@@ -562,6 +577,14 @@ onMounted(() => {
   background-color: #d43f3f;
 }
 
+.point-details-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* ou flex-start se quiseres mais junto */
+  gap: 1rem;
+  flex-wrap: wrap; /* para mobile não quebrar */
+}
+
 /* Lado esquerdo - detalhes */
 .point-details {
   flex: 1;
@@ -600,9 +623,20 @@ onMounted(() => {
   flex-grow: 1;
 }
 
+
 .action-btn:disabled {
   background-color: #7ea5b7;
   cursor: not-allowed;
+}
+
+.action-butn {
+  background-color: #427F99;
+  color: white;
+  padding: 0.75rem 1.2rem;
+  border-radius: 8px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
 }
 
 /* Lado direito - reviews */
