@@ -272,7 +272,7 @@ public class UserController {
     private PaymentResponseDTO callPaymentService(PaymentDTO paymentData) {
         try {
             RestTemplate restTemplate = new RestTemplate();
-            String paymentServiceUrl = "http://localhost:3000/api/pay";
+            String paymentServiceUrl = "http://payment_service:3000/api/pay";
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
