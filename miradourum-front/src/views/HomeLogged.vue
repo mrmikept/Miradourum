@@ -296,6 +296,8 @@
       </div>
     </div>
     <SuccessPopup v-if="showSuccessPopup" :text="successMessage" />
+    <ErrorPopup v-if="showError" :text="errorText" />
+
   </div>
 </template>
 
@@ -307,7 +309,7 @@ import TopToolBarMenu from "../components/TopToolBarMenu.vue";
 import {UserStore} from "@/store/userStore.js";
 import { calculateDistance } from '../utils/distance.js'
 import SuccessPopup from '@/components/SuccessPopup.vue'
-
+import ErrorPopup from '@/components/ErrorPopup.vue'
 
 const showSuccessPopup = ref(false)
 const successMessage = ref('')
@@ -351,6 +353,8 @@ const filters = ref({
   accessibility: null,
   maxDifficulty: null
 })
+const showError = ref(false)
+const errorText = ref('')
 
 let map = null
 let userMarker = null
@@ -674,12 +678,10 @@ const addPIMarkersToMap = (pontos) => {
 // Função para buscar detalhes de um ponto específico
 const fetchPointDetails = async (pointId) => {
   isLoadingDetails.value = true
-  
+
   try {
     const token = userStore.authToken
-    if (!token) {
-      throw new Error('Token não encontrado')
-    }
+    if (!token) throw new Error('Token não encontrado')
 
     const response = await fetch(`${API_BASE_URL}/pi/shortdetails/${pointId}`, {
       method: 'GET',
@@ -688,16 +690,25 @@ const fetchPointDetails = async (pointId) => {
       }
     })
 
+if (response.status === 204) {
+  errorText.value = 'Este conteúdo é exclusivo para utilizadores premium.'
+  showError.value = true
+  setTimeout(() => {
+    showError.value = false
+  }, 3000)
+  return
+}
+
+
+
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('Erro da API:', response.status, errorText)
       throw new Error(`Erro na API: ${response.status} - ${errorText}`)
     }
 
     const data = await response.json()
     console.log('Detalhes do ponto recebidos:', data)
-    
-    // Calcular distância se tivermos a localização do usuário
+
     if (userLocation.value) {
       data.distanceFromUser = calculateDistance(
         userLocation.value.lat,
@@ -706,7 +717,7 @@ const fetchPointDetails = async (pointId) => {
         data.longitude
       )
     }
-    
+
     selectedPointDetails.value = data
     showDetailsModal.value = true
 
@@ -717,6 +728,7 @@ const fetchPointDetails = async (pointId) => {
     isLoadingDetails.value = false
   }
 }
+
 
 // Função para selecionar um ponto
 const selectPoint = (ponto) => {

@@ -30,6 +30,9 @@
           <li v-if="visitedPoints.length === 0">Sem visitas recentes.</li>
         </ul>
       </div>
+        <div v-if="enlargedImage" class="modal" @click="enlargedImage = null">
+          <img :src="enlargedImage" alt="Imagem ampliada" class="modal-image" />
+        </div>
 
       <!-- Mapa no centro -->
       <div class="map-container" ref="mapContainer"></div>
@@ -41,13 +44,21 @@
           Galeria de fotos
         </h3>
         <div class="gallery-grid">
-          <img
-              v-for="img in images"
-              :key="img.id"
-              :src="img.url"
-              :alt="'Foto ' + img.id"
-              class="gallery-image"
-          />
+      <div
+        v-for="img in images"
+        :key="img.id"
+        class="gallery-item"
+        @click="openImage(img.url)"
+
+      >
+        <img
+          :src="img.url"
+          :alt="'Foto ' + img.id"
+          class="gallery-image"
+        />
+        <p class="photo-caption">{{ img.pontoInteresseName || 'Miradouro desconhecido' }}</p>
+      </div>
+          
           <p v-if="images.length === 0">Sem imagens publicadas.</p>
         </div>
       </div>
@@ -80,6 +91,10 @@ const images = ref([]) // {id, url, ...}
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
+const enlargedImage = ref(null)
+const openImage = (url) => {
+  enlargedImage.value = url
+}
 
 const fetchUserData = async () => {
 
@@ -202,6 +217,26 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1500;
+}
+
+.modal-image {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: 8px;
+}
+
 .history-page {
   background-color: white;
   min-height: 100vh;
@@ -275,7 +310,11 @@ onMounted(async () => {
   font-size: 1.5rem;
   font-weight: bold;
 }
-
+.photo-caption {
+  font-size: 0.9rem;
+  color: #427F99;
+  text-align: center;
+}
 
 .content-container {
   display: flex;

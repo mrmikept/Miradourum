@@ -20,8 +20,8 @@
         <div
             v-for="img in images"
             :key="img.id"
-            class="gallery-item"
-        >
+            class="gallery-item">
+            
           <img :src="img.url" :alt="'Foto ' + img.id" class="gallery-image" />
           <p class="photo-caption">{{ img.pontoInteresseName || 'Miradouro desconhecido' }}</p>
         </div>

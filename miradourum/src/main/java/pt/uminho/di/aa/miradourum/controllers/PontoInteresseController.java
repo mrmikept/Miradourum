@@ -245,13 +245,20 @@ public class PontoInteresseController {
 
         Long userId = jwtService.extractUserIdFromValidToken(authHeader);
 
+        User user =  userService.getUserById(userId);
+        Integer userrole = user.getRole();
         PIDetailsShortProjection ponto = pontoInteresseService.getById(Long.valueOf(id), PIDetailsShortProjection.class);
+
         if (ponto == null)
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("PI not found");
 
         // Ponto ainda está inativo
         if (!ponto.getState()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Ponto is inactive.");
+        }
+
+        if (ponto.getPremium() && (userrole == null || (userrole != 2 && userrole != 3))) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build(); // or use .body("Conteúdo premium")
         }
 
         return ResponseEntity.ok(ponto);
@@ -265,6 +272,9 @@ public class PontoInteresseController {
         if (tokenValidation != null) {
             return tokenValidation;
         }
+        Long userId = jwtService.extractUserIdFromValidToken(authHeader);
+        User user =  userService.getUserById(userId);
+        Integer userrole = user.getRole();
 
         PIDetailsFullProjection ponto = pontoInteresseService.getById(Long.valueOf(id), PIDetailsFullProjection.class);
         if (ponto == null)
@@ -274,6 +284,9 @@ public class PontoInteresseController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Ponto is inactive.");
         }
 
+        if (ponto.getPremium() && (userrole == null || (userrole != 2 && userrole != 3))) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build(); // or use .body("Conteúdo premium")
+        }
         // Converter para DTO e substituir userIds por usernames
         PIDetailsFullDTO dto = new PIDetailsFullDTO(ponto);
 
