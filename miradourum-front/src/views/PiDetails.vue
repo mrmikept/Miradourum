@@ -54,52 +54,6 @@
         </div>
       </div> <!-- fecha .point-details -->
 
-<!--      &lt;!&ndash; Reviews (lado direito) &ndash;&gt;-->
-<!--      <div class="reviews-section">-->
-<!--        <h3>Reviews</h3>-->
-<!--        <ul v-if="reviews.length > 0">-->
-<!--          <li v-for="review in sortedReviews" :key="review.creationDate" class="review-item">-->
-<!--            <p><strong>Autor:</strong>-->
-<!--              <v-btn-->
-<!--                  variant="text"-->
-<!--                  :ripple="false"-->
-<!--                  @click="$router.push()"-->
-<!--              >-->
-<!--                {{ review.username }}-->
-<!--              </v-btn>-->
-<!--            </p>-->
-
-
-<!--            <p><strong>Data:</strong> {{ formatDate(review.creationDate) }}</p>-->
-<!--            <p><strong>Comentário:</strong> {{ review.comment }}</p>-->
-<!--            <p><strong>Avaliação:</strong> {{ review.rating }}/5 ⭐ </p>-->
-
-<!--            &lt;!&ndash; Imagens da review &ndash;&gt;-->
-<!--            <div v-if="review.images && review.images.length > 0" class="review-pictures">-->
-<!--              <p><strong>Image{{ review.images.length > 1 ? 'ns' : 'm' }}:</strong></p>-->
-<!--              <div class="point-images">-->
-<!--                <img-->
-<!--                    v-for="(img, index) in review.images"-->
-<!--                    :key="index"-->
-<!--                    class="point-image"-->
-<!--                    :src="typeof img === 'string' ? img : img.url"-->
-<!--                    alt="Foto da review"-->
-<!--                    @click="openImage(img.url)"-->
-<!--                />-->
-<!--              </div>-->
-<!--            </div>-->
-
-<!--            &lt;!&ndash; Ações da review &ndash;&gt;-->
-<!--            <div v-if="parseInt(review.userId) === parseInt(userStore.id)" class="review-actions">-->
-<!--              <button class="edit-btn" @click="editReview(review)">Editar</button>-->
-<!--              <button class="delete-btn" @click="deleteReview(review.id)">Apagar</button>-->
-<!--            </div>-->
-
-<!--            <hr />-->
-<!--          </li>-->
-<!--        </ul>-->
-<!--        <p v-else>Sem reviews disponíveis.</p>-->
-<!--      </div> &lt;!&ndash; fecha .reviews-section &ndash;&gt;-->
 
       <!-- Reviews (lado direito) -->
       <div class="reviews-section">
@@ -115,7 +69,13 @@
             >
               <v-row align="center" justify="space-between">
                 <v-col cols="auto">
-                  <strong>{{ review.username }}</strong>
+                  <router-link 
+                    :to="`/profile/${review.userId}`" 
+                    class="text-decoration-none font-weight-bold"
+                    style="color: #1976D2;"
+                  >
+                    {{ review.username }}
+                  </router-link>
                   <v-row v-if="parseInt(review.userId) === parseInt(userStore.id)" class="mt-2" dense no-gutters align="center">
                     <v-col cols="auto" class="mr-2">
                       <v-tooltip text="Editar Review" location="top">
@@ -160,7 +120,7 @@
                 <v-divider class="my-3" />
                 <p class="font-weight-medium mb-1">Comentário:</p>
                 <p>{{ review.comment }}</p>
-                <p class="font-weight-medium mb-1">Fotográfias</p>
+                <p class="font-weight-medium mb-1">Fotografias:</p>
                 <v-row v-if="review.images && review.images.length" dense>
                   <v-col
                       v-for="(img, index) in review.images"

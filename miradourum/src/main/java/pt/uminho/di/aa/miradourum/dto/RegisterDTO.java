@@ -5,6 +5,7 @@ import jakarta.validation.constraints.*;
 public class RegisterDTO {
     @Email(message = "Invalid email format")
     @NotBlank(message = "Email is required")
+    @Size(max=80, message = "Email must be at most 80 characters.")
     private String email;
 
     @NotBlank(message = "Username is required")
@@ -12,7 +13,7 @@ public class RegisterDTO {
     private String username;
 
     @NotBlank(message = "Password is required")
-    @Size(min = 6, message = "Password must be at least 6 characters")
+    @Size(min = 6, max=30, message = "Password must be between 6 and 30 characters")
     private String password;
 
     @NotBlank(message = "Profile image is required")

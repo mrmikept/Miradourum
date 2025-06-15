@@ -10,7 +10,7 @@ public class CreateReviewDTO {
     private Integer rating;
 
     @NotBlank(message = "Comment is required")
-    @Size(max = 1000, message = "Comment must not exceed 1000 characters")
+    @Size(max = 500, message = "Comment must not exceed 500 characters")
     private String comment;
 
     private List<String> images;

@@ -1,5 +1,7 @@
 package pt.uminho.di.aa.miradourum.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import pt.uminho.di.aa.miradourum.models.Image;
 import pt.uminho.di.aa.miradourum.projections.Review.ReviewProjection;
 
@@ -8,6 +10,8 @@ import java.util.List;
 
 public class ReviewDTO {
     private Long id;
+    @NotBlank(message = "Comment is required")
+    @Size(max = 500, message = "Comment must not exceed 500 characters")
     private String comment;
     private Integer rating;
     private LocalDateTime creationDate;

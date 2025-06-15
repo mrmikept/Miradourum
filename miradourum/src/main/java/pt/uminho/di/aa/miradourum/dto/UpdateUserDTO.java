@@ -6,7 +6,7 @@ public class UpdateUserDTO {
     @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
     private String username; // Opcional
 
-    @Size(min = 6, message = "Password must be at least 6 characters")
+    @Size(min = 6, max=30, message = "Password must be between 6 and 30 characters")
     private String password; // Opcional
 
     private String profileImage; // Opcional (note: mantive o nome igual ao que usavas)
