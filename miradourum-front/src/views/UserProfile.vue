@@ -20,7 +20,13 @@
           Visitas Recentemente
         </h3>
         <ul>
-          <li v-for="(ponto, index) in visitedPoints" :key="index">{{ ponto.name }}</li>
+          <li v-for="(ponto, index) in visitedPoints" :key="index"><v-btn
+              variant="text"
+              :ripple="false"
+              @click="$router.push(`/pi/details/${ponto.id}`)"
+          >
+            {{ ponto.name }}
+          </v-btn></li>
           <li v-if="visitedPoints.length === 0">Sem visitas recentes.</li>
         </ul>
       </div>
