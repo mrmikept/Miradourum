@@ -47,7 +47,7 @@
               color="amber"
               size="25"
               half-increments
-          /> ({{pointDetails.score}}) </p>
+          /> ({{pointDetails.score ? pointDetails.score.toFixed(2) : ''}}) </p>
           <p><strong>Dificuldade:</strong> {{ pointDetails.difficulty }}</p>
         </div>
 
