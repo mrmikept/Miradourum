@@ -67,79 +67,101 @@
                 cols="12"
                 class="mb-4"
             >
-              <v-row align="center" justify="space-between">
-                <v-col cols="auto">
-                  <router-link 
-                    :to="`/profile/${review.userId}`" 
-                    class="text-decoration-none font-weight-bold"
-                    style="color: #1976D2;"
-                  >
-                    {{ review.username }}
-                  </router-link>
-                  <v-row v-if="parseInt(review.userId) === parseInt(userStore.id)" class="mt-2" dense no-gutters align="center">
-                    <v-col cols="auto" class="mr-2">
-                      <v-tooltip text="Editar Review" location="top">
-                        <template v-slot:activator="{ props }">
-                          <v-icon
-                              icon="fa-solid fa-pen"
-                              size="x-small"
-                              color="#1976D2"
-                              v-bind="props"
-                              @click="editReview(review)"
-                          />
-                        </template>
-                      </v-tooltip>
-                    </v-col>
-                    <v-col cols="auto">
-                      <v-tooltip text="Apagar Review" location="top">
-                        <template v-slot:activator="{ props }">
-                          <v-icon
-                              icon="fa-solid fa-trash"
-                              size="x-small"
-                              @click="deleteReview(review.id)"
-                              v-bind="props"
-                              color="#E53935"
-                          />
-                        </template>
-                      </v-tooltip>
+              <!-- 🟦 v-card por review -->
+              <v-card class="pa-4" elevation="2" rounded>
+                <v-row align="start" justify="space-between" class="mb-1">
+                  <!-- Username + Data -->
+                  <v-col cols="auto">
+                    <router-link
+                        :to="`/profile/${review.userId}`"
+                        class="text-decoration-none font-weight-bold"
+                        style="color: #427F99; font-size: 1.3rem;"
+                    >
+                      {{ review.username }}
+                    </router-link>
+                    <div style="font-size: 1rem; color: #6c757d">
+                      {{ formatDate(review.creationDate).split(',')[0] }}
+                    </div>
+                  </v-col>
 
-                    </v-col>
-                  </v-row>
-                </v-col>
-                  <v-col cols="auto" class="text-right">
-                    <div class="text-caption">{{ formatDate(review.creationDate) }}</div>
+                  <!-- Rating + Edit/Delete Icons -->
+                  <v-col cols="auto" justify="space-between" class="text-right">
                     <v-rating
                         :model-value="review.rating"
                         readonly
                         color="amber"
-                        size="20"
+                        size="25"
                         half-increments
                     />
+
+                    <!-- Icons below rating -->
+                    <v-row dense no-gutters justify="end">
+                      <v-col cols="auto" class="mr-2">
+                        <v-tooltip
+                            v-if="parseInt(review.userId) === parseInt(userStore.id)"
+                            text="Editar Review"
+                            location="top"
+                        >
+                          <template v-slot:activator="{ props }">
+                            <v-icon
+                                icon="fa-solid fa-pen"
+                                size="x-small"
+                                color="#1976D2"
+                                v-bind="props"
+                                @click="editReview(review)"
+                            />
+                          </template>
+                        </v-tooltip>
+                      </v-col>
+                      <v-col cols="auto">
+                        <v-tooltip
+                            v-if="parseInt(review.userId) === parseInt(userStore.id)"
+                            text="Apagar Review"
+                            location="top"
+                        >
+                          <template v-slot:activator="{ props }">
+                            <v-icon
+                                icon="fa-solid fa-trash"
+                                size="x-small"
+                                @click="deleteReview(review.id)"
+                                v-bind="props"
+                                color="#E53935"
+                            />
+                          </template>
+                        </v-tooltip>
+                      </v-col>
+                    </v-row>
                   </v-col>
                 </v-row>
-                <v-divider class="my-3" />
-                <p class="font-weight-medium mb-1">Comentário:</p>
-                <p>{{ review.comment }}</p>
-                <p class="font-weight-medium mb-1">Fotografias:</p>
-                <v-row v-if="review.images && review.images.length" dense>
-                  <v-col
-                      v-for="(img, index) in review.images"
-                      :key="index"
-                      cols="4"
-                      sm="3"
-                      md="2"
-                  >
-                    <v-img
-                        :src="typeof img === 'string' ? img : img.url"
-                        alt="Imagem da review"
-                        aspect-ratio="1"
-                        class="rounded"
-                        @click="openImage(img.url)"
-                        cover
-                    ></v-img>
-                  </v-col>
-                </v-row>
-              <v-divider class="my-2" />
+
+                <v-divider/>
+                <div class="mb-1">
+                  <div class="font-weight-bold" style="color: #427F99">Comentário:</div>
+                  <div>{{ review.comment }}</div>
+
+                  <div v-if="review.images && review.images.length">
+                    <p class="font-weight-bold" style="color: #427F99">Fotografias:</p>
+                    <v-row dense>
+                      <v-col
+                          v-for="(img, index) in review.images"
+                          :key="index"
+                          cols="4"
+                          sm="3"
+                          md="2"
+                      >
+                        <v-img
+                            :src="typeof img === 'string' ? img : img.url"
+                            alt="Imagem da review"
+                            aspect-ratio="1"
+                            class="rounded"
+                            @click="openImage(img.url)"
+                            cover
+                        ></v-img>
+                      </v-col>
+                    </v-row>
+                  </div>
+                </div>
+              </v-card>
               
             </v-col>
           </v-row>
