@@ -8,14 +8,17 @@
       <div class="profile-picture-wrapper">
         <img class="profile-picture" :src="profileImage" alt="Foto de Perfil"/>
         <h2 class="username-display">{{ username }}</h2>
-        <v-btn v-if="userStore.id === userId" color="#427F99" rounded="lg" variant="outlined" to="/editProfile">Editar Perfil</v-btn>
+        <v-btn v-if="userStore.id === userId" color="#427F99" rounded="lg" variant="outlined" to="/editProfile" prepend-icon="fa-solid fa-pen">Editar Perfil</v-btn>
       </div>
     </div>
 
     <div class="content-container">
       <!-- Visitas Recentes -->
       <div class="recent-visits">
-        <h3>Visitas Recentemente</h3>
+        <h3 class="d-inline-flex align-center">
+          <v-icon icon="fa-solid fa-map-marker-alt" class="mr-2" />
+          Visitas Recentemente
+        </h3>
         <ul>
           <li v-for="(ponto, index) in visitedPoints" :key="index">{{ ponto.name }}</li>
           <li v-if="visitedPoints.length === 0">Sem visitas recentes.</li>
@@ -27,7 +30,10 @@
 
       <!-- Galeria à direita -->
       <div class="gallery">
-        <h3>Galeria</h3>
+        <h3 class="d-inline-flex align-center">
+          <v-icon icon="fa-solid fa-camera" class="mr-2" />
+          Galeria de fotos
+        </h3>
         <div class="gallery-grid">
           <img
               v-for="img in images"
