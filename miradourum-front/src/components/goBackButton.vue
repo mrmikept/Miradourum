@@ -12,23 +12,18 @@ const showBackButton = computed(() => route.path !== '/home');
 
 
 <template>
-  <button
-      v-if="showBackButton"
-      @click="router.back()"
-      class="nav-button"
-  >
-    Voltar
-  </button>
+  <v-container fluid>
+    <v-btn
+        v-if="showBackButton"
+        color="#427F99"
+        @click="router.back()"
+        prepend-icon="fa-solid fa-arrow-left"
+        class="font-weight-bold"
+        variant="text">
+      Voltar atrás
+    </v-btn>
+  </v-container>
 
-  <v-btn
-      v-if="showBackButton"
-      color="#427F99"
-      @click="router.back()"
-      prepend-icon="fa-solid fa-arrow-left"
-      class="font-weight-bold"
-      variant="text">
-    Voltar atrás
-  </v-btn>
 
 </template>
 
