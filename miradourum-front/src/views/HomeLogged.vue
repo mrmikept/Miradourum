@@ -425,6 +425,16 @@ const triggerSuccessPopup = (message) => {
   }, 3000)
 }
 
+const errorMessage = ref('')
+
+// Ativa o popup de erro no canto esquerdo
+function showErrorMsg(msg) {
+  errorMessage.value = msg
+  successMessage.value = '' // Limpar mensagem de sucesso
+  setTimeout(() => {
+    errorMessage.value = ''
+  }, 3000)
+}
 
 
 const checkAdmin = async () => {
@@ -607,7 +617,7 @@ const fetchPontosInteresse = async () => {
 
   } catch (error) {
     console.error('Erro ao buscar pontos de interesse:', error)
-    alert(`Erro ao carregar pontos de interesse: ${error.message}`)
+    showErrorMsg("Não foi possível obter pontos de interesse. Tente novamente mais tarde.")
   } finally {
     isLoadingPontos.value = false
   }
@@ -741,7 +751,7 @@ if (response.status === 204) {
 
   } catch (error) {
     console.error('Erro ao buscar detalhes do ponto:', error)
-    alert(`Erro ao carregar detalhes: ${error.message}`)
+    showErrorMsg("Erro ao carregar detalhes do Ponto de Interesse. Tente Novamente mais tarde!")
   } finally {
     isLoadingDetails.value = false
   }
@@ -769,7 +779,7 @@ const selectPoint = (ponto) => {
 // Função para obter localização atual
 const getCurrentLocation = () => {
   if (!navigator.geolocation) {
-    alert('Geolocalização não é suportada neste navegador.')
+    showErrorMsg('Geolocalização não é suportada neste navegador.')
     return
   }
   
@@ -826,8 +836,7 @@ const getCurrentLocation = () => {
           errorMessage = 'Tempo limite para obter localização.'
           break
       }
-      
-      alert(errorMessage)
+      showErrorMsg(errorMessage)
       isLoadingLocation.value = false
     },
     {

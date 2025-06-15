@@ -2,6 +2,10 @@
   <div class="details-page">
     <TopToolBarMenu />
 
+    <SuccessPopup v-if="successMessage" :text="successMessage" /> <!-- mostra se successMessage não estiver vazio-->
+    <ErrorPopup v-if="errorMessage" :text="errorMessage" /> <!-- mostra se errorMessage não estiver vazio-->
+
+
     <!-- Conteúdo principal -->
     <div class="content-container">
       <!-- Detalhes do ponto (lado esquerdo) -->
@@ -262,13 +266,8 @@ const showCommentModal = ref(false)
 const newComment = ref('')
 const newRating = ref('')
 
-// Funções de navegação
-const goBack = () => router.back()
-const goEditProfile = () => router.push('/editProfile')
-const handleLogout = () => {
-  localStorage.removeItem('authToken')
-  router.push('/login')
-}
+const successMessage = ref('')
+const errorMessage = ref('')
 
 function displayError(msg) {
   errorText.value = msg
@@ -370,11 +369,11 @@ const deleteReview = async (reviewId) => {
       displaySuccess('Review apagada com sucesso!')
       await fetchPointDetails()
     } else {
-      displayError("Erro ao apagar review.")
+      displayError("Ocorreu um erro ao apagar review. Tente novamente mais tarde!")
     }
   } catch (err) {
     console.error("Erro ao apagar review", err)
-    alert("Erro inesperado.")
+    displayError("Ocorreu um erro. Tente novamente mais tarde!")
   }
 }
 
@@ -417,31 +416,6 @@ const uploadReviewImageToMinIO = async (file) => {
   return `${Minio_URL}/review-images/${fileName}`
 }
 
-
-// Marcar como visitado
-const markAsVisited = async () => {
-  loadingVisit.value = true
-  try {
-    const res = await fetch(`${API_BASE_URL}/pi/${pointId}/visit`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      }
-    })
-    if (!res.ok) {
-      alert('Erro ao marcar como visitado')
-      loadingVisit.value = false
-      return
-    }
-    alert('Ponto marcado como visitado com sucesso!')
-  } catch (err) {
-    alert('Erro ao marcar como visitado')
-    console.error(err)
-  } finally {
-    loadingVisit.value = false
-  }
-}
 
 // Modal comentário
 const openCommentModal = () => {
@@ -518,16 +492,16 @@ if (!newComment.value.trim()) {
     await fetchPointDetails()
     displaySuccess(editingReviewId.value ? 'Review atualizada com sucesso!' : 'Review adicionada com sucesso!')
     closeCommentModal()
-    reviewImageFile.value = null
+    reviewImageFiles.value = null
     reviewImagePreview.value = ''
     editingReviewId.value = null // reset after submit
   } catch (error) {
     console.error("Erro ao enviar comentário", error)
+    displayError("Ocorreu um problema. Tente novamente mais tarde!")
   } finally {
     loadingComment.value = false
     reviewImageFiles.value = []
     reviewImagePreview.value = []
-
   }
 }
 

@@ -1,18 +1,11 @@
 <template>
   <div class="home-page">
     <!-- Navbar -->
-<!--    <nav class="navbar">-->
-<!--      <div class="navbar-left">-->
-<!--        <LogoButton to="/" />-->
-<!--        <button class="nav-button" @click="goBack">← Anterior</button>-->
-<!--      </div>-->
-
-<!--      <div class="navbar-right">-->
-<!--        <button v-if="!isPremiumStatus" class="nav-button" @click="goPremium">Torne-se Premium</button>-->
-<!--        <button class="nav-button" @click="handleLogout">Terminar Sessão ⎋</button>-->
-<!--      </div>-->
-<!--    </nav>-->
     <top-tool-bar-menu/>
+
+    <SuccessPopup v-if="successMessage" :text="successMessage" /> <!-- mostra se successMessage não estiver vazio-->
+    <ErrorPopup v-if="errorMessage" :text="errorMessage" /> <!-- mostra se errorMessage não estiver vazio-->
+
 
     <!-- Profile Content -->
     <div class="profile-container">
@@ -37,24 +30,24 @@
         <button class="save-button" @click="guardarPerfil">Guardar</button>
       </div>
 
-<div class="form-group">
-  <label for="password">Nova Palavra Passe (opcional)</label>
-  <div class="input-wrapper" style="position: relative;">
-    <input
-      v-model="novaPassword"
-      id="password"
-      type="password"
-      placeholder="Mínimo 6 caracteres"
-      :class="{ error: passwordError }"
-      @input="clearPasswordError"
-    />
-    <FieldErrorPopup
-      :show="showPasswordError"
-      :message="passwordError"
-      @hide="() => showPasswordError = false"
-    />
-  </div>
-</div>
+      <div class="form-group">
+        <label for="password">Nova Palavra Passe (opcional)</label>
+        <div class="input-wrapper" style="position: relative;">
+          <input
+            v-model="novaPassword"
+            id="password"
+            type="password"
+            placeholder="Mínimo 6 caracteres"
+            :class="{ error: passwordError }"
+            @input="clearPasswordError"
+          />
+          <FieldErrorPopup
+            :show="showPasswordError"
+            :message="passwordError"
+            @hide="() => showPasswordError = false"
+          />
+        </div>
+      </div>
 
 
 
@@ -68,9 +61,7 @@
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router'
 import { ref, onMounted } from 'vue'
-import LogoButton from '@/components/LogoButton.vue'
 import { computed } from 'vue'
 
 import TopToolBarMenu from "../components/TopToolBarMenu.vue";
@@ -78,6 +69,8 @@ import { S3Client } from '@aws-sdk/client-s3'
 import { Upload } from '@aws-sdk/lib-storage'
 import FieldErrorPopup from '@/components/FieldErrorPopup.vue'
 import {UserStore} from "@/store/userStore.js";
+import ErrorPopup from "@/components/ErrorPopup.vue";
+import SuccessPopup from "@/components/SuccessPopup.vue";
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const imageFile = ref(null)
@@ -85,6 +78,7 @@ const imagePreview = ref('')
 
 const userStore = UserStore()
 const Minio_URL = import.meta.env.VITE_MINIO_URL;
+
 // MinIO client setup (igual ao registo)
 const s3Client = new S3Client({
   region: 'us-east-1',
@@ -98,37 +92,38 @@ const s3Client = new S3Client({
 const novaPassword = ref('')
 
 const alterarPassword = async () => {
-if (novaPassword.value.trim().length < 6) {
-  passwordError.value = 'A nova palavra-passe deve ter pelo menos 6 caracteres.'
-  showPasswordError.value = true
-  return
-}
-
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/user/password`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ newPassword: novaPassword.value }),
-    });
-
-    if (response.ok) {
-  alert("Palavra-passe atualizada com sucesso!")
-  novaPassword.value = ''
-  passwordError.value = ''
-  showPasswordError.value = false
-}
- else {
-      const err = await response.text()
-      alert("Erro ao atualizar: " + err)
-    }
-  } catch (error) {
-    console.error("Erro ao atualizar a palavra-passe:", error)
-    alert("Erro de rede.")
+  if (novaPassword.value.trim().length < 6) {
+    passwordError.value = 'A nova palavra-passe deve ter pelo menos 6 caracteres.'
+    showPasswordError.value = true
+    return
   }
+
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/user/password`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ newPassword: novaPassword.value }),
+      });
+
+      if (response.ok) {
+        showSuccess("Palavra-passe alterada com sucesso!")
+        novaPassword.value = ''
+        passwordError.value = ''
+        showPasswordError.value = false
+      }
+     else {
+          const err = await response.text()
+          console.log("Erro ao atualizar palavra-passe: " + err)
+          showError("Não foi possível atualizar a palavra-passe. Tente novamente mais tarde.!")
+        }
+    } catch (error) {
+      console.error("Erro ao atualizar a palavra-passe:", error)
+      showError("Ocorreu um erro. Tente novamente mais tarde.")
+    }
 }
 
 const passwordError = ref('')
@@ -160,17 +155,6 @@ const uploadImageToMinIO = async (file) => {
 
   const result = await upload.done()
   return `${Minio_URL}/profile-images/${fileName}`
-}
-
-const router = useRouter()
-
-const goBack = () => {
-  router.push('/history')
-}
-
-
-const goPremium = () => {
-  router.push('/subscribe/premium')
 }
 
 
@@ -224,7 +208,6 @@ const checkPremiumStatus = async () => {
 }
 
 onMounted(() => {
-  // fetchUserProfile()
   checkPremiumStatus()
 })
 
@@ -262,14 +245,35 @@ const guardarPerfil = async () => {
 
       userStore.setUserData(userData)
 
-      alert('Perfil guardado com sucesso!')
+      showSuccess('Perfil atualizado com sucesso!')
     } else {
-      alert('Erro ao guardar perfil.')
+      showError('Não foi possível atualizar dados do Perfil. Tente novamente mais tarde.')
     }
   } catch (error) {
     console.error('Erro ao guardar perfil:', error)
-    alert('Erro na rede.')
+    showError('Não foi possível guardar as alterações.\nTente novamente mais tarde.')
   }
+}
+
+const errorMessage = ref('')
+const successMessage = ref('')
+
+// Ativa o popup de erro no canto esquerdo
+function showError(msg) {
+  errorMessage.value = msg
+  successMessage.value = '' // Limpar mensagem de sucesso
+  setTimeout(() => {
+    errorMessage.value = ''
+  }, 3000)
+}
+
+// Ativa o popup de sucesso no canto esquerdo
+function showSuccess(msg) {
+  successMessage.value = msg
+  errorMessage.value = '' // Limpar mensagem de erro
+  setTimeout(() => {
+    successMessage.value = ''
+  }, 3000)
 }
 
 </script>
