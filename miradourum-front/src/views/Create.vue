@@ -1,13 +1,8 @@
 <template>
+  <TopToolBarMenu />
+  
+
   <div class="home-page">
-    <nav class="navbar">
-      <div class="navbar-left">
-        <LogoButton to="/home" />
-      </div>
-<!--      <div class="navbar-right">-->
-<!--        <button class="nav-button" @click="goBack">Voltar</button>-->
-<!--      </div>-->
-    </nav>
 
     <div class="form-container">
       <h1>Criar Ponto de Interesse</h1>
@@ -95,6 +90,7 @@ import LogoButton from '@/components/LogoButton.vue'
 import SuccessPopup from '@/components/SuccessPopup.vue'
 import ErrorPopup from '@/components/ErrorPopup.vue'
 import {UserStore} from "@/store/userStore.js";
+import TopToolBarMenu from "@/components/TopToolBarMenu.vue";
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 const Minio_URL = import.meta.env.VITE_MINIO_URL;
 const router = useRouter()
