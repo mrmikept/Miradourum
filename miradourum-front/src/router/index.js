@@ -41,7 +41,7 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
-    path: '/become-premium',
+    path: '/subscribe/premium',
     name: 'BecomePremium',
     component: BecomePremium,
     meta: { requiresAuth: true },
@@ -74,13 +74,13 @@ const routes = [
     path: '/review',
     name: 'Review',
     component: Review,
-    meta:{ requiresAuth:true}
+    meta:{ requiresAuth:true }
   },
   {
     path: '/create',
     name: 'Create',
     component: Create,
-    meta:{requiresAuth:true}
+    meta:{requiresAuth:true }
   },
   {
     path: '/:pathMatch(.*)*',
