@@ -1,5 +1,6 @@
 <template>
-     <top-tool-bar-menu/>
+
+  <TopToolBarMenu/>
   <div class="home-page">
 
 
@@ -79,13 +80,13 @@ const fetchPontos = async () => {
     })
 
     if (response.status === 401) {
-      errorMessage.value = 'Não autorizado. Verifique as permissões.'
+      showError('Não autorizado. Verifique as permissões.')
       return
     }
 
     if (!response.ok) {
       const text = await response.text()
-      errorMessage.value = text || 'Erro ao obter dados.'
+      showError(text || 'Erro ao obter dados.')
       return
     }
 
@@ -98,12 +99,6 @@ const fetchPontos = async () => {
   } finally {
     loading.value = false
   }
-}
-
-const router = useRouter()
-
-const goBack = () => {
-  router.back()
 }
 
 const handleDecision = async (id, accepted, comment = '') => {
@@ -120,7 +115,8 @@ const handleDecision = async (id, accepted, comment = '') => {
 
     if (!response.ok) {
       const text = await response.text()
-      errorMessage.value = text || 'Erro ao submeter decisão.'
+      showError(text || 'Erro ao submeter decisão.')
+
       return
     }
 
@@ -131,7 +127,7 @@ const handleDecision = async (id, accepted, comment = '') => {
     pontos.value = pontos.value.filter(p => p.id !== id) // Remove from list
     setTimeout(() => successMessage.value = '', 3000)
   } catch (err) {
-    errorMessage.value = 'Erro ao enviar decisão.'
+    showError('Erro ao enviar decisão.')
     console.error(err)
   }
 }
@@ -141,11 +137,27 @@ const askForComment = async (id) => {
   if (comment && comment.trim().length > 0) {
     handleDecision(id, false, comment.trim())
   } else {
-    alert('Comentário obrigatório para recusar.')
+    showError('Motivo de recusa obrigatório.')
   }
 }
 
+// Ativa o popup de erro no canto esquerdo
+function showError(msg) {
+  errorMessage.value = msg
+  successMessage.value = '' // Limpar mensagem de sucesso
+  setTimeout(() => {
+    errorMessage.value = ''
+  }, 3000)
+}
 
+// Ativa o popup de sucesso no canto esquerdo
+function showSuccess(msg) {
+  successMessage.value = msg
+  errorMessage.value = '' // Limpar mensagem de erro
+  setTimeout(() => {
+    successMessage.value = ''
+  }, 3000)
+}
 
 
 onMounted(fetchPontos)
