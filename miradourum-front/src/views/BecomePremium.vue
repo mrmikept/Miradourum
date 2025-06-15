@@ -29,7 +29,15 @@
 
       <button class="confirm-button" type="submit">Confirmar</button>
     </form>
+<SuccessPopup 
+  v-if="showSuccess" 
+  :text="successMessage" 
+  @close="showSuccess = false" 
+/>
+
   </div>
+
+
 </template>
 
 <script setup>
@@ -39,6 +47,9 @@ import LogoButton from '@/components/LogoButton.vue'
 import {UserStore} from "@/store/userStore.js";
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 import TopToolBarMenu from "../components/TopToolBarMenu.vue";
+import SuccessPopup from "@/components/SuccessPopup.vue" 
+const showSuccess = ref(false)
+const successMessage = ref('')
 
 const router = useRouter()
 const cardName = ref('')
@@ -75,8 +86,13 @@ const confirmarUpgrade = async () => {
     })
 
     if (response.ok) {
-      alert('Upgrade Premium realizado com sucesso!')
-      router.push('/home')
+      userStore.userType=3
+      successMessage.value = 'Upgrade Premium realizado com sucesso!'
+      showSuccess.value = true
+      userStore.userType = 3
+      setTimeout(() => {
+        router.push('/home')
+      }, 2000)
     } else {
       alert('Erro ao fazer upgrade.')
     }
