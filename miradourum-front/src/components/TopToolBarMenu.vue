@@ -7,6 +7,7 @@ import Location_chip from "./location_chip.vue";
 import {UserStore} from "@/store/userStore.js";
 import { useRoute } from 'vue-router';
 import { computed } from 'vue';
+import GoBackButton from "@/components/goBackButton.vue";
 
 defineProps({
   userId: String,
@@ -39,13 +40,13 @@ const showBackButton = computed(() => route.path !== '/home');
           <LogoButton to="/home" class="mr-16" />
           <location_chip class="mr-12" />
 
-          <button
-            v-if="showBackButton"
-            @click="router.back()"
-            class="nav-button"
-          >
-            Voltar
-          </button>
+<!--          <button-->
+<!--            v-if="showBackButton"-->
+<!--            @click="router.back()"-->
+<!--            class="nav-button"-->
+<!--          >-->
+<!--            Voltar-->
+<!--          </button>-->
         </v-col>
           <v-navigation-drawer
               location="right"
@@ -148,6 +149,7 @@ const showBackButton = computed(() => route.path !== '/home');
       <v-main style="height: 250px"></v-main>
 
   </v-toolbar>
+  <GoBackButton/>
 </template>
 
 <style scoped>
