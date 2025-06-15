@@ -19,8 +19,9 @@ const userStore = UserStore();
 
 const handleLogout = () => {
   userStore.clearUserStore()
-  // localStorage.removeItem('authToken')  // Remove o token de autenticação
   router.push('/login')                  // Redireciona para a página de login
+  window.location.replace()
+
 }
 const route = useRoute(); 
 const showBackButton = computed(() => route.path !== '/home');
@@ -34,18 +35,18 @@ const showBackButton = computed(() => route.path !== '/home');
 
         <v-col class="d-flex justify-end align-center" cols="auto">
           <!-- Left Side: Back Button + Logo + Location Chip -->
-<v-col class="d-flex align-center" cols="auto">
-  <LogoButton to="/home" class="mr-16" />
-  <location_chip class="mr-12" />
-  
-  <button
-    v-if="showBackButton"
-    @click="router.back()"
-    class="nav-button"
-  >
-    Voltar
-  </button>
-</v-col>
+        <v-col class="d-flex align-center" cols="auto">
+          <LogoButton to="/home" class="mr-16" />
+          <location_chip class="mr-12" />
+
+          <button
+            v-if="showBackButton"
+            @click="router.back()"
+            class="nav-button"
+          >
+            Voltar
+          </button>
+        </v-col>
           <v-navigation-drawer
               location="right"
               expand-on-hover
@@ -76,39 +77,19 @@ const showBackButton = computed(() => route.path !== '/home');
                 <v-list-item-title class="drawer-text">Página Inicial</v-list-item-title>
               </v-list-item>
 
-
-              <v-list-group
-                  value="profile"
-                  to="/profile"
-                  prepend-icon="fa-solid fa-user"
-                  color="#5FB3CE"
-                  base-color="#5FB3CE"
-                  activator
-                  fluid
-              >
-                <template #activator="{ props }">
-                  <v-list-item v-bind="props">
-                    <v-list-item-title class="drawer-text">Perfil de Utilizador</v-list-item-title>
-                  </v-list-item>
+              <v-list-item :to="`/profile/${userStore.id}`" class="sub-item" link>
+                <template #prepend>
+                  <v-icon icon="fa-solid fa-user" color="#5FB3CE"/>
                 </template>
+                <v-list-item-title class="drawer-text">Perfil de Utilizador</v-list-item-title>
+              </v-list-item>
 
-                <v-list-item :to="`/profile/${userStore.id}`" class="sub-item" link>
-                  <template #prepend>
-                    <v-icon icon="fa-solid fa-clock-rotate-left" color="#5FB3CE"/>
-                  </template>
-                  <v-list-item-title class="drawer-text">Histórico</v-list-item-title>
-                </v-list-item>
-
-                <v-list-item to="/editProfile" class="sub-item" link>
-                  <template #prepend>
-                    <v-icon icon="fa-solid fa-pen-to-square" color="#5FB3CE"/>
-                  </template>
-                  <v-list-item-title class="drawer-text">Editar Perfil</v-list-item-title>
-                </v-list-item>
-
-
-              </v-list-group>
-
+              <v-list-item v-if="userStore.userType === 1" :to="`/subscribe/premium`" class="sub-item" link>
+                <template #prepend>
+                  <v-icon icon="fa-solid fa-star" color="#5FB3CE"/>
+                </template>
+                <v-list-item-title class="drawer-text">Subscrever Premium</v-list-item-title>
+              </v-list-item>
 
               <v-list-item
                   to="/photoGallery"
@@ -120,7 +101,7 @@ const showBackButton = computed(() => route.path !== '/home');
                 <template #prepend>
                   <v-icon icon="fa-solid fa-image" color="#5FB3CE" />
                 </template>
-                <v-list-item-title class="drawer-text">Minha Galeria</v-list-item-title>
+                <v-list-item-title class="drawer-text">A Minha Galeria</v-list-item-title>
               </v-list-item>
 
               <v-list-item
@@ -163,10 +144,6 @@ const showBackButton = computed(() => route.path !== '/home');
       </v-row>
 
     </v-container>
-
-
-
-
 
       <v-main style="height: 250px"></v-main>
 
