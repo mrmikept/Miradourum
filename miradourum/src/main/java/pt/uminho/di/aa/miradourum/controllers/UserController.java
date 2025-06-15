@@ -220,7 +220,7 @@ public class UserController {
     @PostMapping("/upgrade-premium")
     public ResponseEntity<?> upgradeToPremium(
             @RequestHeader("Authorization") String authHeader,
-            @RequestBody PaymentDTO paymentData) {
+            @Valid @RequestBody PaymentDTO paymentData) {
 
         // Validar token
         ResponseEntity<?> tokenValidation = jwtService.validateToken(authHeader);

@@ -179,6 +179,7 @@ const fetchImages = async () => {
 const mapContainer = ref(null)
 let map = null
 
+// Setup mapa leaflet
 const setupMap = () => {
   if (!mapContainer.value) return
 
@@ -207,15 +208,45 @@ const setupMap = () => {
 
   if (pontosValidos.length === 0) return
 
-  // Adiciona marcadores com ícone verde
-  const markers = pontosValidos.map(ponto =>
-      L.marker([ponto.lat, ponto.lng], { icon: greenIcon }).bindPopup(ponto.name)
-  )
+  // Adiciona marcadores com ícone verde e navegação
+  const markers = pontosValidos.map(ponto => {
+    const marker = L.marker([ponto.lat, ponto.lng], { icon: greenIcon })
+    
+    // Criar popup com botão clicável
+    const popupContent = `
+      <div style="text-align: center;">
+        <strong>${ponto.name}</strong><br>
+        <button 
+          onclick="window.navigateToPoint('${ponto.id}')" 
+          style="
+            background-color: #427F99; 
+            color: white; 
+            border: none; 
+            padding: 5px 10px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            margin-top: 5px;
+          "
+        >
+          Ver Detalhes
+        </button>
+      </div>
+    `
+    
+    marker.bindPopup(popupContent)
+    
+    return marker
+  })
 
   markers.forEach(marker => marker.addTo(map))
 
   const group = new L.featureGroup(markers)
   map.fitBounds(group.getBounds().pad(0.5))
+}
+
+// Função global para navegação (chamada pelo botão no popup)
+window.navigateToPoint = (pointId) => {
+  router.push(`/pi/details/${pointId}`)
 }
 
 onMounted(async () => {
