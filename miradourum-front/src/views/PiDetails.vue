@@ -41,8 +41,13 @@
           <p><strong>Premium:</strong> {{ pointDetails.premium ? 'Sim' : 'Não' }}</p>
           <p><strong>Latitude:</strong> {{ pointDetails.latitude }}</p>
           <p><strong>Longitude:</strong> {{ pointDetails.longitude }}</p>
-          <p><strong>Distância:</strong> {{ pointDetails.distanceFromUser ? pointDetails.distanceFromUser.toFixed(2) + ' km' : 'N/A' }}</p>
-          <p><strong>Score:</strong> {{ pointDetails.score?.toFixed(1) }}</p>
+          <p><strong>Avaliação:</strong> <v-rating
+              :model-value="pointDetails.score"
+              readonly
+              color="amber"
+              size="25"
+              half-increments
+          /> ({{pointDetails.score}}) </p>
           <p><strong>Dificuldade:</strong> {{ pointDetails.difficulty }}</p>
         </div>
 
@@ -80,7 +85,7 @@
                       {{ review.username }}
                     </router-link>
                     <div style="font-size: 1rem; color: #6c757d">
-                      {{ formatDate(review.creationDate).split(',')[0] }}
+                      {{ formatDate(review.creationDate) }}
                     </div>
                   </v-col>
 
