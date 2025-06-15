@@ -55,7 +55,8 @@
             <span>Sua Localização</span>
           </div>
           <div class="legend-info">
-            <button 
+            <button
+              v-if="userStore.userType === 1"
               class="help-button"
               @mouseenter="hovering = true"
               @mouseleave="hovering = false"
