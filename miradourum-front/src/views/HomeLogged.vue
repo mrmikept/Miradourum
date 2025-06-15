@@ -1,21 +1,5 @@
 <template>
   <div class="home-page">
-<!--    <nav class="navbar">-->
-<!--      <div class="navbar-left">-->
-<!--        <LogoButton to="/home">-->
-<!--        </LogoButton>-->
-<!--      </div>-->
-<!--      <div class="navbar-right">-->
-<!--        <RouterLink v-if="isAdmin" to="/review" class="nav-button">Review</RouterLink>-->
-
-<!--        <div class="location-info" v-if="userLocation">-->
-<!--          <span class="location-text">📍 {{ userLocation.lat.toFixed(4) }}, {{ userLocation.lng.toFixed(4) }}</span>-->
-<!--        </div>-->
-<!--        &lt;!&ndash; Botão de editar perfil &ndash;&gt;-->
-<!--        <button class="nav-button" @click="goToProfile">Ver Perfil</button>-->
-<!--      </div>-->
-<!--    </nav>-->
-
     <TopToolBarMenu/>
 
 
@@ -69,6 +53,30 @@
           <div class="legend-item">
             <span class="legend-color blue"></span>
             <span>Sua Localização</span>
+          </div>
+          <div class="legend-info">
+            <button 
+              class="help-button"
+              @mouseenter="hovering = true"
+              @mouseleave="hovering = false"
+              @click="toggleTooltip"
+              aria-label="Informação"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" 
+                  width="16" height="16" viewBox="0 0 24 24" fill="none" 
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12" y2="8"></line>
+              </svg>
+            </button>
+
+            <!-- Tooltip aparece se hover OU toggle ativado -->
+            <div v-if="hovering || toggled" class="tooltip">
+              Se quiser ter acesso a mais miradouros torne-se membro 
+              <router-link to="/subscribe/premium" class="premium-link">Premium</router-link>
+            </div>
+
           </div>
         </div>
         
@@ -342,6 +350,15 @@ const searchCoords = ref({
   lng: null
 })
 const API_BASE_URL = import.meta.env.VITE_API_URL;
+
+
+const hovering = ref(false)
+const toggled = ref(false)
+
+function toggleTooltip() {
+  toggled.value = !toggled.value
+}
+
 
 // Filtros
 const filters = ref({
@@ -1498,6 +1515,78 @@ const handleLogoClick = () => {
   margin: 0.25rem 0;
   color: #666;
 }
+
+
+.legend-info {
+  margin-left: auto; /* Empurra para a direita */
+  position: relative;
+}
+
+.help-button-container {
+  position: relative;
+}
+
+.help-button {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+  background: #f8f9fa;
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.help-button:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+  color: #495057;
+}
+
+.help-button svg {
+  stroke: currentColor;
+}
+
+.tooltip {
+  position: absolute;
+  top: 34px;
+  right: 0;
+  background: #333;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.tooltip::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  right: 8px;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 6px solid #333;
+}
+
+.premium-link {
+  color: #ffd700;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.premium-link:hover {
+  text-decoration: underline;
+}
+
 
 /* Responsividade */
 @media (max-width: 1200px) {
