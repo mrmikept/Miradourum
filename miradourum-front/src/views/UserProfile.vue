@@ -8,15 +8,25 @@
       <div class="profile-picture-wrapper">
         <img class="profile-picture" :src="profileImage" alt="Foto de Perfil"/>
         <h2 class="username-display">{{ username }}</h2>
+        <v-btn v-if="userStore.id === userId" color="#427F99" rounded="lg" variant="outlined" to="/editProfile" prepend-icon="fa-solid fa-pen">Editar Perfil</v-btn>
       </div>
     </div>
 
     <div class="content-container">
       <!-- Visitas Recentes -->
       <div class="recent-visits">
-        <h3>Visitas Recentemente</h3>
+        <h3 class="d-inline-flex align-center">
+          <v-icon icon="fa-solid fa-map-marker-alt" class="mr-2" />
+          Visitas Recentemente
+        </h3>
         <ul>
-          <li v-for="(ponto, index) in visitedPoints" :key="index">{{ ponto.name }}</li>
+          <li v-for="(ponto, index) in visitedPoints" :key="index"><v-btn
+              variant="text"
+              :ripple="false"
+              @click="$router.push(`/pi/details/${ponto.id}`)"
+          >
+            {{ ponto.name }}
+          </v-btn></li>
           <li v-if="visitedPoints.length === 0">Sem visitas recentes.</li>
         </ul>
       </div>
@@ -26,7 +36,10 @@
 
       <!-- Galeria à direita -->
       <div class="gallery">
-        <h3>Galeria</h3>
+        <h3 class="d-inline-flex align-center">
+          <v-icon icon="fa-solid fa-camera" class="mr-2" />
+          Galeria de fotos
+        </h3>
         <div class="gallery-grid">
           <img
               v-for="img in images"
@@ -43,8 +56,7 @@
 </template>
 
 <script setup>
-import {useRouter} from 'vue-router'
-import LogoButton from '@/components/LogoButton.vue'
+import {useRoute, useRouter} from 'vue-router'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import TopToolBarMenu from "../components/TopToolBarMenu.vue";
@@ -52,30 +64,53 @@ import { ref, onMounted, watch } from 'vue'
 import {UserStore} from "@/store/userStore.js";
 
 const router = useRouter()
-const userStore = UserStore()
+const route = useRoute()
+const userId = ref(route.params.id)
 
-const profileImage = ref(userStore.avatarUrl)
+const userStore = UserStore()
+const token = userStore.authToken
+
+const profileImage = ref('')
 const username = ref(userStore.username)
 
 // Dados do backend
 const visitedPoints = ref([]) // {name, lat, lng}
 const images = ref([]) // {id, url, ...}
+
+
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
-const token = userStore.authToken
 
-// Funções de navegação
-const goBack = () => router.push('/home')
-const goEditProfile = () => router.push('/editProfile')
-const handleLogout = () => {
-  localStorage.removeItem('authToken')
-  router.push('/login')
+const fetchUserData = async () => {
+
+  if (userId.value === userStore.id) {
+    console.log("Using user data")
+    profileImage.value = userStore.avatarUrl
+    username.value = userStore.username
+  } else {
+    console.log("Fetching user data")
+    const res = await fetch(`${API_BASE_URL}/user/${userId.value}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+
+    if (!res.ok) {
+      console.warn("Informações do utilizador não encontradas")
+      return
+    }
+
+    const data = await res.json()
+    console.log(data)
+    profileImage.value = data.profileImage
+    username.value = data.username
+  }
 }
 
 // Fetch pontos visitados
 const fetchVisitedPoints = async () => {
   try {
-    const res = await fetch(`${API_BASE_URL}/user/pontos`, {
+    const res = await fetch(`${API_BASE_URL}/user/pontos/${userId.value}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
     if (!res.ok) {
@@ -99,7 +134,7 @@ const fetchVisitedPoints = async () => {
 // Fetch galeria de imagens do utilizador
 const fetchImages = async () => {
   try {
-    const res = await fetch(`${API_BASE_URL}/user/images`, {
+    const res = await fetch(`${API_BASE_URL}/user/images/${userId.value}`, {
       headers: {Authorization: `Bearer ${token}`}
     })
     if (!res.ok) {
@@ -158,17 +193,11 @@ const setupMap = () => {
 }
 
 onMounted(async () => {
+  await fetchUserData()
   await fetchVisitedPoints()
   await fetchImages()
   setupMap()
 })
-
-
-/*watch(visitedPoints, (newPoints) => {
-  if (newPoints.length > 0) {
-    setupMap()
-  }
-})*/
 
 </script>
 

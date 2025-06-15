@@ -54,42 +54,139 @@
         </div>
       </div> <!-- fecha .point-details -->
 
+<!--      &lt;!&ndash; Reviews (lado direito) &ndash;&gt;-->
+<!--      <div class="reviews-section">-->
+<!--        <h3>Reviews</h3>-->
+<!--        <ul v-if="reviews.length > 0">-->
+<!--          <li v-for="review in sortedReviews" :key="review.creationDate" class="review-item">-->
+<!--            <p><strong>Autor:</strong>-->
+<!--              <v-btn-->
+<!--                  variant="text"-->
+<!--                  :ripple="false"-->
+<!--                  @click="$router.push()"-->
+<!--              >-->
+<!--                {{ review.username }}-->
+<!--              </v-btn>-->
+<!--            </p>-->
+
+
+<!--            <p><strong>Data:</strong> {{ formatDate(review.creationDate) }}</p>-->
+<!--            <p><strong>Comentário:</strong> {{ review.comment }}</p>-->
+<!--            <p><strong>Avaliação:</strong> {{ review.rating }}/5 ⭐ </p>-->
+
+<!--            &lt;!&ndash; Imagens da review &ndash;&gt;-->
+<!--            <div v-if="review.images && review.images.length > 0" class="review-pictures">-->
+<!--              <p><strong>Image{{ review.images.length > 1 ? 'ns' : 'm' }}:</strong></p>-->
+<!--              <div class="point-images">-->
+<!--                <img-->
+<!--                    v-for="(img, index) in review.images"-->
+<!--                    :key="index"-->
+<!--                    class="point-image"-->
+<!--                    :src="typeof img === 'string' ? img : img.url"-->
+<!--                    alt="Foto da review"-->
+<!--                    @click="openImage(img.url)"-->
+<!--                />-->
+<!--              </div>-->
+<!--            </div>-->
+
+<!--            &lt;!&ndash; Ações da review &ndash;&gt;-->
+<!--            <div v-if="parseInt(review.userId) === parseInt(userStore.id)" class="review-actions">-->
+<!--              <button class="edit-btn" @click="editReview(review)">Editar</button>-->
+<!--              <button class="delete-btn" @click="deleteReview(review.id)">Apagar</button>-->
+<!--            </div>-->
+
+<!--            <hr />-->
+<!--          </li>-->
+<!--        </ul>-->
+<!--        <p v-else>Sem reviews disponíveis.</p>-->
+<!--      </div> &lt;!&ndash; fecha .reviews-section &ndash;&gt;-->
+
       <!-- Reviews (lado direito) -->
       <div class="reviews-section">
-        <h3>Reviews</h3>
-        <ul v-if="reviews.length > 0">
-          <li v-for="review in sortedReviews" :key="review.creationDate" class="review-item">
-            <p><strong>Autor:</strong> {{ review.username }}</p>
-            <p><strong>Data:</strong> {{ formatDate(review.creationDate) }}</p>
-            <p><strong>Comentário:</strong> {{ review.comment }}</p>
-            <p><strong>Avaliação:</strong> {{ review.rating }}/5 ⭐ </p>
+        <h3 class="mb-4">Reviews</h3>
 
-            <!-- Imagens da review -->
-            <div v-if="review.images && review.images.length > 0" class="review-pictures">
-              <p><strong>Image{{ review.images.length > 1 ? 'ns' : 'm' }}:</strong></p>
-              <div class="point-images">
-                <img
-                  v-for="(img, index) in review.images"
-                  :key="index"
-                  class="point-image"
-                  :src="typeof img === 'string' ? img : img.url"
-                  alt="Foto da review"
-                  @click="openImage(img.url)"
-                />
-              </div>
-            </div>
+        <v-container fluid class="pa-0" v-if="reviews.length > 0">
+          <v-row dense>
+            <v-col
+                v-for="review in sortedReviews"
+                :key="review.creationDate"
+                cols="12"
+                class="mb-4"
+            >
+              <v-row align="center" justify="space-between">
+                <v-col cols="auto">
+                  <strong>{{ review.username }}</strong>
+                  <v-row v-if="parseInt(review.userId) === parseInt(userStore.id)" class="mt-2" dense no-gutters align="center">
+                    <v-col cols="auto" class="mr-2">
+                      <v-tooltip text="Editar Review" location="top">
+                        <template v-slot:activator="{ props }">
+                          <v-icon
+                              icon="fa-solid fa-pen"
+                              size="x-small"
+                              color="#1976D2"
+                              v-bind="props"
+                              @click="editReview(review)"
+                          />
+                        </template>
+                      </v-tooltip>
+                    </v-col>
+                    <v-col cols="auto">
+                      <v-tooltip text="Apagar Review" location="top">
+                        <template v-slot:activator="{ props }">
+                          <v-icon
+                              icon="fa-solid fa-trash"
+                              size="x-small"
+                              @click="deleteReview(review.id)"
+                              v-bind="props"
+                              color="#E53935"
+                          />
+                        </template>
+                      </v-tooltip>
 
-            <!-- Ações da review -->
-            <div v-if="parseInt(review.userId) === parseInt(userStore.id)" class="review-actions">
-              <button class="edit-btn" @click="editReview(review)">Editar</button>
-              <button class="delete-btn" @click="deleteReview(review.id)">Apagar</button>
-            </div>
+                    </v-col>
+                  </v-row>
+                </v-col>
+                  <v-col cols="auto" class="text-right">
+                    <div class="text-caption">{{ formatDate(review.creationDate) }}</div>
+                    <v-rating
+                        :model-value="review.rating"
+                        readonly
+                        color="amber"
+                        size="20"
+                        half-increments
+                    />
+                  </v-col>
+                </v-row>
+                <v-divider class="my-3" />
+                <p class="font-weight-medium mb-1">Comentário:</p>
+                <p>{{ review.comment }}</p>
+                <p class="font-weight-medium mb-1">Fotográfias</p>
+                <v-row v-if="review.images && review.images.length" dense>
+                  <v-col
+                      v-for="(img, index) in review.images"
+                      :key="index"
+                      cols="4"
+                      sm="3"
+                      md="2"
+                  >
+                    <v-img
+                        :src="typeof img === 'string' ? img : img.url"
+                        alt="Imagem da review"
+                        aspect-ratio="1"
+                        class="rounded"
+                        @click="openImage(img.url)"
+                        cover
+                    ></v-img>
+                  </v-col>
+                </v-row>
+              <v-divider class="my-2" />
+              
+            </v-col>
+          </v-row>
+        </v-container>
 
-            <hr />
-          </li>
-        </ul>
         <p v-else>Sem reviews disponíveis.</p>
-      </div> <!-- fecha .reviews-section -->
+      </div>
     </div> <!-- fecha .content-container -->
 
     <!-- Modal para adicionar comentário -->

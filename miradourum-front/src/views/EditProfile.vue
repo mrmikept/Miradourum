@@ -170,7 +170,7 @@ const goBack = () => {
 
 
 const goPremium = () => {
-  router.push('/become-premium')
+  router.push('/subscribe/premium')
 }
 
 

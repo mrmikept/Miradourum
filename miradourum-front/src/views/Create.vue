@@ -4,9 +4,9 @@
       <div class="navbar-left">
         <LogoButton to="/home" />
       </div>
-      <div class="navbar-right">
-        <button class="nav-button" @click="goBack">Voltar</button>
-      </div>
+<!--      <div class="navbar-right">-->
+<!--        <button class="nav-button" @click="goBack">Voltar</button>-->
+<!--      </div>-->
     </nav>
 
     <div class="form-container">
