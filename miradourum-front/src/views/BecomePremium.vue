@@ -6,7 +6,20 @@
     <!-- Premium Form -->
     <h1>Torne-se Premium</h1>
 
+
     <form class="premium-form" @submit.prevent="confirmarUpgrade">
+      <v-card color="#e6f0f5">
+        <div class="promo-message" style="font-size: 0.95rem; line-height: 1.5; text-align: justify; color: #427F99; margin: 0.5rem;">
+          <p>
+            Por apenas <strong>5€ mensais</strong>, torna-te um membro Premium e ganha a liberdade de partilhar fotos e deixar comentários sobre os locais que visitas, enriquecendo a comunidade com as tuas experiências.
+          </p>
+          <p>
+            Aproveita todas as funcionalidades para tornar a tua experiência ainda mais completa e interativa!
+          </p>
+        </div>
+      </v-card>
+
+      <h2 style="text-align:center; color:white; margin-bottom: 1rem;">Dados de Pagamento</h2>
       <div class="form-group">
         <div class="input-wrapper">
           <label for="cardName">Nome do Titular</label>
