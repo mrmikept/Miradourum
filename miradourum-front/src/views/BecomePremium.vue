@@ -1,16 +1,7 @@
 <template>
   <div class="premium-page">
     <!-- Navbar -->
-    <nav class="navbar">
-      <div class="navbar-left">
-        <LogoButton to="/" />
-        <button class="nav-button" @click="goBack">← Anterior</button>
-      </div>
-
-      <div class="navbar-right">
-        <button class="nav-button" @click="handleLogout">Terminar Sessão ⎋</button>
-      </div>
-    </nav>
+    <top-tool-bar-menu/>
 
     <!-- Premium Form -->
     <h1>Torne-se Premium</h1>
@@ -47,6 +38,7 @@ import { useRouter } from 'vue-router'
 import LogoButton from '@/components/LogoButton.vue'
 import {UserStore} from "@/store/userStore.js";
 const API_BASE_URL = import.meta.env.VITE_API_URL;
+import TopToolBarMenu from "../components/TopToolBarMenu.vue";
 
 const router = useRouter()
 const cardName = ref('')
@@ -173,7 +165,10 @@ input {
   border-radius: 8px;
   border: none;
   font-size: 1rem;
+  background-color: white; /* <-- Add this line */
+  color: black; /* Optional: to make sure text is readable */
 }
+
 
 .confirm-button {
   background-color: #3cb371;

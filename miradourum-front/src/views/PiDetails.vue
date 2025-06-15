@@ -204,12 +204,18 @@
 
         <label class="file-upload-label">
           Adicionar imagem
-          <input type="file" accept="image/*" @change="handleReviewImageUpload" />
+        <input type="file" accept="image/*" multiple @change="handleReviewImageUpload" />
         </label>
 
-        <div v-if="reviewImagePreview" class="preview">
-          <img :src="reviewImagePreview" alt="Preview da imagem" />
-        </div>
+        <div v-if="reviewImagePreview.length" class="preview">
+  <img
+    v-for="(src, idx) in reviewImagePreview"
+    :key="idx"
+    :src="src"
+    alt="Preview da imagem"
+    class="preview-image"
+  />
+</div>
 
         <div class="modal-buttons">
           <button @click="submitComment" :disabled="loadingComment">
@@ -242,7 +248,7 @@ import ErrorPopup from "../components/ErrorPopup.vue"
 import SuccessPopup from "../components/SuccessPopup.vue"
 
 const editingReviewId = ref(null)
-const reviewImageFile = ref(null)
+const reviewImageFiles = ref([])
 const reviewImagePreview = ref('')
 const reviewImage = ref('/default-review.png')
 const router = useRouter()
@@ -309,10 +315,20 @@ const fetchPointDetails = async () => {
       headers: { Authorization: `Bearer ${token}` }
     })
     
+    if (res.status === 204) {
+      // Premium content not allowed, redirect
+      displayError('Este ponto é premium. Redirecionando...');
+      setTimeout(() => {
+        router.push('/subscribe/premium');
+      }, 2000); // Optional short delay for user feedback
+      return;
+    }
+
     if (!res.ok) {
       console.warn('Erro ao carregar detalhes do ponto')
       return
     }
+    
     
     const data = await res.json()
     const { lat, lng } = userStore.location
@@ -383,10 +399,9 @@ const deleteReview = async (reviewId) => {
 
 //upload de imagens
 const handleReviewImageUpload = (event) => {
-  const file = event.target.files[0]
-  if (!file) return
-  reviewImageFile.value = file
-  reviewImagePreview.value = URL.createObjectURL(file)
+  const files = Array.from(event.target.files)
+  reviewImageFiles.value = files
+  reviewImagePreview.value = files.map(file => URL.createObjectURL(file))
 }
 
 const s3Client = new S3Client({
@@ -445,12 +460,19 @@ const markAsVisited = async () => {
 const openCommentModal = () => {
   newComment.value = ''
   newRating.value = ''
+  reviewImageFiles.value = []
+  reviewImagePreview.value = []
+  editingReviewId.value = null
   showCommentModal.value = true
 }
+
 const closeCommentModal = () => {
   showCommentModal.value = false
   editingReviewId.value = null
+  reviewImageFiles.value = []
+  reviewImagePreview.value = []
 }
+
 
 // Submeter comentário
 async function submitComment() {
@@ -476,8 +498,8 @@ if (!newComment.value.trim()) {
   try {
     let imageUrls = []
 
-    if (reviewImageFile.value) {
-      const imageUrl = await uploadReviewImageToMinIO(reviewImageFile.value)
+    for (const file of reviewImageFiles.value) {
+      const imageUrl = await uploadReviewImageToMinIO(file)
       imageUrls.push(imageUrl)
     }
 
@@ -516,6 +538,9 @@ if (!newComment.value.trim()) {
     console.error("Erro ao enviar comentário", error)
   } finally {
     loadingComment.value = false
+    reviewImageFiles.value = []
+    reviewImagePreview.value = []
+
   }
 }
 
@@ -812,6 +837,15 @@ onMounted(() => {
   justify-content: center;
   margin: 1rem 0;
 }
+.preview-image {
+  max-width: 120px;
+  max-height: 120px;
+  margin: 0.5rem;
+  border-radius: 8px;
+  border: 2px solid #427F99;
+  object-fit: cover;
+}
+
 
 .modal-content .preview img {
   max-width: 120px;
