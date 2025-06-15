@@ -220,7 +220,7 @@ public class UserController {
     @PostMapping("/upgrade-premium")
     public ResponseEntity<?> upgradeToPremium(
             @RequestHeader("Authorization") String authHeader,
-            @RequestBody PaymentDTO paymentData) {
+            @Valid @RequestBody PaymentDTO paymentData) {
 
         // Validar token
         ResponseEntity<?> tokenValidation = jwtService.validateToken(authHeader);
@@ -272,7 +272,7 @@ public class UserController {
     private PaymentResponseDTO callPaymentService(PaymentDTO paymentData) {
         try {
             RestTemplate restTemplate = new RestTemplate();
-            String paymentServiceUrl = "http://localhost:3000/api/pay";
+            String paymentServiceUrl = "http://payment_service:3000/api/pay";
 
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);

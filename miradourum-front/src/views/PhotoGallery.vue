@@ -24,7 +24,7 @@
   @click="openImage(img.url)"
 >
   <img :src="img.url" :alt="'Foto ' + img.id" class="gallery-image" />
-  <p class="photo-caption">{{ img.pontoNome || 'Miradouro desconhecido' }}</p>
+  <p class="photo-caption">{{ img.pontoInteresseName || 'Miradouro desconhecido' }}</p>
 </div>
 
         <p v-if="images.length === 0">Sem imagens disponíveis.</p>
@@ -78,42 +78,9 @@ const fetchImages = async () => {
 
     const rawImages = await res.json()
 
-    // Obter nome do miradouro associado a cada imagem (via review -> ponto)
-    const enrichedImages = await Promise.all(
-        rawImages.map(async (img) => {
-          try {
-            // Passo 1: buscar review
-            const reviewRes = await fetch(`${API_BASE_URL}/review/${img.reviewId}`, {
-              headers: { Authorization: `Bearer ${token}` }
-            })
-
-            if (!reviewRes.ok) throw new Error('Review não encontrada')
-            const reviewData = await reviewRes.json()
-            const pontoId = reviewData.pontoId
-
-            // Passo 2: buscar nome do miradouro
-            const pontoRes = await fetch(`${API_BASE_URL}/pi/${pontoId}`, {
-              headers: { Authorization: `Bearer ${token}` }
-            })
-
-            if (!pontoRes.ok) throw new Error('Miradouro não encontrado')
-            const pontoData = await pontoRes.json()
-
-            return {
-              ...img,
-              pontoNome: pontoData.name || 'Miradouro desconhecido'
-            }
-          } catch (err) {
-            console.warn(`Erro ao processar imagem ID ${img.id}:`, err)
-            return {
-              ...img,
-              pontoNome: 'Miradouro desconhecido'
-            }
-          }
-        })
-    )
-
-    images.value = enrichedImages.sort((a, b) => new Date(b.date) - new Date(a.date))
+  
+    console.log('Imagens enriquecidas:', rawImages)
+    images.value = rawImages.sort((a, b) => new Date(b.date) - new Date(a.date))
   } catch (err) {
     console.error('Erro fetch imagens:', err)
   }
