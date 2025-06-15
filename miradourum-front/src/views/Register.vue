@@ -8,7 +8,7 @@
     </nav>
 
     <div class="hero">
-      <img class="hero-image" src="@/assets/baloicoog.png" alt="Miradouro" />
+      <img class="hero-image" src="@/assets/baloicoog.jpg" alt="Miradouro" />
       <div class="hero-text">
         <h1><strong>MiradourUM</strong></h1>
         <p>Cria a tua conta e junta-te à comunidade de exploradores!</p>
