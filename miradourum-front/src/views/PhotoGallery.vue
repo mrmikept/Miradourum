@@ -33,17 +33,19 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import TopToolBarMenu from "@/components/TopToolBarMenu.vue";
 import {UserStore} from "@/store/userStore.js";
 
 
+
 const router = useRouter()
+const route = useRoute()
 const userStore = UserStore()
 const token = userStore.authToken
 const images = ref([])
 const API_BASE_URL = import.meta.env.VITE_API_URL;
-
+const userId = ref(route.params.id)
 const goBack = () => router.push('/home')
 const handleLogout = () => {
   localStorage.removeItem('authToken')
@@ -52,7 +54,7 @@ const handleLogout = () => {
 
 const fetchImages = async () => {
   try {
-    const res = await fetch(`${API_BASE_URL}/user/images`, {
+    const res = await fetch(`${API_BASE_URL}/user/images/${userId.value}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
 

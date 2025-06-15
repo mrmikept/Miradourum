@@ -65,7 +65,7 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
-    path: '/photoGallery',
+    path: '/photoGallery/:id',
     name: 'photoGallery',
     component: photoGallery,
     meta: { requiresAuth: true },

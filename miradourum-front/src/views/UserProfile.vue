@@ -39,10 +39,18 @@
 
       <!-- Galeria à direita -->
       <div class="gallery">
-        <h3 class="d-inline-flex align-center">
-          <v-icon icon="fa-solid fa-camera" class="mr-2" />
-          Galeria de fotos
-        </h3>
+       <div
+  class="gallery-header clickable-text"
+  role="button"
+  tabindex="0"
+  @click="goToGallery"
+  @keydown.enter="goToGallery"
+>
+  <v-icon icon="fa-solid fa-camera" class="mr-2" />
+  Galeria de fotos
+</div>
+
+
         <div class="gallery-grid">
       <div
         v-for="img in images"
@@ -94,6 +102,9 @@ const API_BASE_URL = import.meta.env.VITE_API_URL;
 const enlargedImage = ref(null)
 const openImage = (url) => {
   enlargedImage.value = url
+}
+const goToGallery = () => {
+  router.push(`/photoGallery/${userId.value}`)
 }
 
 const fetchUserData = async () => {
@@ -217,6 +228,21 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.gallery-header {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #427F99;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  margin-bottom: 1rem;
+}
+
+.gallery-header:focus {
+  outline: 2px solid #427F99;
+  outline-offset: 2px;
+}
 
 .modal {
   position: fixed;

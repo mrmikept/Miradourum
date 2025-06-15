@@ -93,7 +93,7 @@ const showBackButton = computed(() => route.path !== '/home');
               </v-list-item>
 
               <v-list-item
-                  to="/photoGallery"
+                  :to="`/photoGallery/${userStore.id}`"
                   nav
                   value="galeria"
                   color="#1976D2"
