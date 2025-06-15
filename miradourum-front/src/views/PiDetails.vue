@@ -185,13 +185,28 @@
       <div class="modal-content">
         <h3>Adicionar Comentário</h3>
         <textarea v-model="newComment" placeholder="Escreve o teu comentário aqui..."></textarea>
-        <label>
-          Avaliação:
-          <select v-model="newRating">
-            <option disabled value="">Seleciona a avaliação</option>
-            <option v-for="n in 5" :key="n" :value="n">{{ n }}</option>
-          </select>
-        </label>
+<!--        <label>-->
+<!--          Avaliação:-->
+<!--          <select v-model="newRating">-->
+<!--            <option disabled value="">Seleciona a avaliação</option>-->
+<!--            <option v-for="n in 5" :key="n" :value="n">{{ n }}</option>-->
+<!--          </select>-->
+<!--        </label>-->
+        <div
+            style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;"
+        >
+          <label style="margin-right: 0.5rem; font-weight: bold;">Avaliação:</label>
+          <v-rating
+              v-model="newRating"
+              length="5"
+              color="amber"
+              background-color="grey lighten-1"
+              large
+              hover
+          />
+          <span style="margin-left: 0.5rem; font-weight: bold;">{{ newRating ? newRating : 0 }}/5</span>
+        </div>
+
 
         <label class="file-upload-label">
           Adicionar imagem
@@ -268,6 +283,8 @@ const newRating = ref('')
 
 const successMessage = ref('')
 const errorMessage = ref('')
+
+const rating = ref(0)
 
 function displayError(msg) {
   errorText.value = msg
