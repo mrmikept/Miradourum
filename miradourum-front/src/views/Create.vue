@@ -31,9 +31,21 @@
     <input v-model="name" type="text" required placeholder="Nome do ponto" />
   </label>
 
-  <label>
+  <label class="description-label">
     Descrição:
-    <textarea v-model="description" required placeholder="Descreva o local e o que o torna especial" />
+    <div class="textarea-wrapper">
+      <textarea
+        v-model="description"
+        required
+        placeholder="Descreva o local e o que o torna especial"
+      />
+      <span
+        class="char-counter"
+        :class="{ 'char-limit-exceeded': remainingDescriptionChars < 0 }"
+      >
+        {{ remainingDescriptionChars }}
+      </span>
+    </div>
   </label>
 
   <label>
@@ -75,7 +87,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { S3Client } from '@aws-sdk/client-s3'
 import { Upload } from '@aws-sdk/lib-storage'
@@ -101,6 +113,10 @@ const imageFiles = ref([])
 const imagePreviews = ref([])
 const errorMessage = ref('')
 const successMessage = ref('')
+
+const maxDescriptionLength = 500 // ou o valor que quiseres
+const remainingDescriptionChars = computed(() => maxDescriptionLength - description.value.length)
+
 
 // MinIO config
 const s3Client = new S3Client({
@@ -308,4 +324,36 @@ if (missingFields.length > 0) {
   object-fit: cover;
   height: 100px;
 }
+
+.textarea-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.textarea-wrapper textarea {
+  width: 100%;
+  padding-right: 3rem; /* espaço para o contador */
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.char-counter {
+  position: absolute;
+  bottom: 8px;   /* sobe um pouco mais */
+  right: 12px;   /* afasta da borda */
+  font-size: 0.85em;
+  color: #888;
+  pointer-events: none;
+  background-color: white; /* opcional, se quiser que o número fique legível sobre o fundo */
+  padding: 0 4px;
+}
+
+
+.char-limit-exceeded {
+  color: red;
+}
+
+
 </style>

@@ -14,7 +14,7 @@ cleanup() {
     if [ ! -z "$FRONTEND_PID" ]; then
         kill $FRONTEND_PID 2>/dev/null
     fi
-    cd miradourum && docker-compose down
+    cd miradourum && docker compose down
     exit 0
 }
 
