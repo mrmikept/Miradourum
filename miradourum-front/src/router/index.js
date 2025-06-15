@@ -6,7 +6,7 @@ import Register from '@/views/Register.vue'
 import HomeLogged from '@/views/HomeLogged.vue'
 import UserEditProfile from '@/views/EditProfile.vue'
 import BecomePremium from '@/views/BecomePremium.vue'
-import UserProfile from "@/views/UserHistory.vue";
+import UserProfile from "@/views/UserProfile.vue";
 import piDetails from "@/views/PiDetails.vue";
 import photoGallery from "@/views/PhotoGallery.vue"
 import Review from '../views/Review.vue'
