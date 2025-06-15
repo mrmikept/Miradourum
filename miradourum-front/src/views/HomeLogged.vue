@@ -9,30 +9,78 @@
         <div class="map-header">
           <h2>Pontos de Interesse</h2>
           <div class="map-controls">
-            <!-- Botão para obter localização do utilizador-->
-            <button @click="getCurrentLocation" :disabled="isLoadingLocation" class="location-btn">
-              <span v-if="isLoadingLocation">🔄</span>
-              <span v-else>📍</span>
-              {{ isLoadingLocation ? 'Obtendo localização...' : ' Localização' }}
-            </button>
-            <!-- Botão para pesquisar coordenadas-->
-            <button @click="showSearchModal = true" class="search-btn">
-              🔍 Pesquisar Coordenadas
-            </button>
-            <!-- Botão para selecionar filtros-->
-            <button @click="showFiltersModal = true" class="filters-btn">
-              ⚙️ Filtros
-              <span v-if="hasActiveFilters" class="filter-indicator">●</span>
-            </button>
-            <!-- Selecionar o tipo de mapa (street, terreno, satélite)-->
-            <select v-model="selectedLayer" @change="changeMapLayer" class="layer-select">
-              <option value="streets">Ruas</option>
-              <option value="satellite">Satélite</option>
-              <option value="terrain">Terreno</option>
-            </select>
-              <button class="add-point-button" @click="goToCreate">
-    <span class="plus-icon">+</span>
-  </button>
+            <!-- Botão para obter localização do utilizador -->
+            <v-tooltip location="bottom" text="Atualizar localização atual">
+              <template v-slot:activator="{ props }">
+                <button
+                    v-bind="props"
+                    @click="getCurrentLocation"
+                    :disabled="isLoadingLocation"
+                    class="location-btn"
+                >
+                  <span v-if="isLoadingLocation">🔄</span>
+                  <span v-else>📍</span>
+                  {{ isLoadingLocation ? 'Obtendo localização...' : ' Localização' }}
+                </button>
+              </template>
+            </v-tooltip>
+
+            <!-- Botão para pesquisar coordenadas -->
+            <v-tooltip location="bottom" text="Procurar um ponto de interesse por coordenadas">
+              <template #activator="{ props }">
+                <button
+                    @click="showSearchModal = true"
+                    class="search-btn"
+                    v-bind="props"
+                >
+                  🔍 Pesquisar Coordenadas
+                </button>
+              </template>
+            </v-tooltip>
+
+            <!-- Botão para filtros -->
+            <v-tooltip location="bottom" text="Aplicar filtros avançados.">
+              <template #activator="{ props }">
+                <button
+                    @click="showFiltersModal = true"
+                    class="filters-btn"
+                    v-bind="props"
+                >
+                  ⚙️ Filtros
+                  <span v-if="hasActiveFilters" class="filter-indicator">●</span>
+                </button>
+              </template>
+            </v-tooltip>
+
+            <!-- Selector de tipo de mapa -->
+            <v-tooltip location="bottom">
+              <template #activator="{ props }">
+                <select
+                    v-model="selectedLayer"
+                    @change="changeMapLayer"
+                    class="layer-select"
+                    v-bind="props"
+                >
+                  <option value="streets">Ruas</option>
+                  <option value="satellite">Satélite</option>
+                  <option value="terrain">Terreno</option>
+                </select>
+              </template>
+              <span>Escolher tipo de mapa</span>
+            </v-tooltip>
+
+            <!-- Botão para adicionar ponto -->
+            <v-tooltip location="bottom" text="Criar um novo Ponto de Interesse">
+              <template #activator="{ props }">
+                <button
+                    class="add-point-button"
+                    @click="goToCreate"
+                    v-bind="props"
+                >
+                  <span class="plus-icon">+</span>
+                </button>
+              </template>
+            </v-tooltip>
           </div>
         </div>
         
@@ -1840,7 +1888,7 @@ const handleLogoClick = () => {
 }
 
 .add-point-button {
-  background-color: #e63946; /* red */
+  background-color: #3cb371; /* red */
   color: white;
   font-size: 1.5rem;
   font-weight: bold;
@@ -1858,7 +1906,7 @@ const handleLogoClick = () => {
 }
 
 .add-point-button:hover {
-  background-color: #c62828;
+  background-color: #2e8b57;
 }
 
 .plus-icon {

@@ -185,13 +185,6 @@
       <div class="modal-content">
         <h3>Adicionar Comentário</h3>
         <textarea v-model="newComment" placeholder="Escreve o teu comentário aqui..."></textarea>
-<!--        <label>-->
-<!--          Avaliação:-->
-<!--          <select v-model="newRating">-->
-<!--            <option disabled value="">Seleciona a avaliação</option>-->
-<!--            <option v-for="n in 5" :key="n" :value="n">{{ n }}</option>-->
-<!--          </select>-->
-<!--        </label>-->
         <div
             style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;"
         >
