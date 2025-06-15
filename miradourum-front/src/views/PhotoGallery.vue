@@ -17,17 +17,23 @@
     <div class="gallery-container">
       <h2>Galeria de Fotografias</h2>
       <div class="gallery-grid">
-        <div
-            v-for="img in images"
-            :key="img.id"
-            class="gallery-item">
-            
-          <img :src="img.url" :alt="'Foto ' + img.id" class="gallery-image" />
-          <p class="photo-caption">{{ img.pontoInteresseName || 'Miradouro desconhecido' }}</p>
-        </div>
+       <div
+  v-for="img in images"
+  :key="img.id"
+  class="gallery-item"
+  @click="openImage(img.url)"
+>
+  <img :src="img.url" :alt="'Foto ' + img.id" class="gallery-image" />
+  <p class="photo-caption">{{ img.pontoNome || 'Miradouro desconhecido' }}</p>
+</div>
+
         <p v-if="images.length === 0">Sem imagens disponíveis.</p>
       </div>
     </div>
+  <div v-if="enlargedImage" class="modal" @click="closeImage">
+  <img :src="enlargedImage" alt="Imagem ampliada" class="modal-image" />
+</div>
+
   </div>
 </template>
 
@@ -51,6 +57,13 @@ const handleLogout = () => {
   localStorage.removeItem('authToken')
   router.push('/login')
 }
+const enlargedImage = ref(null);
+const openImage = (url) => {
+  enlargedImage.value = url;
+};
+const closeImage = () => {
+  enlargedImage.value = null;
+};
 
 const fetchImages = async () => {
   try {
@@ -111,6 +124,27 @@ onMounted(fetchImages)
 </script>
 
 <style scoped>
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1500;
+  cursor: zoom-out;
+}
+
+.modal-image {
+  max-width: 90%;
+  max-height: 90%;
+  border-radius: 8px;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+}
+
 .gallery-page {
   background-color: white;
   min-height: 100vh;
